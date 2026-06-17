@@ -305,7 +305,7 @@ export default function NewsPage() {
 
       {/* Weather + search */}
       <div className="row">
-        <div className="col-12 mt-2" style={{ marginBottom: "37.5px" }}>
+        <div className="col-12 mt-4 pt-lg-2" style={{ marginBottom: "37.5px" }}>
           <Weather onSearch={onSearch} />
         </div>
       </div>
