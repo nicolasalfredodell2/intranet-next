@@ -139,7 +139,7 @@ export default function NewsPage() {
           {/* Featured */}
           <div className="col-12 col-lg-7-5 mr-lg-0 pr-lg-1 mb-lg-0 d-flex">
             <div
-              className="card p-3 p-lg-0 pointer rounded w-100 d-flex flex-column"
+              className="card border-0 p-3 p-lg-0 pointer rounded w-100 d-flex flex-column"
               style={{ background: "none", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
               onClick={() => redirectToNew(mainNews[0])}
             >
@@ -194,7 +194,7 @@ export default function NewsPage() {
               {mainNews[2] && (
                 <div className="col-6 col-lg-12 pr-lg-0 mb-lg-0 mt-lg-0 pl-xs-1">
                   <div
-                    className="card pointer rounded w-100 d-flex flex-column main-news-card"
+                    className="card pointer rounded w-100 d-flex flex-column main-news-card mt-4"
                     style={{ background: "none", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
                     onClick={() => redirectToNew(mainNews[2])}
                   >
@@ -226,7 +226,7 @@ export default function NewsPage() {
       {loadingMain && (
         <div className="mb-3 row">
           <div className="col-12 text-center">
-            <p className="pointer badge bg-white p-3 text-dark charge" style={{ borderRadius: 25, fontSize: 16, height: 50, lineHeight: "20px", boxShadow: "rgba(0,0,0,0.16) 0px 2px 6px", width: 292, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+            <p className="pointer bg-white p-3 text-dark charge" style={{ borderRadius: 25, fontSize: 16, height: 50, lineHeight: "20px", boxShadow: "rgba(0,0,0,0.16) 0px 2px 6px", width: 292, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
               Cargando noticias principales...
             </p>
           </div>
@@ -362,7 +362,7 @@ export default function NewsPage() {
       {loadingNews && (
         <div className="mb-3 row">
           <div className="col-12 text-center">
-            <p className="pointer badge bg-white p-3 text-dark" style={{ borderRadius: 25, fontSize: 16, height: 50, lineHeight: "20px", boxShadow: "rgba(0,0,0,0.16) 0px 2px 6px", width: 222, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+            <p className="pointer bg-white p-3 text-dark" style={{ borderRadius: 25, fontSize: 16, height: 50, lineHeight: "20px", boxShadow: "rgba(0,0,0,0.16) 0px 2px 6px", width: 222, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
               Cargando noticias...
             </p>
           </div>
@@ -370,9 +370,9 @@ export default function NewsPage() {
       )}
 
       {!loadingNews && canNext && (
-        <div className="mb-3 row">
+        <div className="my-3 row">
           <div className="col-12 text-center">
-            <p onClick={loadMore} className="pointer badge bg-white p-3 text-dark charge" style={{ borderRadius: 25, fontSize: 16, height: 50, lineHeight: "20px", boxShadow: "rgba(0,0,0,0.16) 0px 2px 6px", width: 222, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <p onClick={loadMore} className="pointer bg-white p-3 text-dark charge" style={{ borderRadius: 25, fontSize: 16, height: 50, lineHeight: "20px", boxShadow: "rgba(0,0,0,0.16) 0px 2px 6px", width: 222, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               Cargar más noticias
             </p>
           </div>
@@ -401,7 +401,7 @@ export default function NewsPage() {
           .col-lg-7-5 { flex: 0 0 62.5%; max-width: 62.5%; }
           .col-lg-4-5 { flex: 0 0 37.5%; max-width: 37.5%; }
         }
-        .img-main-principal { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+        .img-main-principal { width: 100%; flex: 1 1 0; object-fit: cover; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
         .img-main { width: 100%; aspect-ratio: 16/7; object-fit: cover; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
         .img-new { width: 100%; max-height: 186px; min-height: 186px; object-fit: unset; }
         .principal-main-news-title { font-size: clamp(24px, 3vw, 38px) !important; font-weight: 700 !important; line-height: clamp(28px, 3.5vw, 42px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
@@ -431,6 +431,7 @@ export default function NewsPage() {
           .charge { background-color: transparent !important; border: none !important; box-shadow: none !important; color: #768298 !important; font-weight: bold !important; text-decoration: underline; }
           img { border-radius: 15px; }
         }
+        .main-news-card { border: none !important; }
         @media (max-width: 992px) {
           .main-news-card { box-shadow: rgba(0,0,0,0.16) 0px 2px 8px !important; background-color: #FFF !important; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
           .main-news-card-title { background-color: #FFF !important; border-radius: 12px !important; padding: 15px !important; margin: 0 !important; }
