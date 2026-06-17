@@ -115,8 +115,8 @@ export default function Navbar() {
           <label className="d-md-none theme-switch-wrapper mb-0" style={{ backgroundColor: isDarkMode ? "#000" : "#D8DBE2" }}>
             <input type="checkbox" checked={isDarkMode} onChange={toggleDarkMode} />
             <div className="slider">
-              <i className={`fa fa-sun theme-icon ${isDarkMode ? "text-muted" : "text-dark"}`} />
-              <i className={`fa fa-moon theme-icon ${isDarkMode ? "text-dark" : "text-muted"}`} />
+              <i className={`far fa-sun theme-icon ${isDarkMode ? "text-muted" : "text-dark"}`} />
+              <i className={`far fa-moon theme-icon ${isDarkMode ? "text-dark" : "text-muted"}`} />
             </div>
           </label>
 
@@ -157,8 +157,8 @@ export default function Navbar() {
             <label className="theme-switch-wrapper mb-0" style={{ backgroundColor: isDarkMode ? "#000" : "#D8DBE2" }}>
               <input type="checkbox" checked={isDarkMode} onChange={toggleDarkMode} />
               <div className="slider">
-                <i className={`fa fa-sun theme-icon ${isDarkMode ? "text-muted" : "text-dark"}`} />
-                <i className={`fa fa-moon theme-icon ${isDarkMode ? "text-dark" : "text-muted"}`} />
+                <i className={`far fa-sun theme-icon ${isDarkMode ? "text-muted" : "text-dark"}`} />
+                <i className={`far fa-moon theme-icon ${isDarkMode ? "text-dark" : "text-muted"}`} />
               </div>
             </label>
 
@@ -381,7 +381,7 @@ export default function Navbar() {
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         input:checked + .slider:before { transform: translateX(120%); }
-        .theme-icon { font-size: 1.5rem !important; z-index: 1; }
+        .theme-icon { font-size: 1.2rem !important; z-index: 9999999; }
         .mobile-collapse-menu {
           max-height: 0;
           overflow: hidden;
