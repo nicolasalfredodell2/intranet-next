@@ -1,156 +1,184 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Calendar, CalendarDateTemplateEvent, CalendarMonthChangeEvent } from "primereact/calendar";
+import { addLocale } from "primereact/api";
 import { getAllDates } from "@/lib/services/calendar.service";
+
+addLocale("es", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  clear: "Limpiar",
+});
 
 export default function CalendarWidget() {
   const [dates, setDates] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDetails, setSelectedDetails] = useState<any | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   useEffect(() => {
     getAllDates().then(setDates).catch(() => {});
   }, []);
 
-  const year = currentMonth.getFullYear();
-  const month = currentMonth.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-  const getDayEvents = (day: number) =>
+  const getDayEvents = (day: number, month: number, year: number) =>
     dates.filter((d: any) => {
       const dt = new Date(d.date);
       return dt.getFullYear() === year && dt.getMonth() === month && dt.getDate() === day;
     });
 
-  const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
-  const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
+  const dateTemplate = (e: CalendarDateTemplateEvent) => {
+    const events = getDayEvents(e.day, e.month, e.year);
+    return (
+      <span style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        {e.day}
+        {events.length > 0 && (
+          <span style={{
+            display: "block",
+            width: "4px",
+            height: "4px",
+            background: "#7dd3fc",
+            borderRadius: "50%",
+            marginTop: "1px",
+          }} />
+        )}
+      </span>
+    );
+  };
 
-  const MONTHS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const DAYS = ["Do","Lu","Ma","Mi","Ju","Vi","Sa"];
-
-  const cells: (number | null)[] = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
-  while (cells.length % 7 !== 0) cells.push(null);
-
-  const todayNum = new Date().getDate();
-  const isCurrentMonth = new Date().getMonth() === month && new Date().getFullYear() === year;
+  const onMonthChange = (e: CalendarMonthChangeEvent) => {
+    // month is 1-based from PrimeReact
+    const filtered = dates.filter((d: any) => {
+      const dt = new Date(d.date);
+      return dt.getMonth() + 1 === e.month && dt.getFullYear() === e.year;
+    });
+    void filtered;
+  };
 
   return (
-    <div className="calendar-widget mb-3">
-      <div className="cal-header d-flex align-items-center justify-content-between px-3 py-2">
-        <button className="cal-nav" onClick={prevMonth}><i className="fas fa-chevron-left" /></button>
-        <span className="text-white font-weight-bold">{MONTHS[month]} {year}</span>
-        <button className="cal-nav" onClick={nextMonth}><i className="fas fa-chevron-right" /></button>
-      </div>
+    <div className="animate__animated animate__fadeIn calendar-widget-wrapper mb-3">
+      <Calendar
+        inline
+        showWeek={false}
+        locale="es"
+        value={selectedDate}
+        onChange={(e) => setSelectedDate(e.value as Date)}
+        onMonthChange={onMonthChange}
+        dateTemplate={dateTemplate}
+      />
 
-      <div className="cal-grid px-2 pb-2">
-        {DAYS.map((d) => (
-          <div key={d} className="cal-day-label">{d}</div>
-        ))}
-
-        {cells.map((day, idx) => {
-          if (!day) return <div key={idx} />;
-          const events = getDayEvents(day);
-          const isToday = isCurrentMonth && day === todayNum;
-          const isSelected = day === selectedDate.getDate() && month === selectedDate.getMonth() && year === selectedDate.getFullYear();
-
-          return (
-            <div
-              key={idx}
-              className={`cal-day ${isToday ? "today" : ""} ${isSelected ? "selected" : ""} ${events.length > 0 ? "has-event" : ""}`}
-              onClick={() => {
-                setSelectedDate(new Date(year, month, day));
-                if (events.length > 0) setSelectedDetails(events[0]);
-                else setSelectedDetails(null);
-              }}
-            >
-              {day}
-              {events.length > 0 && <span className="event-dot" />}
-            </div>
-          );
-        })}
-      </div>
-
-      {selectedDetails && (
-        <div className="cal-detail px-3 py-2 animated fadeIn">
-          <p className="text-white mb-1" style={{ fontSize: "0.85rem", fontWeight: "bold" }}>
-            {selectedDetails.title}
-          </p>
-          {selectedDetails.description && (
-            <p className="text-white mb-0" style={{ fontSize: "0.78rem", opacity: 0.85 }}>
-              {selectedDetails.description}
-            </p>
-          )}
-          <button
-            className="btn-close-detail"
-            onClick={() => setSelectedDetails(null)}
-          >
-            <i className="fas fa-times" />
-          </button>
-        </div>
-      )}
-
-      <style jsx>{`
-        .calendar-widget {
-          background-color: #4B5667;
-          border-radius: 15px;
-          overflow: hidden;
-          color: white;
-        }
-        .cal-header { background-color: #4B5667; }
-        .cal-nav {
-          background: none;
-          border: none;
-          color: white;
-          cursor: pointer;
-          font-size: 0.85rem;
-          padding: 4px 8px;
-        }
-        .cal-grid {
-          display: grid;
-          grid-template-columns: repeat(7, 1fr);
-          gap: 2px;
-        }
-        .cal-day-label {
-          text-align: center;
-          font-size: 0.7rem;
-          color: rgba(255,255,255,0.6);
-          padding: 4px 0;
-        }
-        .cal-day {
-          text-align: center;
-          font-size: 0.78rem;
-          padding: 5px 2px;
-          border-radius: 6px;
-          cursor: pointer;
-          position: relative;
-          transition: background 0.15s;
-        }
-        .cal-day:hover { background: rgba(255,255,255,0.12); }
-        .cal-day.today { background: rgba(66,133,244,0.35); font-weight: bold; }
-        .cal-day.selected { background: #4285F4; font-weight: bold; }
-        .cal-day.has-event { color: #7dd3fc; }
-        .event-dot {
+      <style jsx global>{`
+        .calendar-widget-wrapper .p-calendar {
+          border-radius: 10px !important;
+          height: auto !important;
+          width: 100% !important;
           display: block;
-          width: 4px;
-          height: 4px;
-          background: #4285F4;
-          border-radius: 50%;
-          margin: 2px auto 0;
         }
-        .cal-detail {
-          border-top: 1px solid rgba(255,255,255,0.15);
-          position: relative;
+
+        .calendar-widget-wrapper .p-datepicker-title {
+          color: #657187 !important;
+          font-size: 15px !important;
+          line-height: 29px !important;
+          font-weight: bold !important;
+          font-family: 'Montserrat', sans-serif !important;
         }
-        .btn-close-detail {
-          background: none;
-          border: none;
-          color: rgba(255,255,255,0.6);
-          position: absolute;
-          top: 8px; right: 8px;
-          cursor: pointer;
-          font-size: 0.75rem;
+
+        .calendar-widget-wrapper .p-datepicker {
+          padding-bottom: 2px !important;
+          border: none !important;
+          border-radius: 15px !important;
+          box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px !important;
+          background-color: #4B5667 !important;
+          width: 100% !important;
+          min-width: 100% !important;
+          height: auto !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker table td > span {
+          color: #fff !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker table td.p-datepicker-today > span {
+          background-color: #fff !important;
+          color: #4B5667 !important;
+          font-weight: bold !important;
+          border-radius: 50% !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker-inline {
+          width: 100% !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker-prev-icon,
+        .calendar-widget-wrapper .p-datepicker-next-icon {
+          color: #657187 !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker-prev,
+        .calendar-widget-wrapper .p-datepicker-next {
+          color: #657187 !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker-prev:hover,
+        .calendar-widget-wrapper .p-datepicker-next:hover {
+          background-color: rgba(101, 113, 135, 0.15) !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker-header {
+          border-radius: 10px !important;
+          background-color: #4B5667 !important;
+          border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+          color: #657187 !important;
+        }
+
+        /* Table layout */
+        .calendar-widget-wrapper .p-datepicker table {
+          width: 100% !important;
+          table-layout: fixed !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker table td,
+        .calendar-widget-wrapper .p-datepicker table th {
+          padding: 0.15rem !important;
+          text-align: center !important;
+        }
+
+        /* Day headers (Do, Lu, Ma…) */
+        .calendar-widget-wrapper .p-datepicker table th > span {
+          color: rgba(255, 255, 255, 0.6) !important;
+          font-size: clamp(10px, 2.5vw, 14px) !important;
+          overflow: hidden;
+        }
+
+        /* Day cells — circular, fluid */
+        .calendar-widget-wrapper .p-datepicker table td > span {
+          width: 100% !important;
+          max-width: 40px !important;
+          height: auto !important;
+          aspect-ratio: 1 / 1 !important;
+
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+          margin: 0 auto !important;
+          border-radius: 50% !important;
+
+          font-size: clamp(11px, 3vw, 15px) !important;
+          white-space: nowrap !important;
+        }
+
+        /* Selected day */
+        .calendar-widget-wrapper .p-datepicker table td > span.p-highlight {
+          background-color: #4285F4 !important;
+          color: #fff !important;
+        }
+
+        /* Disabled / other-month days */
+        .calendar-widget-wrapper .p-datepicker table td.p-datepicker-other-month > span {
+          color: rgba(255,255,255,0.3) !important;
         }
       `}</style>
     </div>
