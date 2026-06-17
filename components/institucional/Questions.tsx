@@ -181,7 +181,17 @@ export default function Questions() {
       )}
 
       <div className="mb-1 parpadeo row px-2">
-        <div className="card col-12 p-2 text-white" style={{ backgroundColor: "#4B5667", borderRadius: "15px" }}>
+        <div className="card col-12 p-2 text-white" style={{ backgroundColor: "#4B5667", borderRadius: "15px", position: "relative" }}>
+          {surveys.length > 1 && (
+            <button className="survey-arrow survey-arrow-left" onClick={() => changeSurvey(-1)}>
+              <i className="fa fa-chevron-left" />
+            </button>
+          )}
+          {surveys.length > 1 && (
+            <button className="survey-arrow survey-arrow-right" onClick={() => changeSurvey(1)}>
+              <i className="fa fa-chevron-right" />
+            </button>
+          )}
 
           {!survey.isFinishedForUser ? (
             <div className="row">
@@ -262,18 +272,6 @@ export default function Questions() {
                   )}
                 </div>
 
-                {surveys.length > 1 && (
-                  <div className="col-12">
-                    <div className="row">
-                      <div className="col-6">
-                        <button className="border-0 btn btn-block" style={{ backgroundColor: "#E2E6EA" }} onClick={() => changeSurvey(-1)}>Anterior</button>
-                      </div>
-                      <div className="col-6">
-                        <button className="border-0 btn btn-block" style={{ backgroundColor: "#E2E6EA" }} onClick={() => changeSurvey(1)}>Siguiente</button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -287,6 +285,30 @@ export default function Questions() {
           height: 220px;
           margin-bottom: 20px;
         }
+        .survey-arrow {
+          position: absolute;
+          top: 50px;
+          transform: translateY(-50%);
+          z-index: 10;
+          background: rgba(255,255,255,0.15);
+          border: none;
+          border-radius: 50%;
+          width: 28px;
+          height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-size: 12px;
+          cursor: pointer;
+          transition: background 0.2s;
+          padding: 0;
+        }
+        .survey-arrow:hover {
+          background: rgba(255,255,255,0.3);
+        }
+        .survey-arrow-left  { left: 6px; }
+        .survey-arrow-right { right: 6px; }
       `}</style>
     </>
   );
