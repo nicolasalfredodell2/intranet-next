@@ -40,11 +40,11 @@ export default function Internal() {
   return (
     <div className="row px-0 px-md-2 row-main">
       <div className="col-md-12" style={{ backgroundColor: "#4B5667", borderRadius: "10px" }}>
-        <div className="mt-3 row">
+        <div className="mt-2 row">
 
           <div className="col-12 text-center">
             <h5 style={{ color: "#FFF" }}>
-              <i className="fa fa-phone mr-2" />
+              <i className="fa fa-phone mr-2" style={{ fontSize: "14px" }} />
               <span style={{ fontWeight: 700, fontSize: "16px", lineHeight: "18px" }}>AGENDA</span>
             </h5>
           </div>
