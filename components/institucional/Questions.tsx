@@ -290,7 +290,7 @@ export default function Questions() {
         .chart-container {
           position: relative;
           width: 100%;
-          height: 220px;
+          height: auto;
           margin-bottom: 20px;
         }
         .survey-arrow {
