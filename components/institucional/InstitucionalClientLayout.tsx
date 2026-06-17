@@ -136,14 +136,14 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
                 {isLogged && (
                   <div className="d-none d-xl-block div-soporte row mt-4 pt-2 px-3">
                     <div
-                      className="col-12 pointer text-center pt-2 chat-card"
+                      className="col-12 pointer text-center pt-1 chat-card"
                       onClick={() => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank")}
                       style={{ boxShadow: "rgba(0,0,0,0.16) 0px 3px 6px, rgba(0,0,0,0.23) 0px 3px 6px" }}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src="/img/chat/logo.svg" className="chat-logo" alt="Logo Soporte" />
                       <div className="badge bg-white p-2 text-dark chat-badge shadow-sm">
-                        <strong>Chat soporte</strong>
+                        Chat soporte
                       </div>
                     </div>
                   </div>
