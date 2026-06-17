@@ -57,6 +57,14 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
     );
   };
 
+  const hoverExpand = (id: string) => {
+    setShorts((prev) => prev.map((s) => s.id === id ? { ...s, isExpanded: true } : s));
+  };
+
+  const hoverCollapse = (id: string) => {
+    setShorts((prev) => prev.map((s) => s.id === id ? { ...s, isExpanded: false } : s));
+  };
+
   const toggleLike = async (short: any, e: React.MouseEvent) => {
     e.stopPropagation();
     if (short.isProcessing) return;
@@ -86,7 +94,7 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
       <div className="row row-main">
         {visibleShorts.map((short: any) => (
           <div key={short.id} className="animated col-12 col-sm-6 col-lg-4 fadeIn mx-0 px-3 px-lg-2 short-item-container">
-            <div className="card w-100 short-card border" style={{ boxShadow: "rgba(50,50,93,0.25) 0px 50px 100px -20px, rgba(0,0,0,0.3) 0px 30px 60px -30px" }}>
+            <div className="card w-100 short-card border" style={{ boxShadow: "rgba(255,255,255,0.1) 0px 1px 1px 0px inset, rgba(50,50,93,0.25) 0px 50px 100px -20px, rgba(0,0,0,0.3) 0px 30px 60px -30px" }}>
               <div className="card-body p-2 d-flex flex-column h-100 bg-white">
 
                 <div className="media-container" style={{ aspectRatio: short.isExpanded ? "4/4" : "4/5" }}>
@@ -113,6 +121,8 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
                 <div className="text-content-wrapper p-3 d-flex flex-column flex-grow-1">
                   <h2
                     onClick={() => toggleExpand(short.id)}
+                    onMouseEnter={() => hoverExpand(short.id)}
+                    onMouseLeave={() => hoverCollapse(short.id)}
                     className={`h5 mt-1 mb-4 pointer title-text text-dark ${short.isExpanded ? "card-title-expanded" : "card-title-collapsed"}`}
                   >
                     {short.description}
@@ -125,7 +135,7 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
                           type="button"
                           onClick={(e) => toggleLike(short, e)}
                           disabled={short.isProcessing}
-                          className={`border-0 btn mr-3 text-white short-like-button${short.user_liked ? " liked" : ""}`}
+                          className={`border-0 btn mr-3 text-white short-like-button${short.user_liked ? " liked" : ""}${short.isProcessing ? " opacity-50" : ""}`}
                           style={{ backgroundColor: "#D8DBE2", width: "50px", height: "50px", borderRadius: "50%", padding: 0, transition: "all 0.3s ease" }}
                         >
                           <i className={`fa-${short.isProcessing ? "solid fa-spinner fa-spin" : "regular fa-thumbs-up"}`} style={{ fontSize: "1rem" }} />
@@ -134,7 +144,7 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
 
                       <div className="col-9 text-muted text-right d-flex justify-content-end card-more pt-2">
                         <i className="fa-regular fa-clock mr-1 mt-1" />
-                        <span style={{ fontWeight: 400, lineHeight: "24px" }}>{formatTimeAgo(short.created_at)}</span>
+                        <span style={{ fontFamily: "'Inter' !important", fontWeight: 400, lineHeight: "24px", letterSpacing: "0px" }}>{formatTimeAgo(short.created_at)}</span>
                       </div>
                     </div>
                   )}
@@ -192,6 +202,8 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
           color: rgba(255,255,255,0.9);
           text-shadow: 0px 4px 10px rgba(0,0,0,0.5);
           pointer-events: none;
+          width: 56px;
+          height: 56px;
         }
         .text-content-wrapper {
           overflow-y: auto;
@@ -211,6 +223,15 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
           -webkit-box-orient: vertical;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+        .short-like-button {
+          max-width: 32px;
+          max-height: 32px;
+          border-radius: 50% !important;
+          padding: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
         .short-like-button.liked {
           background: linear-gradient(to bottom right, #4285F4, #1A5BC9) !important;
@@ -252,6 +273,7 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
           justify-content: center;
           align-items: center;
           box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+          transition: all 0.2s ease;
         }
         .nav-btn.left { left: 20px; }
         .nav-btn.right { right: 20px; }
