@@ -97,7 +97,7 @@ export default function Navbar() {
     }
   };
 
-  const apiUrl = API.replace(/\/api\/?$/, "");
+
 
   return (
     <>
@@ -137,7 +137,7 @@ export default function Navbar() {
           {/* Mobile: profile */}
           {isLogged && (
             dataUser?.avatar
-              ? <img onClick={() => router.push("/main/profile")} className="d-md-none pointer img-profile shadow-sm" src={`${apiUrl}/${dataUser.avatar}`} alt="perfil" />
+              ? <img onClick={() => router.push("/main/profile")} className="d-md-none pointer img-profile shadow-sm" src={`${API}${dataUser.avatar}`} alt="perfil" />
               : <div className="d-md-none btn-action-circle btn-profile pointer shadow-sm center-content ml-2" onClick={() => router.push("/main/profile")}>
                   <i className="mdi mdi-account profile-icon text-white w-100 text-center" />
                 </div>
@@ -178,12 +178,12 @@ export default function Navbar() {
             {isLogged && (
               <>
                 {dataUser?.avatar
-                  ? <img className="pointer img-profile shadow-sm" onClick={() => router.push("/main/profile")} src={`${apiUrl}/${dataUser.avatar}`} alt="perfil" />
+                  ? <img className="pointer img-profile shadow-sm" onClick={() => router.push("/main/profile")} src={`${API}${dataUser.avatar}`} alt="perfil" />
                   : <div className="btn-action-circle btn-profile pointer shadow-sm center-content" onClick={() => router.push("/main/profile")}>
                       <i className="mdi mdi-account profile-icon text-white" />
                     </div>
                 }
-                <strong className="text-white pointer mx-0 px-0" onClick={() => router.push("/main/profile")}>PERFIL</strong>
+                <span className="text-white pointer mx-0 px-0" onClick={() => router.push("/main/profile")}>PERFIL</span>
               </>
             )}
           </div>
