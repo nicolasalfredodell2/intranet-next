@@ -33,7 +33,6 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
   if (!shorts || shorts.length === 0) return null;
 
   const visibleShorts = shorts.slice(currentIndex, currentIndex + numVisible);
-  const dotsCount = Math.max(0, shorts.length - numVisible + 1);
 
   const stopAll = () => setShorts((prev) => prev.map((s) => ({ ...s, isPlaying: false })));
 
@@ -162,17 +161,6 @@ export default function Shorts({ shorts: initialShorts }: ShortsProps) {
         </button>
       )}
 
-      {shorts.length > numVisible && (
-        <div className="carousel-indicators-custom">
-          {Array.from({ length: dotsCount }).map((_, i) => (
-            <span
-              key={i}
-              className={`dot${i === currentIndex ? " active" : ""}`}
-              onClick={() => { stopAll(); setCurrentIndex(i); }}
-            />
-          ))}
-        </div>
-      )}
 
       <style jsx>{`
         .bg-dark-card { background-color: #4B5667 !important; }
