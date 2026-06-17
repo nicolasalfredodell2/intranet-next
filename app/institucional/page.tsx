@@ -161,34 +161,63 @@ export default function NewsPage() {
           </div>
 
           {/* Secondary news */}
-          <div className="col-12 col-lg-4-5 ml-lg-0 pl-lg-0 d-flex">
+          <div className="col-12 col-lg-4-5 ml-lg-0 pl-lg-0 d-flex d-flex">
             <div className="row m-0 align-content-start">
-              {[1, 2].map((idx) => mainNews[idx] && (
-                <div key={idx} className={`col-6 col-lg-12 pr-lg-0 mb-lg-2`}>
+
+              {mainNews[1] && (
+                <div className="col-6 col-lg-12 pr-lg-0 mb-lg-2 pr-xs-1">
                   <div
                     className="card pointer rounded w-100 d-flex flex-column main-news-card"
                     style={{ background: "none", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
-                    onClick={() => redirectToNew(mainNews[idx])}
+                    onClick={() => redirectToNew(mainNews[1])}
                   >
                     {!isMobileForMain && (
                       <div className="flex-grow-1">
-                        <h2 className="h6 main-news-title text-dark">{mainNews[idx]?.title}</h2>
+                        <h2 className="h6 main-news-title text-dark">{mainNews[1]?.title}</h2>
                       </div>
                     )}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {mainNews[idx]?.images?.[0] && <img className="img-main mt-auto" src={imgSrc(mainNews[idx].images)} alt={mainNews[idx].title} />}
+                    {mainNews[1]?.images?.[0] && <img className="img-main mt-auto" src={imgSrc(mainNews[1].images)} alt={mainNews[1]?.title} />}
                     {isMobileForMain && (
                       <div className="flex-grow-1 main-news-card-title">
-                        <h2 className="h6 main-news-title text-dark">{mainNews[idx]?.title}</h2>
+                        <h2 className="h6 main-news-title text-dark">{mainNews[1]?.title}</h2>
                       </div>
                     )}
                     <div className="d-xs-flex d-md-none text-muted mt-auto text-right pr-2 pb-2">
                       <i className="fa-regular fa-clock mr-1 mt-1" />
-                      <span>{formatTimeAgo(mainNews[idx]?.created_at)}</span>
+                      <span style={{ fontFamily: "'Inter'" }}>{formatTimeAgo(mainNews[1]?.created_at)}</span>
                     </div>
                   </div>
                 </div>
-              ))}
+              )}
+
+              {mainNews[2] && (
+                <div className="col-6 col-lg-12 pr-lg-0 mb-lg-0 mt-lg-0 pl-xs-1">
+                  <div
+                    className="card pointer rounded w-100 d-flex flex-column main-news-card"
+                    style={{ background: "none", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
+                    onClick={() => redirectToNew(mainNews[2])}
+                  >
+                    {!isMobileForMain && (
+                      <div className="flex-grow-1">
+                        <h2 className="h6 main-news-title text-dark">{mainNews[2]?.title}</h2>
+                      </div>
+                    )}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {mainNews[2]?.images?.[0] && <img className="img-main mt-auto" src={imgSrc(mainNews[2].images)} alt={mainNews[2]?.title} />}
+                    {isMobileForMain && (
+                      <div className="flex-grow-1 main-news-card-title">
+                        <h2 className="h6 main-news-title text-dark">{mainNews[2]?.title}</h2>
+                      </div>
+                    )}
+                    <div className="d-xs-flex d-md-none text-muted mt-auto text-right pr-2 pb-2">
+                      <i className="fa-regular fa-clock mr-1 mt-1" />
+                      <span style={{ fontFamily: "'Inter'" }}>{formatTimeAgo(mainNews[2]?.created_at)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
@@ -220,28 +249,58 @@ export default function NewsPage() {
 
       {/* Tablet sector buttons (md-xl) */}
       <div className="d-none d-md-flex d-xl-none mb-3 row">
-        {[
-          { icon: "fa fa-phone", label: "Agenda", onClick: () => setShowAgendaModal(true) },
-          { icon: "fa-regular fa-calendar", label: "Calendario", onClick: () => setShowCalendarModal(true) },
-          { isChat: true, label: "Chat Soporte" },
-          { icon: "fa fa-file-pen", label: "Encuesta", onClick: () => setShowQuestionsModal(true) },
-        ].map((s: any, i) => (
-          <div key={i} className="col-3 sector">
-            <div className="sector-container pointer" onClick={s.isChat ? () => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank") : s.onClick}>
-              <div className="row d-flex align-items-center h-100">
-                <div className="col-12 text-center mt-3">
-                  {s.isChat
-                    ? <img src="/img/chat/logo.svg" className="sector-icon img-logo-caht" alt="Chat" />
-                    : <i className={`sector-icon sector-custom-padding ${s.icon} text-white`} />
-                  }
-                </div>
-                <div className="col-12 text-center mt-2">
-                  <p className="text-sector text-white">{s.label}</p>
-                </div>
+        <div className="col-3 sector">
+          <div className="sector-container pointer" onClick={() => setShowAgendaModal(true)}>
+            <div className="row d-flex align-items-center h-100">
+              <div className="col-12 text-center mt-3">
+                <i className="sector-icon sector-custom-padding fa fa-phone text-white" />
+              </div>
+              <div className="col-12 text-center mt-2">
+                <p className="text-sector text-white">Agenda</p>
               </div>
             </div>
           </div>
-        ))}
+        </div>
+
+        <div className="col-3 sector">
+          <div className="sector-container pointer" onClick={() => setShowCalendarModal(true)}>
+            <div className="row d-flex align-items-center h-100">
+              <div className="col-12 text-center mt-3">
+                <i className="sector-icon sector-custom-padding fa-regular fa-calendar text-white" />
+              </div>
+              <div className="col-12 text-center mt-2">
+                <p className="text-sector text-white">Calendario</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-3 sector">
+          <div className="sector-container pointer" onClick={() => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank")}>
+            <div className="row d-flex align-items-center h-100">
+              <div className="col-12 text-center mt-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/img/chat/logo.svg" className="sector-icon img-logo-caht" alt="Logo Soporte" />
+              </div>
+              <div className="col-12 text-center mt-2">
+                <p className="text-sector text-white">Chat Soporte</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-3 sector">
+          <div className="sector-container pointer" onClick={() => setShowQuestionsModal(true)}>
+            <div className="row d-flex align-items-center h-100">
+              <div className="col-12 text-center mt-3">
+                <i className="sector-icon fa fa-file-pen text-white" />
+              </div>
+              <div className="col-12 text-center mt-2">
+                <p className="text-sector text-white">Encuesta</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Weather + search */}
@@ -267,10 +326,10 @@ export default function NewsPage() {
                 )}
                 <div className="card-body py-3 d-flex flex-column bg-white" style={{ borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}>
                   <h2 className="card-title h5 font-bold mb-lg-3 text-dark" style={{ fontFamily: "Montserrat", minHeight: 48 }}>{item.title}</h2>
-                  <p className="d-none d-lg-block card-description">{item.smallDescription}</p>
+                  <p className="d-none d-lg-block card-description" style={{ fontFamily: "'Inter'", height: 48 }}>{item.smallDescription}</p>
                   <div className="text-muted mt-auto d-flex justify-content-end card-more">
                     <i className="fa-regular fa-clock mr-1 mt-1" />
-                    <span>{formatTimeAgo(item.created_at)}</span>
+                    <span style={{ fontFamily: "'Inter'" }}>{formatTimeAgo(item.created_at)}</span>
                   </div>
                 </div>
               </div>
@@ -346,13 +405,18 @@ export default function NewsPage() {
         .main-news-title { font-size: clamp(16px, 2vw, 20px) !important; font-weight: 700 !important; line-height: clamp(22px, 2.5vw, 28px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .card-title { font-size: clamp(16px, 2vw, 16px) !important; font-weight: 700 !important; line-height: clamp(24px, 2.5vw, 24px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .card-description { font-size: clamp(16px, 2vw, 16px) !important; font-weight: 400 !important; line-height: clamp(24px, 2.5vw, 24px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
-        .card-more { font-size: clamp(16px, 2vw, 16px) !important; }
+        .card-more { font-size: clamp(16px, 2vw, 16px) !important; font-weight: 400 !important; line-height: clamp(24px, 2.5vw, 24px) !important; }
+        .card-body-no-main { height: 80px; }
         .sector-icon { background-color: #B1B8C4; border-radius: 50%; font-size: 30px; padding: 25px; }
         .sector-custom-padding { padding: 25px 30px; }
         .sector { padding: 15px 0; }
         .img-logo-caht { height: 75px; width: 75px; padding: 15px; }
         .sector-container { background: linear-gradient(to bottom, #5C6373 0%, #454C5C 100%); border-radius: 30px; display: flex; align-items: center; justify-content: center; height: 147px; width: 100%; }
-        .text-sector { font-size: 20px; }
+        .text-sector { font-family: Inter !important; font-size: 20px; }
+        .bg-dark-card { background-color: #4B5667 !important; }
+        .el-element-overlay, .el-element-overlay-main { transition: all .2s ease-in-out; }
+        .el-element-overlay:hover { transform: scale(1.07); z-index: 9999; }
+        .rounded-bottom { border-bottom-left-radius: 15px !important; border-bottom-right-radius: 15px !important; }
         .charge { background-color: #f8f9fa; }
         hr { border: 0; border-top: 1px solid #4B5667; opacity: 1; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 99999; }
@@ -361,13 +425,18 @@ export default function NewsPage() {
         @media (max-width: 1000px) {
           .img-main-principal { aspect-ratio: 4/3; }
           .charge { background-color: transparent !important; border: none !important; box-shadow: none !important; color: #768298 !important; font-weight: bold !important; text-decoration: underline; }
+          img { border-radius: 15px; }
         }
         @media (max-width: 992px) {
           .main-news-card { box-shadow: rgba(0,0,0,0.16) 0px 2px 8px !important; background-color: #FFF !important; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
           .main-news-card-title { background-color: #FFF !important; border-radius: 12px !important; padding: 15px !important; }
         }
-        @media (max-width: 576px) {
+        @media (max-width: 750px) {
           .principal-main-news-title { font-size: clamp(20px, 2.5vw, 20px) !important; }
+        }
+        @media (max-width: 576px) {
+          .pr-xs-1 { padding-right: 5px; }
+          .pl-xs-1 { padding-left: 5px; }
         }
       `}</style>
     </div>
