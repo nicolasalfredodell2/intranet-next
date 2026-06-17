@@ -1,40 +1,24 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Montserrat se carga vía next/font/google en layout.tsx — no hace falta @import */
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+h1, h2, h3, h4, h5, h6, button, p, small, input {
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif !important;
 }
 
-html {
+html, body {
   height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
+  touch-action: manipulation;
   overflow-x: hidden;
 }
 
 body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #EDEDED;
 }
 
 a {
@@ -42,8 +26,193 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+body::-webkit-scrollbar {
+  display: none;
+  width: 20px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background-color: #d6dee1;
+  border-radius: 10px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+  min-height: 150px;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background-color: #a8bbbf;
+}
+
+body::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* ========================
+   Auth / Login
+   ======================== */
+
+.login-register {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  min-height: 100vh !important;
+  width: 100%;
+  padding: 10% 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.login-box {
+  position: absolute;
+  z-index: 2;
+  margin-left: auto;
+  margin-right: auto;
+  left: 0;
+  right: 0;
+  top: 20px;
+  text-align: center;
+  width: 400px;
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    width: 90%;
   }
+}
+
+/* ========================
+   Status Badges
+   ======================== */
+
+.status-danger {
+  background-color: #FFCDD3;
+  border-radius: 10px;
+  color: #e05153;
+}
+
+.status-muted {
+  background-color: #F8F9FA;
+  border-radius: 10px;
+  color: #635c50;
+}
+
+.status-success {
+  background-color: #C8E6C9;
+  border-radius: 10px;
+  color: #48884a;
+}
+
+.status-warning {
+  background-color: #FFE082;
+  border-radius: 10px;
+  color: #c49303;
+}
+
+/* ========================
+   Utilities
+   ======================== */
+
+.bg-dark {
+  background-color: #1F2025 !important;
+}
+
+.badge-green {
+  background-color: #688C9D;
+}
+
+.btn-green {
+  background-color: #688C9D;
+  color: #FFF;
+}
+
+.card {
+  box-shadow: rgba(0, 0, 0, 0.1) -4px 9px 25px -6px;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.opacity-0 {
+  opacity: 0 !important;
+}
+
+.border-0 {
+  border-radius: 0px !important;
+}
+
+.hr-double {
+  border-top: 3px double #ced1dd;
+  margin: 10px;
+  width: 100%;
+}
+
+.new-description {
+  color: #000;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 1.3rem;
+}
+
+/* ========================
+   Scrollable
+   ======================== */
+
+.scrollable::-webkit-scrollbar {
+  width: 16px;
+}
+
+.scrollable::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+  background-color: #d6dee1;
+  border-radius: 10px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+  min-height: 150px;
+}
+
+.scrollable::-webkit-scrollbar-thumb:hover {
+  background-color: #a8bbbf;
+}
+
+/* ========================
+   Custom Bootstrap Columns
+   ======================== */
+
+@media (min-width: 992px) {
+  .col-lg-7-5 {
+    flex: 0 0 62.5%;
+    max-width: 62.5%;
+  }
+
+  .col-lg-4-5 {
+    flex: 0 0 37.5%;
+    max-width: 37.5%;
+  }
+}
+
+/* ========================
+   Animations
+   ======================== */
+
+.fa-circle-animation {
+  animation: fadeInFadeOut 2s infinite;
+}
+
+.fadeOutRight {
+  animation: fadeOutRight 3s;
+}
+
+@keyframes fadeInFadeOut {
+  0%   { opacity: 0.1; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.1; }
+}
+
+@keyframes fadeOutRight {
+  0%   { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(20px); }
 }
