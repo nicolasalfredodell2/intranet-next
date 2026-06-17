@@ -431,10 +431,10 @@ export default function NewsPage() {
           .charge { background-color: transparent !important; border: none !important; box-shadow: none !important; color: #768298 !important; font-weight: bold !important; text-decoration: underline; }
           img { border-radius: 15px; }
         }
-        .main-news-card { border: none !important; }
+        .main-news-card { border: none !important; background-color: #ededed !important; }
         @media (max-width: 992px) {
-          .main-news-card { box-shadow: rgba(0,0,0,0.16) 0px 2px 8px !important; background-color: #FFF !important; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
-          .main-news-card-title { background-color: #FFF !important; border-radius: 12px !important; padding: 15px !important; margin: 0 !important; }
+          .main-news-card { box-shadow: rgba(0,0,0,0.16) 0px 2px 8px !important; background-color: #ededed !important; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
+          .main-news-card-title { background-color: #ededed !important; border-radius: 12px !important; padding: 15px !important; margin: 0 !important; }
         }
         @media (max-width: 750px) {
           .principal-main-news-title { font-size: clamp(20px, 2.5vw, 20px) !important; }
