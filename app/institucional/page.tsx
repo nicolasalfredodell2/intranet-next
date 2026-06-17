@@ -185,7 +185,7 @@ export default function NewsPage() {
                     )}
                     <div className="d-xs-flex d-md-none text-muted mt-auto text-right pr-2 pb-2">
                       <i className="fa-regular fa-clock mr-1 mt-1" />
-                      <span style={{ fontFamily: "'Inter'" }}>{formatTimeAgo(mainNews[1]?.created_at)}</span>
+                      <span style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif" }}>{formatTimeAgo(mainNews[1]?.created_at)}</span>
                     </div>
                   </div>
                 </div>
@@ -212,7 +212,7 @@ export default function NewsPage() {
                     )}
                     <div className="d-xs-flex d-md-none text-muted mt-auto text-right pr-2 pb-2">
                       <i className="fa-regular fa-clock mr-1 mt-1" />
-                      <span style={{ fontFamily: "'Inter'" }}>{formatTimeAgo(mainNews[2]?.created_at)}</span>
+                      <span style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif" }}>{formatTimeAgo(mainNews[2]?.created_at)}</span>
                     </div>
                   </div>
                 </div>
@@ -326,10 +326,10 @@ export default function NewsPage() {
                 )}
                 <div className="card-body py-3 d-flex flex-column bg-white" style={{ borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}>
                   <h2 className="card-title h5 font-bold mb-lg-3 text-dark" style={{ fontFamily: "Montserrat", minHeight: 48 }}>{item.title}</h2>
-                  <p className="d-none d-lg-block card-description" style={{ fontFamily: "'Inter'", height: 48 }}>{item.smallDescription}</p>
+                  <p className="d-none d-lg-block card-description" style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif", height: 48 }}>{item.smallDescription}</p>
                   <div className="text-muted mt-auto d-flex justify-content-end card-more">
                     <i className="fa-regular fa-clock mr-1 mt-1" />
-                    <span style={{ fontFamily: "'Inter'" }}>{formatTimeAgo(item.created_at)}</span>
+                    <span style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif" }}>{formatTimeAgo(item.created_at)}</span>
                   </div>
                 </div>
               </div>
@@ -347,7 +347,7 @@ export default function NewsPage() {
                     <div className="text-muted mt-auto d-flex justify-content-end">
                       <small>
                         <i className="fa-regular fa-clock mr-1 mt-1" />
-                        <span>{formatTimeAgo(item.created_at)}</span>
+                        <span style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif" }}>{formatTimeAgo(item.created_at)}</span>
                       </small>
                     </div>
                   </div>
@@ -404,7 +404,7 @@ export default function NewsPage() {
         .principal-main-news-description { font-size: clamp(14px, 1.5vw, 16px) !important; font-weight: 500 !important; line-height: clamp(20px, 2vw, 22px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .main-news-title { font-size: clamp(16px, 2vw, 20px) !important; font-weight: 700 !important; line-height: clamp(22px, 2.5vw, 28px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .card-title { font-size: clamp(16px, 2vw, 16px) !important; font-weight: 700 !important; line-height: clamp(24px, 2.5vw, 24px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
-        .card-description { font-size: clamp(16px, 2vw, 16px) !important; font-weight: 400 !important; line-height: clamp(24px, 2.5vw, 24px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+        .card-description { font-family: Inter !important; font-size: clamp(16px, 2vw, 16px) !important; font-weight: 400 !important; line-height: clamp(24px, 2.5vw, 24px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .card-more { font-size: clamp(16px, 2vw, 16px) !important; font-weight: 400 !important; line-height: clamp(24px, 2.5vw, 24px) !important; }
         .card-body-no-main { height: 80px; }
         .sector-icon { background-color: #B1B8C4; border-radius: 50%; font-size: 30px; padding: 25px; }
