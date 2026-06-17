@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { getNews, likeNews, unlikeNews } from "@/lib/services/news.service";
 import { formatTimeAgo } from "@/lib/utils/time";
 
-const API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") || "";
+const API = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function NoticiaPage() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function NoticiaPage() {
   };
 
   const goBack = () => { window.scrollTo(0, 0); router.push("/institucional"); };
-  const imgSrc = (img: any) => img?.path_url ? `${API}/${img.path_url}` : "/img/news/no-image.png";
+  const imgSrc = (img: any) => img?.path_url ? `${API}${img.path_url}` : "/img/news/no-image.png";
 
   const images = notice?.images || [];
 

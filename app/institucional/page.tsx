@@ -13,7 +13,7 @@ import Internal from "@/components/institucional/Internal";
 import CalendarWidget from "@/components/institucional/CalendarWidget";
 import Questions from "@/components/institucional/Questions";
 
-const API = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") || "";
+const API = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function NewsPage() {
   const router = useRouter();
@@ -93,7 +93,7 @@ export default function NewsPage() {
     router.push(`/institucional/noticia/${notice.id}`);
   };
 
-  const imgSrc = (images: any[]) => images?.[0]?.path_url ? `${API}/${images[0].path_url}` : "/img/news/no-image.png";
+  const imgSrc = (images: any[]) => images?.[0]?.path_url ? `${API}${images[0].path_url}` : "/img/news/no-image.png";
 
   const Modal = ({ show, onClose, children }: { show: boolean; onClose: () => void; children: React.ReactNode }) =>
     !show ? null : (
