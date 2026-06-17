@@ -140,7 +140,7 @@ export default function NewsPage() {
           <div className="col-12 col-lg-7-5 mr-lg-0 pr-lg-1 mb-lg-0 d-flex">
             <div
               className="card border-0 p-3 p-lg-0 pointer rounded w-100 d-flex flex-column"
-              style={{ background: "none", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
+              style={{ boxShadow: 'none', background: "#EDEDED", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
               onClick={() => redirectToNew(mainNews[0])}
             >
               {!isMobileForMain && (
@@ -168,7 +168,7 @@ export default function NewsPage() {
                 <div className="col-6 col-lg-12 pr-lg-0 mb-lg-2 pr-xs-1">
                   <div
                     className="card pointer rounded w-100 d-flex flex-column main-news-card"
-                    style={{ background: "none", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
+                    style={{ background: "#EDEDED", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
                     onClick={() => redirectToNew(mainNews[1])}
                   >
                     {!isMobileForMain && (
@@ -431,9 +431,9 @@ export default function NewsPage() {
           .charge { background-color: transparent !important; border: none !important; box-shadow: none !important; color: #768298 !important; font-weight: bold !important; text-decoration: underline; }
           img { border-radius: 15px; }
         }
-        .main-news-card { border: none !important; background-color: #ededed !important; }
+        .main-news-card { border: none !important; background-color: #ededed !important; box-shadow: none !important; }
         @media (max-width: 992px) {
-          .main-news-card { box-shadow: rgba(0,0,0,0.16) 0px 2px 8px !important; background-color: #ededed !important; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
+          .main-news-card { box-shadow: none !important; background-color: #ededed !important; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
           .main-news-card-title { background-color: #ededed !important; border-radius: 12px !important; padding: 15px !important; margin: 0 !important; }
         }
         @media (max-width: 750px) {
