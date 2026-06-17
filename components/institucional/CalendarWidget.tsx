@@ -84,6 +84,18 @@ export default function CalendarWidget() {
           line-height: 29px !important;
           font-weight: bold !important;
           font-family: 'Montserrat', sans-serif !important;
+          text-transform: uppercase !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker-month,
+        .calendar-widget-wrapper .p-datepicker-year {
+          pointer-events: none !important;
+          cursor: default !important;
+          color: #000 !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker-month.p-link {
+          text-transform: uppercase !important;
         }
 
         .calendar-widget-wrapper .p-datepicker {
@@ -128,10 +140,11 @@ export default function CalendarWidget() {
         }
 
         .calendar-widget-wrapper .p-datepicker-header {
-          border-radius: 10px !important;
-          background-color: #4B5667 !important;
-          border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+          border-radius: 15px !important;
+          background-color: #fff !important;
+          border-bottom: none !important;
           color: #657187 !important;
+          padding: 0px !important;
         }
 
         /* Table layout */
