@@ -134,7 +134,7 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
                 </div>
 
                 {isLogged && (
-                  <div className="d-none d-xl-block row mt-4 pt-2 px-3">
+                  <div className="d-none d-xl-block div-soporte row mt-4 pt-2 px-3">
                     <div
                       className="col-12 pointer text-center pt-2 chat-card"
                       onClick={() => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank")}
@@ -178,10 +178,28 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
         .chat-card {
           background: linear-gradient(to bottom right, #4285F4, #1A5BC9);
           border-radius: 10px;
+          transition: transform 0.2s ease-in-out;
+          margin-top: -0.5rem !important;
           cursor: pointer;
         }
-        .chat-logo { width: 60px; height: 60px; }
-        .chat-badge { margin: 8px auto 12px; display: inline-block; border-radius: 20px; }
+        .chat-logo {
+          width: 55%;
+        }
+        .chat-badge {
+          border-radius: 50px;
+          margin-top: clamp(0.4rem, 6%, 0.75rem);
+          margin-bottom: clamp(0.4rem, 6%, 0.75rem);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          font-size: clamp(0.8rem, 1.1vw, 0.9rem) !important;
+          white-space: normal;
+          width: 60%;
+        }
+        .chat-icon {
+          font-size: clamp(1rem, 1.5vw, 1.25rem);
+        }
         @media (max-width: 768px) {
           .pt-custom { padding-top: 25px; }
           .row-main { margin-left: 0; margin-right: 0; }
