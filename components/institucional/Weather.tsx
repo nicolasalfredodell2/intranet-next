@@ -91,6 +91,7 @@ export default function Weather({ onSearch }: WeatherProps) {
           height: 50px;
           padding-left: 20px;
           width: 100%;
+          color: #000;
         }
 
         .search-input-group {
