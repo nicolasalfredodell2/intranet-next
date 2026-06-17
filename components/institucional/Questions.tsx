@@ -96,23 +96,29 @@ export default function Questions() {
     setIsLoadingChart(true);
     try {
       const report = await loadSurveyReport(surveyId);
-      const charts = report.questions?.map((q: any) => {
-        const counts: Record<string, number> = {};
-        q.people_answers?.forEach((pa: any) => { counts[pa.answer_id] = (counts[pa.answer_id] || 0) + 1; });
-        const labels: string[] = [];
-        const data: number[] = [];
-        q.question_answers?.forEach((qa: any) => { labels.push(qa.answer.value); data.push(counts[qa.answer.id] || 0); });
+
+      const questions: any[] = report.questions ?? report.data?.questions ?? [];
+      const charts = questions.map((q: any) => {
+        const labelMap: Record<string, number> = {};
+        q.people_answers?.forEach((pa: any) => {
+          const label = pa.answer?.value ?? String(pa.answer_id);
+          labelMap[label] = (labelMap[label] || 0) + 1;
+        });
+        const labels = Object.keys(labelMap);
+        const data = Object.values(labelMap);
         return {
           title: q.name,
-          type: "pie",
           itemsChart: {
             labels,
-            datasets: [{ label: "Veces seleccionada", data, fill: false, backgroundColor: BG_COLORS, borderColor: BORDER_COLORS, borderWidth: 1 }],
+            datasets: [{ label: "Veces seleccionada", data, backgroundColor: BG_COLORS.slice(0, labels.length), borderColor: BORDER_COLORS.slice(0, labels.length), borderWidth: 1 }],
           },
         };
       });
       setSurveys((prev) => prev.map((s) => String(s.id) === String(surveyId) ? { ...s, charts } : s));
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error("[Questions] addReport error:", err);
+      setSurveys((prev) => prev.map((s) => String(s.id) === String(surveyId) ? { ...s, charts: [] } : s));
+    }
     setIsLoadingChart(false);
   };
 
@@ -181,7 +187,7 @@ export default function Questions() {
       )}
 
       <div className="mb-1 parpadeo row px-2">
-        <div className="card col-12 p-2 text-white" style={{ backgroundColor: "#4B5667", borderRadius: "15px", position: "relative" }}>
+        <div className="card col-12 p-2 pb-4 text-white" style={{ backgroundColor: "#4B5667", borderRadius: "15px", position: "relative" }}>
           {surveys.length > 1 && (
             <button className="survey-arrow survey-arrow-left" onClick={() => changeSurvey(-1)}>
               <i className="fa fa-chevron-left" />
@@ -262,6 +268,8 @@ export default function Questions() {
                     <p className="animated fadeIn">
                       <i className="mr-1 pi pi-spin pi-spinner" /> Cargando gráfico
                     </p>
+                  ) : survey.charts.length === 0 ? (
+                    <p className="animated fadeIn"><small>Sin resultados disponibles</small></p>
                   ) : (
                     survey.charts.map((chart: any, ci: number) => (
                       <div key={ci} className="chart-container">
