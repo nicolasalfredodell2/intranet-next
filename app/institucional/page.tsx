@@ -144,7 +144,7 @@ export default function NewsPage() {
               onClick={() => redirectToNew(mainNews[0])}
             >
               {!isMobileForMain && (
-                <div className="flex-grow-1">
+                <div className="flex-grow-0">
                   <h2 className="h2 principal-main-news-title text-dark">{mainNews[0]?.title}</h2>
                   <h6 className="h6 principal-main-news-description text-dark" dangerouslySetInnerHTML={{ __html: mainNews[0]?.description }} />
                 </div>
@@ -401,7 +401,7 @@ export default function NewsPage() {
           .col-lg-7-5 { flex: 0 0 62.5%; max-width: 62.5%; }
           .col-lg-4-5 { flex: 0 0 37.5%; max-width: 37.5%; }
         }
-        .img-main-principal { width: 100%; flex: 1 1 0; object-fit: cover; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+        .img-main-principal { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
         .img-main { width: 100%; aspect-ratio: 16/7; object-fit: cover; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
         .img-new { width: 100%; max-height: 186px; min-height: 186px; object-fit: unset; }
         .principal-main-news-title { font-size: clamp(24px, 3vw, 38px) !important; font-weight: 700 !important; line-height: clamp(28px, 3.5vw, 42px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
