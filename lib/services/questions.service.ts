@@ -2,23 +2,31 @@ const API = process.env.NEXT_PUBLIC_API_URL!;
 
 function authHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
+function toArray(json: any): any[] {
+  if (Array.isArray(json)) return json;
+  if (json?.data && Array.isArray(json.data)) return json.data;
+  return [];
 }
 
 export async function loadSurveys() {
   const res = await fetch(`${API}personal/survey/get-enables`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error cargando encuestas");
-  return res.json();
+  return toArray(await res.json());
 }
 
 export async function loadSurveysWithMyResponse() {
   const res = await fetch(`${API}personal/survey/answer/by/user`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error cargando respuestas");
-  return res.json();
+  return toArray(await res.json());
 }
 
 export async function loadSurveyReport(id: string) {
-  const res = await fetch(`${API}personal/survey/${id}/report`, { headers: authHeaders() });
+  const res = await fetch(`${API}personal/survey/report/${id}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error cargando reporte");
   return res.json();
 }
