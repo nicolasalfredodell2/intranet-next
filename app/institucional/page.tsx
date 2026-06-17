@@ -397,6 +397,10 @@ export default function NewsPage() {
       </Modal>
 
       <style jsx>{`
+        @media (min-width: 992px) {
+          .col-lg-7-5 { flex: 0 0 62.5%; max-width: 62.5%; }
+          .col-lg-4-5 { flex: 0 0 37.5%; max-width: 37.5%; }
+        }
         .img-main-principal { width: 100%; flex: 1 1 0; min-height: 0; object-fit: cover; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
         .img-main { width: 100%; aspect-ratio: 16/7; object-fit: cover; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
         .img-new { width: 100%; max-height: 186px; min-height: 186px; object-fit: unset; }
@@ -429,7 +433,7 @@ export default function NewsPage() {
         }
         @media (max-width: 992px) {
           .main-news-card { box-shadow: rgba(0,0,0,0.16) 0px 2px 8px !important; background-color: #FFF !important; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
-          .main-news-card-title { background-color: #FFF !important; border-radius: 12px !important; padding: 15px !important; }
+          .main-news-card-title { background-color: #FFF !important; border-radius: 12px !important; padding: 15px !important; margin: 0 !important; }
         }
         @media (max-width: 750px) {
           .principal-main-news-title { font-size: clamp(20px, 2.5vw, 20px) !important; }
