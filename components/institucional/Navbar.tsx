@@ -199,7 +199,7 @@ export default function Navbar() {
               { icon: "fa fa-file-pen", label: "Encuesta", onClick: () => setShowQuestionsModal(true) },
             ].map((item: any, i) => (
               <div key={i} className="col-3 py-0 my-0 px-1 sector" onClick={item.isChat ? () => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank") : item.onClick}>
-                <div className="sector-container text-center pointer d-flex flex-column align-items-center justify-content-center h-100">
+                <div className="sector-container pt-2 text-center pointer d-flex flex-column align-items-center justify-content-center h-100">
                   {item.isChat
                     ? <img src="/img/chat/logo.svg" className="sector-icon img-logo-caht" alt="Chat" />
                     : <i className={`sector-icon ${item.icon} text-white`} />
@@ -399,21 +399,25 @@ export default function Navbar() {
           border-bottom-right-radius: 15px !important;
         }
         .sector-icon {
-          font-size: 30px;
-          padding: 15px;
+          font-size: 22px;
           border-radius: 50%;
           background-color: #34373E;
-          margin-top: 15px;
+          width: 48px;
+          height: 48px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
         }
-        .sector { padding-bottom: 30px; padding-top: 30px; }
-        .img-logo-caht { height: 62.5px; width: 62.5px; padding: 10px; }
+        .sector { padding-bottom: 15px; padding-top: 15px; }
+        .img-logo-caht { height: 48px; width: 48px; padding: 10px; }
         .sector-container {
           background-color: #8994A7;
           border-radius: 15px;
           display: flex;
           align-items: center;
           justify-content: center;
-          height: 147px;
+          height: 110px;
           width: 100%;
         }
         .text-sector { font-size: 12px; }
