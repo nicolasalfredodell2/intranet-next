@@ -8,7 +8,7 @@ import "@mdi/font/css/materialdesignicons.min.css";
 import "primeicons/primeicons.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "primereact/resources/primereact.min.css";
-import "primereact/resources/themes/arya-blue/theme.css";
+import "primereact/resources/themes/lara-light-blue/theme.css";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
