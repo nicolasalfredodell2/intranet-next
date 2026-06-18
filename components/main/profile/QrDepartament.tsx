@@ -53,7 +53,7 @@ function validateQrForm(f: QrForm): QrErrors {
 
 interface Props {
   isShow: boolean;
-  qrCanvasRef: React.RefObject<HTMLCanvasElement>;
+  qrCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   onHide: () => void;
   onChangeQR: (data: { departament: string; email: string; internals: string; typeOrgasnization: string }) => void;
 }

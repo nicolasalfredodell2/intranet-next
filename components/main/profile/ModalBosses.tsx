@@ -179,7 +179,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
                 key={internal.cuil}
                 label={internal.lastname_name}
                 removable
-                onRemove={() => removeInternal(internal)}
+                onRemove={() => { removeInternal(internal); return true; }}
                 className="animated fadeIn mr-2 mt-2 custom-chip-internal"
               />
             ))}

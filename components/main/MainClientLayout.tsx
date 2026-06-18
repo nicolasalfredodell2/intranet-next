@@ -43,13 +43,10 @@ export default function MainClientLayout({ children }: { children: React.ReactNo
         <div className="modal-dialog" role="document">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="modal-sesion-label">Cerrar sesión</h5>
+              <h5 className="modal-title" id="modal-sesion-label">¿Estás seguro que deseas cerrar sesión?</h5>
               <button type="button" className="close" data-dismiss="modal" aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
               </button>
-            </div>
-            <div className="modal-body">
-              <p>¿Estás seguro que deseas cerrar sesión?</p>
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-danger" data-dismiss="modal" onClick={logout}>
