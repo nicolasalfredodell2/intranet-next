@@ -10,7 +10,7 @@ interface BirthdayProps {
 
 export default function Birthday({ birthdays, isLoading, onShowDialog }: BirthdayProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") || "";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
   const prev = () =>
     setCurrentIndex((i) => (i > 0 ? i - 1 : birthdays.length - 1));
@@ -48,7 +48,7 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
           {person.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={`${apiUrl}/storage/${person.avatar_url}`}
+              src={`${apiUrl}${person.avatar_url}`}
               alt={person.lastname_name}
               className="birthday-avatar rounded-circle"
             />
