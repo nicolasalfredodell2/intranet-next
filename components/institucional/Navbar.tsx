@@ -462,16 +462,16 @@ export default function Navbar() {
           align-items: center;
           justify-content: center;
         }
+        @media (max-width: 767px) {
+          .btn-action-circle { width: 50px !important; height: 50px !important; margin-left: 10px !important; }
+          .img-profile { width: 50px !important; height: 50px !important; margin-left: 10px !important; }
+          .theme-switch-wrapper { height: 40px !important; width: 75px !important; }
+          .fingerprint-icon { font-size: 2rem !important; }
+        }
         @media (max-width: 576px) {
           .custom-navbar { width: 100vw; border-radius: 0 0 25px 25px !important; padding: 0.5rem !important; }
           .elegant-dialog { width: 90vw; }
           .text-sector { font-size: 12.5px; }
-        }
-        @media (max-width: 850px) {
-          .btn-action-circle {
-            width: clamp(60px, 15vw, 40px);
-            height: clamp(60px, 15vw, 40px);
-          }
         }
       `}</style>
     </>
