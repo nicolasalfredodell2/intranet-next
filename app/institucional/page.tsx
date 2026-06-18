@@ -194,7 +194,7 @@ export default function NewsPage() {
               {mainNews[2] && (
                 <div className="col-6 col-lg-12 pr-lg-0 mb-lg-0 mt-lg-0 pl-xs-1">
                   <div
-                    className="card pointer rounded w-100 d-flex flex-column main-news-card mt-4"
+                    className="card pointer rounded w-100 d-flex flex-column main-news-card mt-lg-4"
                     style={{ background: "none", borderBottomLeftRadius: 10, borderBottomRightRadius: 10 }}
                     onClick={() => redirectToNew(mainNews[2])}
                   >
