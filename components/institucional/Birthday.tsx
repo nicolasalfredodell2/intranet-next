@@ -70,7 +70,7 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
                   alt={person.lastname_name}
                 />
               ) : (
-                <i className="mdi mdi-account-circle text-white" />
+                <i className="mdi mdi-account-circle text-white default-avatar-icon" />
               )}
             </div>
 
@@ -162,18 +162,22 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
           from { transform: translateY(30px); opacity: 0; }
           to   { transform: translateY(0);    opacity: 1; }
         }
+        .default-avatar-icon { font-size: 7rem; }
         @media (max-width: 1199px) {
           .custom-dialog-card { height: 150px !important; }
           .img-profile { height: 116px !important; width: 116px !important; }
+          .default-avatar-icon { font-size: 6rem; }
           .dialog-title { font-size: 16px; }
           .main-btn { font-size: 18px; }
         }
         @media (max-width: 800px) {
           .img-profile { height: 80px !important; width: 80px !important; }
+          .default-avatar-icon { font-size: 4.5rem; }
         }
         @media (max-width: 576px) {
           .custom-dialog-card { height: 80px !important; }
           .img-profile { height: 70px !important; width: 70px !important; }
+          .default-avatar-icon { font-size: 3.5rem; }
           .dialog-title { font-size: 14px; }
           .main-btn { font-size: 14px; font-weight: bold; width: 100%; height: 30px; }
         }
