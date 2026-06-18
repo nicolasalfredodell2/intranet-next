@@ -9,7 +9,7 @@ interface BirthdayDialogProps {
 
 export default function BirthdayDialog({ birthdays, onClose }: BirthdayDialogProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, "") || "";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
   if (!birthdays || birthdays.length === 0) return null;
 
@@ -47,7 +47,7 @@ export default function BirthdayDialog({ birthdays, onClose }: BirthdayDialogPro
             // eslint-disable-next-line @next/next/no-img-element
             <img
               className="img-profile rounded-circle mb-3"
-              src={`${apiUrl}/storage/${person.avatar_url}`}
+              src={`${apiUrl}${person.avatar_url}`}
               alt={person.lastname_name}
             />
           ) : (
