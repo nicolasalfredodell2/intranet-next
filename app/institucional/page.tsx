@@ -234,7 +234,7 @@ export default function NewsPage() {
       )}
 
       {/* Tablet birthday + banners (sm-xl) */}
-      <div className="d-none d-sm-flex d-xl-none mb-3 row">
+      <div className="d-none d-sm-flex d-xl-none mt-4 row">
         {birthdays.length > 0 && (
           <div className={banners.length > 0 ? "col-6" : "col-12"}>
             <Birthday birthdays={birthdays} isLoading={false} />
@@ -248,8 +248,8 @@ export default function NewsPage() {
       </div>
 
       {/* Tablet sector buttons (md-xl) */}
-      <div className="d-none d-md-flex d-xl-none mb-3 row">
-        <div className="col-3 sector">
+      <div className="d-none d-md-flex d-xl-none mt-2 px-3 row">
+        <div className="col-3 sector pr-2">
           <div className="sector-container pointer" onClick={() => setShowAgendaModal(true)}>
             <div className="row d-flex align-items-center h-100">
               <div className="col-12 text-center mt-3">
@@ -262,7 +262,7 @@ export default function NewsPage() {
           </div>
         </div>
 
-        <div className="col-3 sector">
+        <div className="col-3 sector px-2">
           <div className="sector-container pointer" onClick={() => setShowCalendarModal(true)}>
             <div className="row d-flex align-items-center h-100">
               <div className="col-12 text-center mt-3">
@@ -275,7 +275,7 @@ export default function NewsPage() {
           </div>
         </div>
 
-        <div className="col-3 sector">
+        <div className="col-3 sector px-2">
           <div className="sector-container pointer" onClick={() => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank")}>
             <div className="row d-flex align-items-center h-100">
               <div className="col-12 text-center mt-3">
@@ -289,7 +289,7 @@ export default function NewsPage() {
           </div>
         </div>
 
-        <div className="col-3 sector">
+        <div className="col-3 sector pl-2">
           <div className="sector-container pointer" onClick={() => setShowQuestionsModal(true)}>
             <div className="row d-flex align-items-center h-100">
               <div className="col-12 text-center mt-3">
@@ -416,7 +416,7 @@ export default function NewsPage() {
         .sector { padding: 15px 0; }
         .img-logo-caht { height: 75px; width: 75px; padding: 15px; }
         .sector-container { background: linear-gradient(to bottom, #5C6373 0%, #454C5C 100%); border-radius: 30px; display: flex; align-items: center; justify-content: center; height: 147px; width: 100%; }
-        .text-sector { font-family: Inter !important; font-size: 20px; }
+        .text-sector { font-family: Inter !important; font-size: 20px; font-weight: 500; }
         .bg-dark-card { background-color: #4B5667 !important; }
         .el-element-overlay, .el-element-overlay-main { transition: all .2s ease-in-out; }
         .el-element-overlay:hover { transform: scale(1.07); z-index: 9999; }
