@@ -385,3 +385,17 @@ input[disabled] {
   0%   { opacity: 1; transform: translateX(0); }
   100% { opacity: 0; transform: translateX(20px); }
 }
+
+/* PrimeReact Dialog — fondo blanco y texto negro por defecto */
+.p-dialog .p-dialog-header,
+.p-dialog .p-dialog-content,
+.p-dialog .p-dialog-footer {
+  background: #fff !important;
+  color: #000 !important;
+}
+.p-dialog .p-dialog-header .p-dialog-title {
+  color: #000 !important;
+}
+.p-dialog .p-dialog-header .p-dialog-header-icon {
+  color: #000 !important;
+}
