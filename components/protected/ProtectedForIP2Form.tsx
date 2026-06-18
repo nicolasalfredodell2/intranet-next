@@ -159,9 +159,10 @@ export default function ProtectedForIP2Form() {
           style={{ marginTop: "35vh" }}
         >
           <img
-            src="/img/trib-cuentas-escudo-white.png"
+            src="/img/trib-cuentas-escudo.png"
             alt="Logo Tribunal de Cuentas de Río Negro"
-            style={{ width: 55, height: 55, background: "#454C5C", borderRadius: 15, padding: 5 }}
+            width="40"
+            height="40"
           />
           <h1 className="h1 ml-3">Tribunal de Cuentas de Río Negro</h1>
         </div>

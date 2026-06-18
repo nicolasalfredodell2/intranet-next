@@ -89,11 +89,10 @@ export default function Navbar() {
           <div className="navbar-header pointer text-center">
             <Link className="navbar-brand" href="/institucional">
               <img
-                src="/img/trib-cuentas-escudo-white.png"
+                src="/img/trib-cuentas-escudo.png"
                 alt="homepage"
                 width="30"
                 height="30"
-                style={{ background: "#454C5C", borderRadius: 8, padding: 3 }}
               />
               <span className="d-none d-xl-inline ml-2">
                 <strong>INTRANET</strong>
