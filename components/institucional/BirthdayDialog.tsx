@@ -54,7 +54,7 @@ export default function BirthdayDialog({ birthdays, onClose }: BirthdayDialogPro
             <i className="mdi mdi-account-circle text-white" style={{ fontSize: "7.5rem" }} />
           )}
 
-          <h2 className="dialog-title text-white mt-3">¡Feliz Cumpleaños!</h2>
+          <h2 className="dialog-title text-white">¡Feliz Cumpleaños!</h2>
 
           <button className="btn mt-4 px-4 py-2 text-white main-btn">
             {person.lastname_name}
