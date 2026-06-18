@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface BirthdayProps {
   birthdays: any[];
@@ -10,7 +10,28 @@ interface BirthdayProps {
 
 export default function Birthday({ birthdays, isLoading, onShowDialog }: BirthdayProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [compactName, setCompactName] = useState(false);
+  const [compactDesktopName, setCompactDesktopName] = useState(false);
+  const nameRef = useRef<HTMLButtonElement>(null);
+  const desktopNameRef = useRef<HTMLButtonElement>(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+
+  useEffect(() => {
+    const measure = (el: HTMLButtonElement | null, setter: (v: boolean) => void) => {
+      if (!el) return;
+      setter(false);
+      requestAnimationFrame(() => {
+        if (!el || el.offsetWidth === 0) return;
+        const style = getComputedStyle(el);
+        const lh = parseFloat(style.lineHeight);
+        const pt = parseFloat(style.paddingTop);
+        const pb = parseFloat(style.paddingBottom);
+        setter(el.scrollHeight - pt - pb > lh * 2 + 2);
+      });
+    };
+    measure(nameRef.current, setCompactName);
+    measure(desktopNameRef.current, setCompactDesktopName);
+  }, [currentIndex]);
 
   const prev = () =>
     setCurrentIndex((i) => (i > 0 ? i - 1 : birthdays.length - 1));
@@ -54,7 +75,7 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
 
             <h2 className="dialog-title text-white mt-5">¡Feliz Cumpleaños!</h2>
 
-            <button className="btn mt-2 py-2 px-4 text-white main-btn" onClick={onShowDialog}>
+            <button ref={desktopNameRef} className="btn mt-2 py-2 px-4 text-white main-btn" style={compactDesktopName ? { fontSize: "12px" } : undefined} onClick={onShowDialog}>
               {person.lastname_name}
             </button>
           </div>
@@ -75,7 +96,7 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
             </div>
 
             <div className="col-8 col-md-7 text-content mt-3 text-center">
-              <button className="btn mt-2 py-md-2 px-4 text-white main-btn" onClick={onShowDialog}>
+              <button ref={nameRef} className="btn mt-2 py-md-2 px-4 text-white main-btn" style={compactName ? { fontSize: "12px" } : undefined} onClick={onShowDialog}>
                 {person.lastname_name}
               </button>
               <h2 className="dialog-title text-muted mt-md-1">¡Feliz Cumpleaños!</h2>
