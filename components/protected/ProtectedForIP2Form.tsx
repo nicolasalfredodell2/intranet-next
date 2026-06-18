@@ -195,6 +195,8 @@ export default function ProtectedForIP2Form() {
               header=""
               visible={form.type !== ""}
               style={{ width: "50vw" }}
+              contentStyle={{ background: "#fff" }}
+              headerStyle={{ background: "#fff" }}
               draggable={false}
               resizable={false}
               closable={false}
@@ -204,7 +206,7 @@ export default function ProtectedForIP2Form() {
               <div className="row">
                 <div className="col-12">
                   <div className="form-group">
-                    <label>LEGAJO</label>
+                    <label className="text-dark">LEGAJO</label>
                     <input
                       className="form-control"
                       type="text"
@@ -222,7 +224,7 @@ export default function ProtectedForIP2Form() {
 
                 <div className="col-12">
                   <div className="form-group">
-                    <label>CONFIRMAR LEGAJO</label>
+                    <label className="text-dark">CONFIRMAR LEGAJO</label>
                     <input
                       className="form-control"
                       type="text"
@@ -249,7 +251,7 @@ export default function ProtectedForIP2Form() {
                 {!isLoadingBosses && bosses.length > 0 && (
                   <div className="animated col-12 fadeIn">
                     <div className="form-group">
-                      <label>JEFE</label>
+                      <label className="text-dark">JEFE</label>
                       <select
                         className="form-control custom-select"
                         value={form.cuilBoss}
