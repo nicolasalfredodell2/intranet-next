@@ -151,7 +151,7 @@ export default function BirthdayDialog({ birthdays, onClose }: BirthdayDialogPro
           background: rgba(54, 120, 231, 0.8);
           border: none;
           color: white;
-          padding: 7.5px 15px;
+          padding: 5.5px 7.5px;
           border-radius: 50%;
           cursor: pointer;
           z-index: 30;
