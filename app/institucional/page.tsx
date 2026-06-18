@@ -411,8 +411,8 @@ export default function NewsPage() {
         .card-description { font-family: Inter !important; font-size: clamp(16px, 2vw, 16px) !important; font-weight: 400 !important; line-height: clamp(24px, 2.5vw, 24px) !important; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .card-more { font-size: clamp(16px, 2vw, 16px) !important; font-weight: 400 !important; line-height: clamp(24px, 2.5vw, 24px) !important; }
         .card-body-no-main { height: 80px; }
-        .sector-icon { background-color: #B1B8C4; border-radius: 50%; font-size: 30px; padding: 25px; }
-        .sector-custom-padding { padding: 25px 30px; }
+        .sector-icon { background-color: #B1B8C4; border-radius: 50%; font-size: 30px; width: 80px; height: 80px; display: inline-flex; align-items: center; justify-content: center; }
+        .sector-custom-padding { width: 80px; height: 80px; }
         .sector { padding: 15px 0; }
         .img-logo-caht { height: 75px; width: 75px; padding: 15px; }
         .sector-container { background: linear-gradient(to bottom, #5C6373 0%, #454C5C 100%); border-radius: 30px; display: flex; align-items: center; justify-content: center; height: 147px; width: 100%; }
