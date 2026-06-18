@@ -179,6 +179,191 @@ body::-webkit-scrollbar-track {
 }
 
 /* ========================
+   Main — Navbar (topbar)
+   ======================== */
+
+header.topbar,
+header.topbar nav {
+  height: 65px !important;
+}
+
+.mobile-menu-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: #2f3d4a;
+  display: inline-flex;
+  font-size: 1.6rem;
+  justify-content: center;
+  padding: 4px 8px;
+}
+
+/* ========================
+   Main — NavbarLateral (sidebar)
+   ======================== */
+
+#sidebarnav > li > a,
+#sidebarnav > li {
+  font-size: 0.9rem !important;
+  margin-bottom: 1px !important;
+  margin-top: 0.1px !important;
+  padding-bottom: 1px !important;
+}
+
+#sidebarnav .active {
+  background-color: #242A33 !important;
+}
+
+.admin-item > a > i {
+  color: #72b6ff !important;
+}
+
+#sidebarnav {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+#sidebarnav::-webkit-scrollbar {
+  width: 16px;
+}
+
+#sidebarnav::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+#sidebarnav::-webkit-scrollbar-thumb {
+  background-color: #505A68;
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+  min-height: 150px !important;
+}
+
+#sidebarnav::-webkit-scrollbar-thumb:hover {
+  background-color: #505A68;
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle-handle {
+  align-items: center;
+  background-color: #2f3d4a;
+  border: 0;
+  border-radius: 50%;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  height: 32px;
+  justify-content: center;
+  left: 224px;
+  position: fixed;
+  top: 74px;
+  transition: left 0.2s ease-in-out;
+  width: 32px;
+  z-index: 1100;
+}
+
+.sidebar-toggle-handle i {
+  font-size: 1.1rem;
+}
+
+.mini-sidebar .sidebar-toggle-handle {
+  left: 50px;
+}
+
+@media (min-width: 768px) {
+  .mini-sidebar .left-sidebar {
+    display: block !important;
+    width: 70px !important;
+  }
+
+  .mini-sidebar .scroll-sidebar {
+    position: relative !important;
+  }
+
+  .mini-sidebar #sidebarnav > li > a {
+    width: 70px !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .mini-sidebar #sidebarnav > li:hover > a {
+    width: 70px !important;
+    background: inherit !important;
+  }
+
+  .mini-sidebar #sidebarnav > li > a .hide-menu,
+  .mini-sidebar .nav-small-cap,
+  .mini-sidebar .nav-devider {
+    display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .sidebar-toggle-handle {
+    display: none;
+  }
+}
+
+@media screen and (min-width: 750px) and (max-width: 1150px) {
+  #sidebarnav a {
+    font-size: 0.9rem !important;
+    padding: 8px 35px 8px 15px !important;
+  }
+}
+
+/* ========================
+   Profile
+   ======================== */
+
+.img-profile {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+}
+
+input:disabled,
+input[disabled] {
+  background-color: #f4f4f4 !important;
+  cursor: not-allowed;
+}
+
+.p-chip.custom-chip {
+  background-color: #657185;
+  color: #fff;
+}
+
+.p-chip.custom-chip-change {
+  background-color: #2f3d4a;
+  color: #fff;
+  cursor: pointer;
+}
+
+.p-chip.custom-chip-change:hover {
+  background-color: #1a252f;
+}
+
+.p-chip.custom-chip-internal {
+  background-color: #4a6fa5;
+  color: #fff;
+}
+
+/* Dropzone */
+.dropzone-area {
+  border: 2px dashed #aaa;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  text-align: center;
+}
+
+.dropzone-area:hover,
+.dropzone-area.drag-over {
+  border-color: #2f3d4a;
+  background-color: #f0f4f8;
+}
+
+/* ========================
    Animations
    ======================== */
 
