@@ -427,7 +427,7 @@ export default function NewsPage() {
         .modal-content { background: #4B5667; border-radius: 12px; padding: 2rem; width: 50vw; max-width: 90vw; max-height: 80vh; overflow-y: auto; position: relative; }
         .modal-close-btn { position: absolute; top: 10px; right: 15px; background: #dc3545; color: #fff; border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         @media (max-width: 1000px) {
-          .img-main-principal { aspect-ratio: 4/3; }
+          .img-main-principal { aspect-ratio: 4/3; flex: 0 0 auto; }
           .charge { background-color: transparent !important; border: none !important; box-shadow: none !important; color: #768298 !important; font-weight: bold !important; text-decoration: underline; }
           img { border-radius: 15px; }
         }
