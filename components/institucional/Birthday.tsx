@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface BirthdayProps {
   birthdays: any[];
@@ -24,128 +24,159 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
 
   return (
     <div className="mb-3">
-      <div className="birthday-card position-relative animated fadeIn">
-        {birthdays.length > 1 && (
-          <>
-            <button className="birthday-nav left" onClick={prev}>
-              <i className="fas fa-chevron-left" />
-            </button>
-            <button className="birthday-nav right" onClick={next}>
-              <i className="fas fa-chevron-right" />
-            </button>
-          </>
-        )}
+      <div className="custom-dialog-card">
+        <div className="card-video-overlay" />
 
-        <div className="birthday-overlay" />
-
-        <img
-          src="/img/birthdays/GlobosINT2.gif"
-          alt="cumpleaños"
-          className="birthday-bg"
-        />
-
-        <div className="birthday-content text-center">
-          {person.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={`${apiUrl}${person.avatar_url}`}
-              alt={person.lastname_name}
-              className="birthday-avatar rounded-circle"
-            />
-          ) : (
-            <i className="mdi mdi-account-circle text-white" style={{ fontSize: "5rem" }} />
+        <div className="card-content">
+          {birthdays.length > 1 && (
+            <>
+              <button className="nav-btn left" onClick={prev}>
+                <i className="fas fa-chevron-left" />
+              </button>
+              <button className="nav-btn right" onClick={next}>
+                <i className="fas fa-chevron-right" />
+              </button>
+            </>
           )}
 
-          <button
-            className="btn birthday-name-btn mt-2 text-white pointer"
-            onClick={onShowDialog}
-          >
-            {person.lastname_name}
-          </button>
+          {/* Desktop */}
+          <div className="d-none d-xl-block dialog-body text-center">
+            {person.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                className="img-profile rounded-circle mb-3"
+                src={`${apiUrl}${person.avatar_url}`}
+                alt={person.lastname_name}
+              />
+            ) : (
+              <i className="mdi mdi-account-circle text-white" style={{ fontSize: "7.5rem" }} />
+            )}
 
-          <p className="text-white mt-1 mb-0" style={{ fontSize: "0.85rem" }}>
-            ¡Feliz Cumpleaños!
-          </p>
+            <h2 className="dialog-title text-white mt-5">¡Feliz Cumpleaños!</h2>
+
+            <button className="btn mt-2 py-2 px-4 text-white main-btn" onClick={onShowDialog}>
+              {person.lastname_name}
+            </button>
+          </div>
+
+          {/* Mobile / tablet */}
+          <div className="d-xl-none row">
+            <div className="col-4 col-md-5 my-auto text-center profile-container">
+              {person.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="img-profile rounded-circle"
+                  src={`${apiUrl}${person.avatar_url}`}
+                  alt={person.lastname_name}
+                />
+              ) : (
+                <i className="mdi mdi-account-circle text-white" />
+              )}
+            </div>
+
+            <div className="col-8 col-md-7 text-content mt-3 text-center">
+              <button className="btn mt-2 py-md-2 px-4 text-white main-btn" onClick={onShowDialog}>
+                {person.lastname_name}
+              </button>
+              <h2 className="dialog-title text-muted mt-md-1">¡Feliz Cumpleaños!</h2>
+            </div>
+          </div>
         </div>
       </div>
 
       <style jsx>{`
-        .birthday-card {
-          border-radius: 15px;
-          overflow: hidden;
+        .custom-dialog-card {
+          background-image: url('/img/birthdays/GlobosINT2.gif');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          width: 100%;
           height: 384px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        @media (max-width: 1199px) {
-          .birthday-card { height: 150px; }
-        }
-        @media (max-width: 768px) {
-          .birthday-card { height: 80px; }
-        }
-        .birthday-bg {
-          position: absolute;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          object-fit: cover;
-        }
-        .birthday-overlay {
-          position: absolute;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: rgba(0,0,0,0.35);
-          z-index: 1;
-        }
-        .birthday-content {
+          border-radius: 10px;
+          padding: 25px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+          animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
           position: relative;
+          overflow: hidden;
+        }
+        .card-video-overlay {
+          position: absolute;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
           z-index: 2;
+          pointer-events: none;
+        }
+        .card-content {
+          position: relative;
+          z-index: 3;
+          height: 100%;
           display: flex;
           flex-direction: column;
-          align-items: center;
+          justify-content: center;
         }
-        .birthday-avatar {
-          width: 80px;
-          height: 80px;
-          object-fit: cover;
+        .dialog-title {
+          line-height: 28px;
+          font-size: 20px;
+          font-weight: normal;
+        }
+        .dialog-body {
+          margin-bottom: 30px;
+          line-height: 1.6;
+        }
+        .img-profile {
           border: 2px solid #4285F4;
+          height: 146px !important;
+          width: 146px !important;
+          object-fit: cover;
         }
-        @media (max-width: 768px) {
-          .birthday-avatar { width: 45px; height: 45px; }
-        }
-        .birthday-name-btn {
+        .main-btn {
           background: linear-gradient(to bottom right, #4285F4, #1A5BC9);
-          border-radius: 60px;
+          border-radius: 50px;
           border: none;
-          font-size: 0.85rem;
+          font-size: 16px;
           font-weight: bold;
-          padding: 6px 16px;
+          width: 100%;
+          min-height: 48px;
+          height: auto;
+          cursor: default;
           white-space: normal;
+          overflow: visible;
           word-break: break-word;
-          max-width: 200px;
         }
-        @media (max-width: 768px) {
-          .birthday-name-btn { font-size: 0.7rem; padding: 3px 10px; }
-        }
-        .birthday-nav {
+        .nav-btn {
           position: absolute;
           top: 50%;
           transform: translateY(-50%);
-          background: rgba(54, 120, 231, 0.85);
+          background: rgba(54, 120, 231, 0.8);
           border: none;
           color: white;
-          width: 28px;
-          height: 28px;
+          padding: 5px 7.5px;
           border-radius: 50%;
           cursor: pointer;
-          z-index: 10;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.75rem;
+          z-index: 20;
+          transition: background 0.3s;
         }
-        .birthday-nav.left { left: 8px; }
-        .birthday-nav.right { right: 8px; }
+        .nav-btn.left  { left: -12.5px; }
+        .nav-btn.right { right: -12.5px; }
+        @keyframes slideUp {
+          from { transform: translateY(30px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        @media (max-width: 1199px) {
+          .custom-dialog-card { height: 150px !important; }
+          .img-profile { height: 116px !important; width: 116px !important; }
+          .dialog-title { font-size: 16px; }
+          .main-btn { font-size: 18px; }
+        }
+        @media (max-width: 800px) {
+          .img-profile { height: 80px !important; width: 80px !important; }
+        }
+        @media (max-width: 576px) {
+          .custom-dialog-card { height: 80px !important; }
+          .img-profile { height: 70px !important; width: 70px !important; }
+          .dialog-title { font-size: 14px; }
+          .main-btn { font-size: 14px; font-weight: bold; width: 100%; height: 30px; }
+        }
       `}</style>
     </div>
   );
