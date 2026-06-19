@@ -363,15 +363,15 @@ export default function ProfilePage() {
           {/* Right card — form */}
           <div className="col-lg-8 col-xlg-9 col-md-7">
             <div className="card">
-              <ul className="nav nav-tabs profile-tab" role="tablist">
-                <li className="nav-item">
-                  <a className="nav-link active" data-toggle="tab" href="#profile" role="tab">Información personal</a>
-                </li>
-              </ul>
+              <div className="d-flex align-items-center justify-content-between px-3 pt-3 pb-2">
+                <h5 className="mb-0 font-weight-bold">INFORMACIÓN PERSONAL</h5>
+              </div>
+
+              <hr />
 
               <div className="tab-content">
                 <div className="tab-pane active" id="settings" role="tabpanel">
-                  <div className="card-body">
+                  <div className="card-body py-0">
                     {loadingUser ? (
                       <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
                     ) : (
@@ -419,12 +419,13 @@ export default function ProfilePage() {
 
             {/* Información laboral card */}
             <div className="card">
-              <ul className="nav nav-tabs profile-tab" role="tablist">
-                <li className="nav-item">
-                  <a className="nav-link active" role="tab">Información laboral</a>
-                </li>
-              </ul>
-              <div className="card-body">
+              <div className="d-flex align-items-center justify-content-between px-3 pt-3 pb-2">
+                <h5 className="mb-0 font-weight-bold">INFORMACIÓN LABORAL</h5>
+              </div>
+
+              <hr />
+
+              <div className="card-body py-0">
                 {loadingUser ? (
                   <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
                 ) : (
@@ -456,41 +457,36 @@ export default function ProfilePage() {
 
             {/* Jefes directos card */}
             <div className="card">
-              <ul className="nav nav-tabs profile-tab" role="tablist">
-                <li className="nav-item">
-                  <a className="nav-link active" role="tab">Jefes</a>
-                </li>
-              </ul>
-              <div className="card-body">
+              <div className="d-flex align-items-center justify-content-between px-3 pt-2">
+                <h5 className="mb-0 font-weight-bold">JEFES</h5>
+                {!loadingUser && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setShowModalBosses(true)}
+                  >
+                    <i className="pi pi-users mr-1" />
+                    Modificar jefes
+                  </button>
+                )}
+              </div>
+              <hr />
+              <div className="card-body pt-0">
                 {loadingUser ? (
                   <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
                 ) : (
                   <div className="fadeIn animated">
-                    <div className="mb-3">
-                      {bosses.length === 0 ? (
-                        <p className="text-muted mb-0">Sin jefes directos asignados.</p>
-                      ) : (
-                        bosses.map((boss) => (
-                          <Chip
-                            key={boss.cuil}
-                            label={boss.people?.lastname_name ?? boss.lastname_name}
-                            className="mr-2 mt-2 custom-chip pointer"
-                          />
-                        ))
-                      )}
-                    </div>
-                    <div className="row">
-                      <div className="col-12 col-lg-6">
-                        <button
-                          type="button"
-                          className="btn btn-primary btn-block"
-                          onClick={() => setShowModalBosses(true)}
-                        >
-                          <i className="pi pi-users mr-1" />
-                          Modificar jefes
-                        </button>
-                      </div>
-                    </div>
+                    {bosses.length === 0 ? (
+                      <p className="text-muted mb-0">Sin jefes directos asignados.</p>
+                    ) : (
+                      bosses.map((boss) => (
+                        <Chip
+                          key={boss.cuil}
+                          label={boss.people?.lastname_name ?? boss.lastname_name}
+                          className="mr-2 mt-2 custom-chip pointer"
+                        />
+                      ))
+                    )}
                   </div>
                 )}
               </div>
