@@ -62,6 +62,30 @@ function buildVCard(data: { first_name: string; last_name: string; occupation_si
   return `BEGIN:VCARD\nVERSION:4.0\nN:${data.last_name};${data.first_name};\nFN:${data.last_name} ${data.first_name}\nORG:${data.location_signature}\nTITLE:${data.occupation_signature}\nADR;TYPE=WORK;PREF=1:;;Moreno 263;Viedma;;;Argentina\nTEL;TYPE=WORK,voice;VALUE=uri:2920421500\nEMAIL;TYPE=WORK:${data.email}\nNOTE:Interno ${data.internal}\nEND:VCARD`;
 }
 
+const READ_ONLY_BADGE = (
+  <span style={{ fontSize: "0.68rem", background: "#f0f0f0", color: "#999", borderRadius: "20px", padding: "1px 7px", display: "inline-flex", alignItems: "center", gap: "3px", verticalAlign: "middle" }}>
+    <i className="pi pi-lock" style={{ fontSize: "0.6rem" }} /> Solo lectura
+  </span>
+);
+
+function CardSectionHeader({ icon, iconBg, iconColor, title, subtitle, action }: { icon: string; iconBg: string; iconColor: string; title: string; subtitle: string; action?: React.ReactNode }) {
+  return (
+    <>
+      <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "10px" }}>
+        <div style={{ width: 36, height: 36, borderRadius: "10px", background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <i className={icon} style={{ color: iconColor, fontSize: "1rem" }} />
+        </div>
+        <div className="flex-grow-1">
+          <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.95rem" }}>{title}</h5>
+          <small className="text-muted">{subtitle}</small>
+        </div>
+        {action}
+      </div>
+      <hr className="mt-0 mb-0" />
+    </>
+  );
+}
+
 export default function ProfilePage() {
   const toast = useRef<Toast>(null);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -78,6 +102,14 @@ export default function ProfilePage() {
   const [qrValue, setQrValue] = useState("");
   const [loadingActionQr, setLoadingActionQr] = useState(false);
   const [bosses, setBossesState] = useState<any[]>([]);
+  const [copiedField, setCopiedField] = useState<"email" | "internal" | null>(null);
+
+  function handleCopy(value: string, field: "email" | "internal") {
+    navigator.clipboard.writeText(value).then(() => {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    });
+  }
 
   useEffect(() => {
     chargeUser();
@@ -140,6 +172,7 @@ export default function ProfilePage() {
         location_signature: form.location,
       });
       setQrValue(buildVCard({ first_name: form.name, last_name: form.lastname, occupation_signature: form.occupation, location_signature: form.location, email: form.email, internal: form.internal }));
+      setUser((prev: any) => ({ ...prev, first_name: form.name, last_name: form.lastname, occupation_signature: form.occupation }));
       toast.current?.show({ severity: "success", summary: "Perfil modificado" });
     } catch {
       toast.current?.show({ severity: "error", summary: "Error al intentar modificar perfil" });
@@ -206,88 +239,140 @@ export default function ProfilePage() {
   }
 
   const errors = validateForm(form);
+  const initials = ((user?.first_name?.[0] ?? "") + (user?.last_name?.[0] ?? "")).toUpperCase();
 
   return (
     <>
       <Toast ref={toast} position="bottom-center" />
-
-      {/* Hidden off-screen QR canvas */}
       <canvas ref={qrCanvasRef} style={{ position: "absolute", left: "-500px", top: 0 }} />
 
       <div className="fadeIn animated">
 
+        {/* Page header */}
         <div className="row page-titles mb-3 align-items-center">
           <div className="col">
-            <h3 className="text-themecolor mb-0">Perfil</h3>
+            <h3 className="text-themecolor mb-0">Mi Perfil</h3>
+            <p className="text-muted mb-0" style={{ fontSize: "0.82rem" }}>Administrá tu información personal y laboral</p>
           </div>
           <div className="col-auto">
             <button
               form="profile-form"
               type="submit"
               disabled={Object.keys(errors).length > 0 || loading}
-              className="btn btn-primary"
+              className="btn btn-primary d-flex align-items-center"
+              style={{ gap: "6px" }}
             >
-              {loading ? "Actualizando información" : "Actualizar información"}
+              <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} />
+              {loading ? "Guardando..." : "Guardar cambios"}
             </button>
           </div>
         </div>
 
         <div className="row">
-          {/* Left card — avatar & QR actions */}
+
+          {/* ── Left column ── */}
           <div className="col-lg-4 col-xlg-3 col-md-5">
+
+            {/* Avatar + identity card */}
             <div className="card">
               <div className="card-body">
                 {loadingUser ? (
                   <div className="text-center py-4 fadeIn animated">
                     <div className="skeleton-circle mx-auto mb-3" />
-                    <div className="skeleton-btn mx-auto mb-2" />
+                    <div className="skeleton-btn mx-auto mb-2" style={{ width: "60%" }} />
                     <div className="skeleton-btn mx-auto mb-2" />
                     <div className="skeleton-btn mx-auto" />
                   </div>
                 ) : (
                   <div className="text-center">
-                    {!user?.avatar ? (
-                      <i className="mdi mdi-account-circle" style={{ fontSize: "6rem" }} />
-                    ) : (
-                      <div className="img-profile-wrapper mb-1" onClick={() => !isLoadingImage && avatarInputRef.current?.click()}>
-                        <input
-                          ref={avatarInputRef}
-                          type="file"
-                          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                          style={{ display: "none" }}
-                          onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAvatarDirectUpload(file); }}
+                    {/* Avatar wrapper — always clickable */}
+                    <div
+                      className="img-profile-wrapper mb-2 mx-auto"
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                      onClick={() => !isLoadingImage && avatarInputRef.current?.click()}
+                    >
+                      <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                        style={{ display: "none" }}
+                        onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAvatarDirectUpload(file); }}
+                      />
+                      {user?.avatar ? (
+                        <img
+                          className="img-profile rounded-circle"
+                          src={`${API_URL}${user.avatar}`}
+                          alt="avatar"
                         />
-                        <img className="img-profile rounded-circle" src={`${API_URL}${user.avatar}`} alt="avatar" />
-                        <div className="img-profile-overlay">
-                          {isLoadingImage ? (
-                            <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.6rem" }} />
-                          ) : (
-                            <>
-                              <i className="pi pi-camera mb-1" style={{ fontSize: "1.4rem" }} />
-                              Cambiar imagen
-                            </>
-                          )}
+                      ) : (
+                        <div
+                          className="img-profile rounded-circle d-flex align-items-center justify-content-center"
+                          style={{ background: "linear-gradient(135deg, #4a6cf7 0%, #6a8aff 100%)", color: "#fff", fontSize: "2.8rem", fontWeight: 700, letterSpacing: "-1px" }}
+                        >
+                          {initials || <i className="mdi mdi-account" style={{ fontSize: "3rem" }} />}
                         </div>
+                      )}
+                      <div className="img-profile-overlay">
+                        {isLoadingImage ? (
+                          <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.6rem" }} />
+                        ) : (
+                          <>
+                            <i className="pi pi-camera mb-1" style={{ fontSize: "1.4rem" }} />
+                            Cambiar foto
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Name + cargo */}
+                    {(user?.first_name || user?.last_name) && (
+                      <div className="mb-3">
+                        <p className="mb-0 font-weight-bold" style={{ fontSize: "1rem", color: "#2f3d4a" }}>
+                          {user.first_name} {user.last_name}
+                        </p>
+                        {user.occupation_signature && (
+                          <small className="text-muted">{user.occupation_signature}</small>
+                        )}
                       </div>
                     )}
 
-                    {user?.email && (
-                      <div className="qr-info-item mt-2 w-100" style={{ borderLeftColor: "#4a6cf7" }}>
-                        <span className="qr-info-icon qr-info-icon--primary ml-1">
-                          <i className="pi pi-envelope" />
-                        </span>
-                        <strong className="qr-info-text ml-3"><strong>{user.email}</strong></strong>
-                      </div>
-                    )}
-
-                    {user?.internal && (
-                      <div className="qr-info-item mt-2 w-100" style={{ borderLeftColor: "#4a6cf7" }}>
-                        <span className="qr-info-icon qr-info-icon--primary ml-1">
-                          <i className="pi pi-phone" />
-                        </span>
-                        <strong className="qr-info-text ml-3"><strong>{user.internal}</strong></strong>
-                      </div>
-                    )}
+                    {/* Contact info items */}
+                    <div className="text-left">
+                      {user?.email && (
+                        <div
+                          className="qr-info-item mb-2 w-100"
+                          style={{ borderLeftColor: "#4a6cf7", cursor: "pointer" }}
+                          onClick={() => handleCopy(user.email, "email")}
+                          title="Copiar correo"
+                        >
+                          <span className="qr-info-icon qr-info-icon--primary">
+                            <i className="pi pi-envelope" />
+                          </span>
+                          <span className="qr-info-text flex-grow-1">{user.email}</span>
+                          <i
+                            className={copiedField === "email" ? "pi pi-check" : "pi pi-copy"}
+                            style={{ fontSize: "0.85rem", color: copiedField === "email" ? "#28a745" : "#aaa", flexShrink: 0, transition: "color 0.2s" }}
+                          />
+                        </div>
+                      )}
+                      {user?.internal && (
+                        <div
+                          className="qr-info-item w-100"
+                          style={{ borderLeftColor: "#4a6cf7", cursor: "pointer" }}
+                          onClick={() => handleCopy(user.internal, "internal")}
+                          title="Copiar interno"
+                        >
+                          <span className="qr-info-icon qr-info-icon--primary">
+                            <i className="pi pi-phone" />
+                          </span>
+                          <span className="qr-info-text flex-grow-1">Int. {user.internal}</span>
+                          <i
+                            className={copiedField === "internal" ? "pi pi-check" : "pi pi-copy"}
+                            style={{ fontSize: "0.85rem", color: copiedField === "internal" ? "#28a745" : "#aaa", flexShrink: 0, transition: "color 0.2s" }}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -297,6 +382,9 @@ export default function ProfilePage() {
             {!loadingUser && (
               <div className="card mt-2">
                 <div className="card-body">
+                  <p className="mb-3" style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#aaa", margin: 0 }}>
+                    Acciones QR
+                  </p>
                   <div className="d-flex" style={{ gap: "1rem" }}>
                     <div
                       className={`qr-action-card${loadingActionQr ? " disabled" : ""}`}
@@ -305,9 +393,10 @@ export default function ProfilePage() {
                       <div className="qr-action-icon">
                         <i className={loadingActionQr ? "pi pi-spin pi-spinner" : "fa fa-qrcode"} style={{ fontSize: "1.5rem" }} />
                       </div>
-                      <p className="qr-action-label">
-                        {loadingActionQr ? "Descargando..." : "QR personal"}
-                      </p>
+                      <p className="qr-action-label">{loadingActionQr ? "Descargando..." : "QR personal"}</p>
+                      <span style={{ fontSize: "0.7rem", color: "#94a3b8", textAlign: "center", lineHeight: 1.3 }}>
+                        Descargá tu firma con QR
+                      </span>
                     </div>
 
                     <div className="qr-action-card" onClick={() => setIsOpenDialogQR(true)}>
@@ -315,6 +404,9 @@ export default function ProfilePage() {
                         <i className="fa fa-qrcode" style={{ fontSize: "1.5rem" }} />
                       </div>
                       <p className="qr-action-label">QR área</p>
+                      <span style={{ fontSize: "0.7rem", color: "#94a3b8", textAlign: "center", lineHeight: 1.3 }}>
+                        Ver QR de tu departamento
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -322,99 +414,75 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Right card — form */}
+          {/* ── Right column ── */}
           <div className="col-lg-8 col-xlg-9 col-md-7">
+
+            {/* Información personal */}
             <div className="card">
-              <div className="d-flex align-items-center justify-content-between px-3 pt-3 pb-2">
-                <h5 className="mb-0 font-weight-bold">INFORMACIÓN PERSONAL</h5>
-              </div>
-
-              <hr />
-
-              <div className="tab-content">
-                <div className="tab-pane active" id="settings" role="tabpanel">
-                  <div className="card-body py-0">
-                    {loadingUser ? (
-                      <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
-                    ) : (
-                      <form id="profile-form" className="form-horizontal form-material" onSubmit={handleSaveProfile} noValidate>
-                        <div className="row">
-                          <div className="col-12 col-md-6 form-group">
-                            <label className={touched.name && errors.name ? "text-danger" : ""}>Nombre/s</label>
-                            <input type="text" className="form-control form-control-line" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, name: true }))} autoComplete="off" disabled={loading} />
-                            {touched.name && errors.name && <small className="text-danger animated fadeIn">{errors.name}</small>}
-                          </div>
-
-                          <div className="col-12 col-md-6 form-group">
-                            <label className={touched.lastname && errors.lastname ? "text-danger" : ""}>Apellido/s</label>
-                            <input type="text" className="form-control form-control-line" value={form.lastname} onChange={(e) => setForm((p) => ({ ...p, lastname: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, lastname: true }))} autoComplete="off" disabled={loading} />
-                            {touched.lastname && errors.lastname && <small className="text-danger animated fadeIn">{errors.lastname}</small>}
-                          </div>
-                        </div>
-
-                        <div className="row">
-                          <div className="col-12 col-md-6 form-group">
-                            <label className={touched.datebirth && errors.datebirth ? "text-danger" : ""}>Fecha nacimiento</label>
-                            <input type="date" max="2003-01-01" min="1950-01-01" className="form-control form-control-line" value={form.datebirth} onChange={(e) => setForm((p) => ({ ...p, datebirth: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, datebirth: true }))} disabled={loading} />
-                            {touched.datebirth && errors.datebirth && <small className="text-danger animated fadeIn">{errors.datebirth}</small>}
-                          </div>
-
-                          <div className="col-12 col-md-6 form-group">
-                            <label>Cuil <small className="text-muted">(No lo puede modificar)</small></label>
-                            <input type="text" className="form-control form-control-line" value={form.cuil} disabled autoComplete="off" />
-                          </div>
-                        </div>
-
-                        {loading && (
-                          <div className="row fadeIn animated mt-2">
-                            <div className="col-12">
-                              <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
-                            </div>
-                          </div>
-                        )}
-                      </form>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Información laboral card */}
-            <div className="card">
-              <div className="d-flex align-items-center justify-content-between px-3 pt-3 pb-2">
-                <h5 className="mb-0 font-weight-bold">INFORMACIÓN LABORAL</h5>
-              </div>
-
-              <hr />
-
-              <div className="card-body py-0">
+              <CardSectionHeader
+                icon="pi pi-user"
+                iconBg="#eef1ff"
+                iconColor="#4a6cf7"
+                title="Información Personal"
+                subtitle="Datos básicos de tu cuenta"
+              />
+              <div className="card-body py-2">
                 {loadingUser ? (
                   <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
                 ) : (
-                  <form className="form-horizontal form-material" onSubmit={handleSaveProfile} noValidate>
+                  <form id="profile-form" className="form-horizontal form-material" onSubmit={handleSaveProfile} noValidate>
                     <div className="row">
                       <div className="col-12 col-md-6 form-group">
-                        <label>Lugar <small className="text-muted">(No lo puede modificar)</small></label>
-                        <input type="text" className="form-control form-control-line" value={form.location} disabled autoComplete="off" />
+                        <label className={touched.name && errors.name ? "text-danger" : ""}>Nombre/s</label>
+                        <input
+                          type="text"
+                          className="form-control form-control-line"
+                          value={form.name}
+                          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                          onBlur={() => setTouched((p) => ({ ...p, name: true }))}
+                          autoComplete="off"
+                          disabled={loading}
+                        />
+                        {touched.name && errors.name && <small className="text-danger animated fadeIn">{errors.name}</small>}
                       </div>
-
                       <div className="col-12 col-md-6 form-group">
-                        <label>Legajo <small className="text-muted">(No lo puede modificar)</small></label>
-                        <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
+                        <label className={touched.lastname && errors.lastname ? "text-danger" : ""}>Apellido/s</label>
+                        <input
+                          type="text"
+                          className="form-control form-control-line"
+                          value={form.lastname}
+                          onChange={(e) => setForm((p) => ({ ...p, lastname: e.target.value }))}
+                          onBlur={() => setTouched((p) => ({ ...p, lastname: true }))}
+                          autoComplete="off"
+                          disabled={loading}
+                        />
+                        {touched.lastname && errors.lastname && <small className="text-danger animated fadeIn">{errors.lastname}</small>}
                       </div>
                     </div>
-
                     <div className="row">
                       <div className="col-12 col-md-6 form-group">
-                        <label className={touched.occupation && errors.occupation ? "text-danger" : ""}>Cargo</label>
-                        <input type="text" className="form-control form-control-line" value={form.occupation} onChange={(e) => setForm((p) => ({ ...p, occupation: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, occupation: true }))} autoComplete="off" disabled={loading} />
-                        {touched.occupation && errors.occupation && <small className="text-danger animated fadeIn">{errors.occupation}</small>}
+                        <label className={touched.datebirth && errors.datebirth ? "text-danger" : ""}>Fecha de nacimiento</label>
+                        <input
+                          type="date"
+                          max="2003-01-01"
+                          min="1950-01-01"
+                          className="form-control form-control-line"
+                          value={form.datebirth}
+                          onChange={(e) => setForm((p) => ({ ...p, datebirth: e.target.value }))}
+                          onBlur={() => setTouched((p) => ({ ...p, datebirth: true }))}
+                          disabled={loading}
+                        />
+                        {touched.datebirth && errors.datebirth && <small className="text-danger animated fadeIn">{errors.datebirth}</small>}
+                      </div>
+                      <div className="col-12 col-md-6 form-group">
+                        <label className="d-flex align-items-center" style={{ gap: "6px" }}>
+                          CUIL {READ_ONLY_BADGE}
+                        </label>
+                        <input type="text" className="form-control form-control-line" value={form.cuil} disabled autoComplete="off" />
                       </div>
                     </div>
-
-
                     {loading && (
-                      <div className="row fadeIn animated mt-2">
+                      <div className="row fadeIn animated mb-2">
                         <div className="col-12">
                           <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
                         </div>
@@ -425,47 +493,121 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Jefes directos card */}
+            {/* Información laboral */}
             <div className="card">
-              <div className="d-flex align-items-center justify-content-between px-3 pt-2">
-                <h5 className="mb-0 font-weight-bold">JEFES</h5>
-                {!loadingUser && (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setShowModalBosses(true)}
-                  >
-                    Modificar jefes
-                  </button>
+              <CardSectionHeader
+                icon="pi pi-briefcase"
+                iconBg="#edf7ee"
+                iconColor="#28a745"
+                title="Información Laboral"
+                subtitle="Tu cargo y datos de trabajo"
+              />
+              <div className="card-body py-2">
+                {loadingUser ? (
+                  <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
+                ) : (
+                  <form className="form-horizontal form-material" onSubmit={handleSaveProfile} noValidate>
+                    <div className="row">
+                      <div className="col-12 col-md-6 form-group">
+                        <label className="d-flex align-items-center" style={{ gap: "6px" }}>
+                          Lugar {READ_ONLY_BADGE}
+                        </label>
+                        <input type="text" className="form-control form-control-line" value={form.location} disabled autoComplete="off" />
+                      </div>
+                      <div className="col-12 col-md-6 form-group">
+                        <label className="d-flex align-items-center" style={{ gap: "6px" }}>
+                          Legajo {READ_ONLY_BADGE}
+                        </label>
+                        <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div className="col-12 col-md-6 form-group">
+                        <label className={touched.occupation && errors.occupation ? "text-danger" : ""}>Cargo</label>
+                        <input
+                          type="text"
+                          className="form-control form-control-line"
+                          value={form.occupation}
+                          onChange={(e) => setForm((p) => ({ ...p, occupation: e.target.value }))}
+                          onBlur={() => setTouched((p) => ({ ...p, occupation: true }))}
+                          autoComplete="off"
+                          disabled={loading}
+                        />
+                        {touched.occupation && errors.occupation && <small className="text-danger animated fadeIn">{errors.occupation}</small>}
+                      </div>
+                    </div>
+                    {loading && (
+                      <div className="row fadeIn animated mb-2">
+                        <div className="col-12">
+                          <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
+                        </div>
+                      </div>
+                    )}
+                  </form>
                 )}
               </div>
-              <hr />
-              <div className="card-body pt-0">
+            </div>
+
+            {/* Jefes directos */}
+            <div className="card">
+              <CardSectionHeader
+                icon="pi pi-users"
+                iconBg="#fff4e6"
+                iconColor="#fd7e14"
+                title="Jefes directos"
+                subtitle="Quién aprueba tus solicitudes"
+                action={
+                  !loadingUser ? (
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary btn-sm d-flex align-items-center"
+                      style={{ gap: "5px", flexShrink: 0, fontSize: "0.82rem" }}
+                      onClick={() => setShowModalBosses(true)}
+                    >
+                      <i className="pi pi-pencil" style={{ fontSize: "0.75rem" }} />
+                      Modificar
+                    </button>
+                  ) : undefined
+                }
+              />
+              <div className="card-body pt-2">
                 {loadingUser ? (
                   <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
                 ) : (
                   <div className="fadeIn animated">
                     {bosses.length === 0 ? (
-                      <p className="text-muted mb-0">Sin jefes directos asignados.</p>
+                      <div className="text-center py-3">
+                        <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#f4f4f4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
+                          <i className="pi pi-users" style={{ fontSize: "1.5rem", color: "#ccc" }} />
+                        </div>
+                        <p className="text-muted mb-2" style={{ fontSize: "0.88rem" }}>No tenés jefes directos asignados</p>
+                        <button type="button" className="btn btn-sm btn-primary" onClick={() => setShowModalBosses(true)}>
+                          <i className="pi pi-plus mr-1" style={{ fontSize: "0.75rem" }} />
+                          Asignar ahora
+                        </button>
+                      </div>
                     ) : (
-                      bosses.map((boss) => (
-                        <Chip
-                          key={boss.cuil}
-                          label={boss.people?.lastname_name ?? boss.lastname_name}
-                          className="mr-2 mt-2 custom-chip pointer"
-                        />
-                      ))
+                      <div className="d-flex flex-wrap" style={{ gap: "6px" }}>
+                        {bosses.map((boss) => (
+                          <Chip
+                            key={boss.cuil}
+                            label={boss.people?.lastname_name ?? boss.lastname_name}
+                            className="custom-chip"
+                          />
+                        ))}
+                      </div>
                     )}
                     <div className="qr-info-item mt-3" style={{ borderLeftColor: "#17a2b8" }}>
                       <span className="qr-info-icon qr-info-icon--info">
                         <i className="pi pi-info-circle" />
                       </span>
-                      <span className="qr-info-text">Sus jefes son quienes aprueban o rechazan tus solicitudes de salida. Si no asignó uno, las solicitudes irán al Subdirector de Personal.</span>
+                      <span className="qr-info-text">Sus jefes son quienes aprueban o rechazan sus solicitudes de salida. Si no asignó uno, las solicitudes irán al Subdirector de Personal por defecto.</span>
                     </div>
                   </div>
                 )}
               </div>
             </div>
+
           </div>
         </div>
       </div>
