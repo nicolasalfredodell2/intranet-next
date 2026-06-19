@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
+import { Chips } from "primereact/chips";
 import { ProgressBar } from "primereact/progressbar";
 import { Toast } from "primereact/toast";
 import { loadAllGroups, saveGroupQR } from "@/lib/services/groups.service";
@@ -63,6 +64,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
   const [groups, setGroups] = useState<any[]>([]);
   const [selectedGroup, setSelectedGroup] = useState("");
   const [typeOrg, setTypeOrg] = useState("Departamento de");
+  const [internalsChips, setInternalsChips] = useState<string[]>([]);
   const [form, setForm] = useState<QrForm>({ departament: "", email: "", internals: "" });
   const [touched, setTouched] = useState<Partial<Record<keyof QrForm, boolean>>>({});
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
@@ -86,14 +88,15 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
     }
   }
 
-  function handleInternalsKeyUp(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === " ") {
-      setForm((prev) => ({ ...prev, internals: prev.internals + "/ " }));
-    }
+  function handleChipsChange(chips: string[]) {
+    const filtered = chips.map((c) => c.trim()).filter((c) => /^\d{1,6}$/.test(c));
+    setInternalsChips(filtered);
+    setForm((p) => ({ ...p, internals: filtered.join(" / ") }));
   }
 
   function dismiss() {
     setTypeOrg("Departamento de");
+    setInternalsChips([]);
     setForm({ departament: "", email: "", internals: "" });
     setTouched({});
     setSelectedGroup("");
@@ -313,22 +316,21 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                   <label className={touched.internals && errors.internals ? "text-danger" : ""}>
                     Internos
                   </label>
-                  <input
-                    type="text"
-                    className="form-control form-control-line"
-                    placeholder="Ej: 100 / 101"
-                    value={form.internals}
-                    onChange={(e) => setForm((p) => ({ ...p, internals: e.target.value }))}
+                  <Chips
+                    value={internalsChips}
+                    onChange={(e) => handleChipsChange(e.value || [])}
                     onBlur={() => setTouched((p) => ({ ...p, internals: true }))}
-                    onKeyUp={handleInternalsKeyUp}
-                    autoComplete="off"
+                    placeholder={internalsChips.length === 0 ? "Ej: 100" : ""}
+                    allowDuplicate={false}
                     disabled={isLoadingGenerate}
+                    className={`w-100${touched.internals && errors.internals ? " p-invalid" : ""}`}
+                    pt={{ container: { style: { width: "100%" } } }}
                   />
                   {touched.internals && errors.internals && (
                     <small className="text-danger animated fadeIn">{errors.internals}</small>
                   )}
                   <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-                    Presioná espacio para agregar otro interno (Ej: 100/ 101)
+                    Escribí un número y presioná Enter para agregarlo. Solo se aceptan dígitos.
                   </small>
                 </div>
               </div>
