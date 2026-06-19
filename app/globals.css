@@ -402,18 +402,20 @@ input[disabled] {
 }
 
 .p-chip.custom-chip {
-  background-color: #657185;
-  color: #fff;
+  background: #e7f0ff !important;
+  border-radius: 12px;
+  color: #333;
 }
 
 .p-chip.custom-chip-change {
-  background-color: #2f3d4a;
+  background: #765CF2 !important;
+  border-radius: 12px;
   color: #fff;
   cursor: pointer;
 }
 
 .p-chip.custom-chip-change:hover {
-  background-color: #1a252f;
+  background: #5e48d4 !important;
 }
 
 .p-chip.custom-chip-internal {
