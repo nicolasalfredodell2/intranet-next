@@ -138,11 +138,9 @@ export default function ProfilePage() {
         first_name: form.name,
         last_name: form.lastname,
         datebirth: form.datebirth,
-        cuil: form.cuil,
         email: form.email,
         occupation_signature: form.occupation,
         location_signature: form.location,
-        internal: form.internal,
       });
       setQrValue(buildVCard({ first_name: form.name, last_name: form.lastname, occupation_signature: form.occupation, location_signature: form.location, email: form.email, internal: form.internal }));
       toast.current?.show({ severity: "success", summary: "Perfil modificado" });
@@ -226,17 +224,6 @@ export default function ProfilePage() {
       <canvas ref={qrCanvasRef} style={{ position: "absolute", left: "-500px", top: 0 }} />
 
       <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Perfil</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Perfil</li>
-            </ol>
-          </div>
-        </div>
 
         <div className="row">
           {/* Left card — avatar & QR actions */}

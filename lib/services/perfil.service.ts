@@ -18,11 +18,9 @@ export async function modificateProfileUser(data: {
   first_name: string;
   last_name: string;
   datebirth: string;
-  cuil: string;
   email: string;
   occupation_signature: string;
   location_signature: string;
-  internal: string;
 }): Promise<any> {
   const res = await fetch(`${API}people/profile`, {
     method: "PUT",
