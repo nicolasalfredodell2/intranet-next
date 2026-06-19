@@ -246,7 +246,7 @@ export default function ProfilePage() {
                     <div className="skeleton-btn mx-auto" />
                   </div>
                 ) : (
-                  <div className="m-t-30 text-center">
+                  <div className="text-center">
                     {!user?.avatar ? (
                       <i className="mdi mdi-account-circle" style={{ fontSize: "6rem" }} />
                     ) : (
@@ -280,6 +280,15 @@ export default function ProfilePage() {
                         <strong className="qr-info-text ml-3"><strong>{user.email}</strong></strong>
                       </div>
                     )}
+
+                    {user?.internal && (
+                      <div className="qr-info-item mt-2 w-100" style={{ borderLeftColor: "#4a6cf7" }}>
+                        <span className="qr-info-icon qr-info-icon--primary ml-1">
+                          <i className="pi pi-phone" />
+                        </span>
+                        <strong className="qr-info-text ml-3"><strong>{user.internal}</strong></strong>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -289,32 +298,24 @@ export default function ProfilePage() {
             {!loadingUser && (
               <div className="card mt-2">
                 <div className="card-body">
-                  <div className="d-flex justify-content-around">
-                    <div className="text-center">
-                      <button
-                        className="btn-qr-circle"
-                        onClick={downloadFirm}
-                        disabled={loadingActionQr}
-                        title="QR personal"
-                      >
-                        <i className={loadingActionQr ? "pi pi-spin pi-spinner" : "fa fa-qrcode"} style={{ fontSize: "1.6rem" }} />
-                      </button>
-                      <p className="mb-0 mt-1 text-muted" style={{ fontSize: "0.72rem" }}>
+                  <div className="d-flex" style={{ gap: "1rem" }}>
+                    <div
+                      className={`qr-action-card${loadingActionQr ? " disabled" : ""}`}
+                      onClick={() => !loadingActionQr && downloadFirm()}
+                    >
+                      <div className="qr-action-icon">
+                        <i className={loadingActionQr ? "pi pi-spin pi-spinner" : "fa fa-qrcode"} style={{ fontSize: "1.5rem" }} />
+                      </div>
+                      <p className="qr-action-label">
                         {loadingActionQr ? "Descargando..." : "QR personal"}
                       </p>
                     </div>
 
-                    <div className="text-center">
-                      <button
-                        className="btn-qr-circle"
-                        onClick={() => setIsOpenDialogQR(true)}
-                        title="QR área"
-                      >
-                        <i className="fa fa-qrcode" style={{ fontSize: "1.6rem" }} />
-                      </button>
-                      <p className="mb-0 mt-1 text-muted" style={{ fontSize: "0.72rem" }}>
-                        QR área
-                      </p>
+                    <div className="qr-action-card" onClick={() => setIsOpenDialogQR(true)}>
+                      <div className="qr-action-icon">
+                        <i className="fa fa-qrcode" style={{ fontSize: "1.5rem" }} />
+                      </div>
+                      <p className="qr-action-label">QR área</p>
                     </div>
                   </div>
                 </div>
@@ -407,10 +408,11 @@ export default function ProfilePage() {
 
                     <div className="row">
                       <div className="col-12 col-md-6 form-group">
-                        <label>Legajo/Interno <small className="text-muted">(No lo puede modificar)</small></label>
+                        <label>Legajo <small className="text-muted">(No lo puede modificar)</small></label>
                         <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
                       </div>
                     </div>
+
 
                     {loading && (
                       <div className="row fadeIn animated mt-2">
