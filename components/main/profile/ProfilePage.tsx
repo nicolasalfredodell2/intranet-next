@@ -229,6 +229,23 @@ export default function ProfilePage() {
 
       <div className="fadeIn animated">
 
+        <div className="row page-titles mb-3 align-items-center">
+          <div className="col">
+            <h3 className="text-themecolor mb-0">Perfil</h3>
+          </div>
+          <div className="col-auto">
+            <button
+              form="profile-form"
+              type="submit"
+              disabled={Object.keys(errors).length > 0 || loading}
+              className="btn btn-primary"
+            >
+              <i className={`mr-1 ${loading ? "pi pi-spin pi-spinner" : "pi pi-pencil"}`} />
+              {loading ? "Actualizando información" : "Actualizar información"}
+            </button>
+          </div>
+        </div>
+
         <div className="row">
           {/* Left card — avatar & QR actions */}
           <div className="col-lg-4 col-xlg-3 col-md-5">
@@ -358,7 +375,7 @@ export default function ProfilePage() {
                     {loadingUser ? (
                       <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
                     ) : (
-                      <form className="form-horizontal form-material" onSubmit={handleSaveProfile} noValidate>
+                      <form id="profile-form" className="form-horizontal form-material" onSubmit={handleSaveProfile} noValidate>
                         <div className="row">
                           <div className="col-12 col-md-6 form-group">
                             <label className={touched.name && errors.name ? "text-danger" : ""}>Nombre/s</label>
@@ -386,42 +403,6 @@ export default function ProfilePage() {
                           </div>
                         </div>
 
-                        <div className="row">
-                          <div className="col-12 col-md-6 form-group">
-                            <label className={touched.email && errors.email ? "text-danger" : ""}>Correo electrónico</label>
-                            <input type="email" className="form-control form-control-line" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, email: true }))} autoComplete="off" disabled={loading} />
-                            {touched.email && errors.email && <small className="text-danger animated fadeIn">{errors.email}</small>}
-                          </div>
-
-                          <div className="col-12 col-md-6 form-group">
-                            <label className={touched.occupation && errors.occupation ? "text-danger" : ""}>Cargo</label>
-                            <input type="text" className="form-control form-control-line" value={form.occupation} onChange={(e) => setForm((p) => ({ ...p, occupation: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, occupation: true }))} autoComplete="off" disabled={loading} />
-                            {touched.occupation && errors.occupation && <small className="text-danger animated fadeIn">{errors.occupation}</small>}
-                          </div>
-                        </div>
-
-                        <div className="row">
-                          <div className="col-12 col-md-6 form-group">
-                            <label className={touched.location && errors.location ? "text-danger" : ""}>Lugar</label>
-                            <input type="text" className="form-control form-control-line" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, location: true }))} autoComplete="off" disabled={loading} />
-                            {touched.location && errors.location && <small className="text-danger animated fadeIn">{errors.location}</small>}
-                          </div>
-
-                          <div className="col-12 col-md-6 form-group">
-                            <label>Interno <small className="text-muted">(No lo puede modificar)</small></label>
-                            <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
-                          </div>
-                        </div>
-
-                        <div className="row">
-                          <div className="col-12 col-md-6">
-                            <button disabled={Object.keys(errors).length > 0} type="submit" className="btn btn-primary btn-block">
-                              <i className={`mr-1 ${loading ? "pi pi-spin pi-spinner" : "pi pi-pencil"}`} />
-                              {loading ? "Actualizando información" : "Actualizar información"}
-                            </button>
-                          </div>
-                        </div>
-
                         {loading && (
                           <div className="row fadeIn animated mt-2">
                             <div className="col-12">
@@ -436,8 +417,45 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {/* Información laboral card */}
+            <div className="card">
+              <ul className="nav nav-tabs profile-tab" role="tablist">
+                <li className="nav-item">
+                  <a className="nav-link active" role="tab">Información laboral</a>
+                </li>
+              </ul>
+              <div className="card-body">
+                {loadingUser ? (
+                  <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
+                ) : (
+                  <form className="form-horizontal form-material" onSubmit={handleSaveProfile} noValidate>
+                    <div className="row">
+                      <div className="col-12 col-md-6 form-group">
+                        <label className={touched.occupation && errors.occupation ? "text-danger" : ""}>Cargo</label>
+                        <input type="text" className="form-control form-control-line" value={form.occupation} onChange={(e) => setForm((p) => ({ ...p, occupation: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, occupation: true }))} autoComplete="off" disabled={loading} />
+                        {touched.occupation && errors.occupation && <small className="text-danger animated fadeIn">{errors.occupation}</small>}
+                      </div>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-12 col-md-6 form-group">
+                        <label className={touched.location && errors.location ? "text-danger" : ""}>Lugar</label>
+                        <input type="text" className="form-control form-control-line" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, location: true }))} autoComplete="off" disabled={loading} />
+                        {touched.location && errors.location && <small className="text-danger animated fadeIn">{errors.location}</small>}
+                      </div>
+
+                      <div className="col-12 col-md-6 form-group">
+                        <label>Interno <small className="text-muted">(No lo puede modificar)</small></label>
+                        <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
+                      </div>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+
             {/* Jefes directos card */}
-            <div className="card mt-3">
+            <div className="card">
               <ul className="nav nav-tabs profile-tab" role="tablist">
                 <li className="nav-item">
                   <a className="nav-link active" role="tab">Jefes</a>
