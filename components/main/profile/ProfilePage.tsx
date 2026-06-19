@@ -462,7 +462,7 @@ export default function ProfilePage() {
                       <span className="qr-info-icon qr-info-icon--info">
                         <i className="pi pi-info-circle" />
                       </span>
-                      <span className="qr-info-text">Sus jefes son quienes aprueban o rechazan sus solicitudes de salida.</span>
+                      <span className="qr-info-text">Sus jefes son quienes aprueban o rechazan tus solicitudes de salida. Si no asignó uno, las solicitudes irán al Subdirector de Personal.</span>
                     </div>
                   </div>
                 )}
