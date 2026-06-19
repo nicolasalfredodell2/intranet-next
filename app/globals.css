@@ -200,6 +200,29 @@ header.topbar nav {
   width: 47px;
 }
 
+.btn-qr-circle {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #4a6cf7;
+  cursor: pointer;
+  display: inline-flex;
+  height: 58px;
+  justify-content: center;
+  transition: background-color 0.2s, color 0.2s;
+  width: 58px;
+}
+
+.btn-qr-circle:hover {
+  background-color: #eef1ff;
+}
+
+.btn-qr-circle:disabled {
+  color: #aaa;
+  cursor: not-allowed;
+}
+
 .btn-remote-active {
   background-color: #4a6cf7;
   color: #fff;
@@ -367,10 +390,53 @@ header.topbar nav {
    Profile
    ======================== */
 
+.img-profile-wrapper {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.25s ease, border 0.25s ease;
+  border: 3px solid transparent;
+}
+
+.img-profile-wrapper:hover {
+  border-color: #4a6cf7;
+  box-shadow: 0 4px 20px rgba(74, 108, 247, 0.35);
+}
+
+.img-profile-wrapper:hover .img-profile {
+  opacity: 0.45;
+}
+
+.img-profile-wrapper:hover .img-profile-overlay {
+  opacity: 1;
+}
+
+.img-profile-overlay {
+  align-items: center;
+  border-radius: 50%;
+  bottom: 0;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  font-weight: 600;
+  justify-content: center;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: opacity 0.25s ease;
+}
+
 .img-profile {
   width: 170px;
   height: 170px;
   object-fit: cover;
+  transition: opacity 0.25s ease;
 }
 
 .skeleton-circle {

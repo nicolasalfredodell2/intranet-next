@@ -65,17 +65,13 @@ function buildVCard(data: { first_name: string; last_name: string; occupation_si
 export default function ProfilePage() {
   const toast = useRef<Toast>(null);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const [user, setUser] = useState<any>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [form, setForm] = useState<ProfileForm>({ name: "", lastname: "", datebirth: "", cuil: "", email: "", occupation: "", location: "", internal: "" });
   const [touched, setTouched] = useState<Partial<Record<keyof ProfileForm, boolean>>>({});
   const [loading, setLoading] = useState(false);
-  const [isModeChangeImage, setIsModeChangeImage] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isDragOver, setIsDragOver] = useState(false);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const [showModalBosses, setShowModalBosses] = useState(false);
   const [isOpenDialogQR, setIsOpenDialogQR] = useState(false);
@@ -152,32 +148,23 @@ export default function ProfilePage() {
     }
   }
 
-  function handleFileSelect(file: File) {
+  async function handleAvatarDirectUpload(file: File) {
     if (!file.type.startsWith("image/")) {
       toast.current?.show({ severity: "info", summary: `El archivo ${file.name} no es una imagen válida.` });
       return;
     }
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-  }
-
-  async function handleSaveImage() {
-    if (!selectedFile) return;
     setIsLoadingImage(true);
     try {
       const formData = new FormData();
-      formData.append("file", selectedFile, selectedFile.name);
+      formData.append("file", file, file.name);
       const resp = await saveImageProfile(formData);
       setUser((prev: any) => ({ ...prev, avatar: resp.avatar }));
-      setSelectedFile(null);
-      setPreviewUrl(null);
-      setIsModeChangeImage(false);
-      toast.current?.show({ severity: "success", summary: "Imagen de perfil subida." });
+      toast.current?.show({ severity: "success", summary: "Imagen de perfil actualizada." });
     } catch {
       toast.current?.show({ severity: "error", summary: "Hubo un error al subir la imagen." });
     } finally {
       setIsLoadingImage(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
     }
   }
 
@@ -259,108 +246,80 @@ export default function ProfilePage() {
                     <div className="skeleton-btn mx-auto" />
                   </div>
                 ) : (
-                  <>
-                    <div className="m-t-30 text-center">
-                      {!user?.avatar ? (
-                        <i className="mdi mdi-account-circle" style={{ fontSize: "6rem" }} />
-                      ) : (
-                        <img className="mb-2 img-profile rounded-circle" src={`${API_URL}${user.avatar}`} alt="avatar" />
-                      )}
-
-                      {user?.email && (
-                        <div className="qr-info-item mt-2 w-100" style={{ borderLeftColor: "#4a6cf7" }}>
-                          <span className="qr-info-icon qr-info-icon--primary ml-1">
-                            <i className="pi pi-envelope" />
-                          </span>
-                          <strong className="qr-info-text ml-3"><strong>{user.email}</strong></strong>
-                        </div>
-                      )}
-
-                      {!isModeChangeImage ? (
-                        <div className="fadeIn animated">
-                          <button onClick={() => setIsModeChangeImage(true)} className="btn btn-primary fadeIn animated mt-3 btn-block">
-                            Cambiar imagen
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="fadeIn animated">
-                          {/* Dropzone */}
-                          <div
-                            className={`dropzone-area mt-3 ${isDragOver ? "drag-over" : ""}`}
-                            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-                            onDragLeave={() => setIsDragOver(false)}
-                            onDrop={(e) => { e.preventDefault(); setIsDragOver(false); const file = e.dataTransfer.files[0]; if (file) handleFileSelect(file); }}
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                              style={{ display: "none" }}
-                              onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileSelect(file); }}
-                            />
-                            {selectedFile && previewUrl ? (
-                              <div className="dropzone-preview">
-                                <img src={previewUrl} alt="preview" className="dropzone-preview-img" />
-                                <div className="dropzone-preview-footer">
-                                  <span className="dropzone-preview-name">{selectedFile.name}</span>
-                                  <button
-                                    type="button"
-                                    className="btn-remove-file"
-                                    onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setPreviewUrl(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                                    title="Quitar imagen"
-                                  >
-                                    <i className="pi pi-times" />
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <p className="my-2 text-muted">Seleccione o arrastre imagen de perfil</p>
-                            )}
-                          </div>
-
-                          {selectedFile && (
-                            <button disabled={isLoadingImage} onClick={handleSaveImage} className="btn btn-success fadeIn animated mt-3 btn-block">
-                              {isLoadingImage ? "Subiendo imagen" : "Subir imagen"}
-                            </button>
+                  <div className="m-t-30 text-center">
+                    {!user?.avatar ? (
+                      <i className="mdi mdi-account-circle" style={{ fontSize: "6rem" }} />
+                    ) : (
+                      <div className="img-profile-wrapper mb-1" onClick={() => !isLoadingImage && avatarInputRef.current?.click()}>
+                        <input
+                          ref={avatarInputRef}
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                          style={{ display: "none" }}
+                          onChange={(e) => { const file = e.target.files?.[0]; if (file) handleAvatarDirectUpload(file); }}
+                        />
+                        <img className="img-profile rounded-circle" src={`${API_URL}${user.avatar}`} alt="avatar" />
+                        <div className="img-profile-overlay">
+                          {isLoadingImage ? (
+                            <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.6rem" }} />
+                          ) : (
+                            <>
+                              <i className="pi pi-camera mb-1" style={{ fontSize: "1.4rem" }} />
+                              Cambiar imagen
+                            </>
                           )}
-
-                          {isLoadingImage && (
-                            <div className="row fadeIn animated mt-2">
-                              <div className="col-12">
-                                <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
-                              </div>
-                            </div>
-                          )}
-
-                          <button onClick={() => { setIsModeChangeImage(false); setSelectedFile(null); }} className="btn btn-secondary fadeIn animated mt-3 btn-block">
-                            Cancelar
-                          </button>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
-                    <div className="m-t-20 text-center">
-                      <button className="btn btn-primary btn-sm btn-block" onClick={downloadFirm} disabled={loadingActionQr}>
-                        <p className="my-0 py-0" style={{ fontSize: "1rem" }}>
-                          <i className={loadingActionQr ? "pi pi-spin pi-spinner" : "fa fa-qrcode"} />
-                          {" "}{loadingActionQr ? "Descargando firma" : "Descargar firma"}
-                        </p>
-                      </button>
-                    </div>
-
-                    <div className="m-t-20 text-center">
-                      <button className="btn btn-primary btn-sm btn-block" onClick={() => setIsOpenDialogQR(true)}>
-                        <p className="my-0 py-0" style={{ fontSize: "1rem" }}>
-                          <i className="fa fa-qrcode" />
-                          {" "}QR departamento o área
-                        </p>
-                      </button>
-                    </div>
-                  </>
+                    {user?.email && (
+                      <div className="qr-info-item mt-2 w-100" style={{ borderLeftColor: "#4a6cf7" }}>
+                        <span className="qr-info-icon qr-info-icon--primary ml-1">
+                          <i className="pi pi-envelope" />
+                        </span>
+                        <strong className="qr-info-text ml-3"><strong>{user.email}</strong></strong>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
+
+            {/* QR actions card */}
+            {!loadingUser && (
+              <div className="card mt-2">
+                <div className="card-body">
+                  <div className="d-flex justify-content-around">
+                    <div className="text-center">
+                      <button
+                        className="btn-qr-circle"
+                        onClick={downloadFirm}
+                        disabled={loadingActionQr}
+                        title="QR personal"
+                      >
+                        <i className={loadingActionQr ? "pi pi-spin pi-spinner" : "fa fa-qrcode"} style={{ fontSize: "1.6rem" }} />
+                      </button>
+                      <p className="mb-0 mt-1 text-muted" style={{ fontSize: "0.72rem" }}>
+                        {loadingActionQr ? "Descargando..." : "QR personal"}
+                      </p>
+                    </div>
+
+                    <div className="text-center">
+                      <button
+                        className="btn-qr-circle"
+                        onClick={() => setIsOpenDialogQR(true)}
+                        title="QR área"
+                      >
+                        <i className="fa fa-qrcode" style={{ fontSize: "1.6rem" }} />
+                      </button>
+                      <p className="mb-0 mt-1 text-muted" style={{ fontSize: "0.72rem" }}>
+                        QR área
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right card — form */}
