@@ -268,9 +268,12 @@ export default function ProfilePage() {
                       )}
 
                       {user?.email && (
-                        <strong className="text-muted mt-1 mb-0" style={{ fontSize: "1rem" }}>
-                          {user.email}
-                        </strong>
+                        <div className="qr-info-item mt-2 w-100" style={{ borderLeftColor: "#4a6cf7" }}>
+                          <span className="qr-info-icon qr-info-icon--primary ml-1">
+                            <i className="pi pi-envelope" />
+                          </span>
+                          <strong className="qr-info-text ml-3"><strong>{user.email}</strong></strong>
+                        </div>
                       )}
 
                       {!isModeChangeImage ? (
@@ -438,16 +441,15 @@ export default function ProfilePage() {
                       </div>
                       
                       <div className="col-12 col-md-6 form-group">
-                        <label className={touched.location && errors.location ? "text-danger" : ""}>Lugar</label>
-                        <input type="text" className="form-control form-control-line" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, location: true }))} autoComplete="off" disabled={loading} />
-                        {touched.location && errors.location && <small className="text-danger animated fadeIn">{errors.location}</small>}
+                        <label>Lugar <small className="text-muted">(No lo puede modificar)</small></label>
+                        <input type="text" className="form-control form-control-line" value={form.location} disabled autoComplete="off" />
                       </div>
                     </div>
 
                     <div className="row">
 
                       <div className="col-12 col-md-6 form-group">
-                        <label>Interno <small className="text-muted">(No lo puede modificar)</small></label>
+                        <label>Legajo/Interno <small className="text-muted">(No lo puede modificar)</small></label>
                         <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
                       </div>
                     </div>
