@@ -268,7 +268,7 @@ export default function ProfilePage() {
                       </div>
 
                       {selectedFile && (
-                        <button disabled={isLoadingImage} onClick={handleSaveImage} className="btn btn-primary fadeIn animated mt-3 btn-block">
+                        <button disabled={isLoadingImage} onClick={handleSaveImage} className="btn btn-success fadeIn animated mt-3 btn-block">
                           {isLoadingImage ? "Subiendo imagen" : "Subir imagen"}
                         </button>
                       )}
