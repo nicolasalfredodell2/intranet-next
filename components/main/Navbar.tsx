@@ -16,15 +16,18 @@ function decodeJWT(token: string): any {
 
 const STORAGE_KEYS = ["token", "token-workflow", "redirect", "redirect-question", "roles", "user"];
 const REMOTE_COOLDOWN_S = 15;
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export default function Navbar() {
   const toast = useRef<Toast>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const [canRemoteAccess, setCanRemoteAccess] = useState(false);
   const [canActionRemote, setCanActionRemote] = useState(true);
   const [showRemoteModal, setShowRemoteModal] = useState(false);
   const [isLoadingRemote, setIsLoadingRemote] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
-  const [userData, setUserData] = useState<{ first_name?: string; last_name?: string } | null>(null);
+  const [userData, setUserData] = useState<{ first_name?: string; last_name?: string; email?: string; avatar?: string } | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     verifyTokenPermissions();
@@ -32,6 +35,16 @@ export default function Navbar() {
       .then((data) => setUserData(data))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    if (showUserMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showUserMenu]);
 
   useEffect(() => {
     if (cooldownLeft <= 0) return;
@@ -102,9 +115,7 @@ export default function Navbar() {
     (userData?.first_name?.[0] ?? "") + (userData?.last_name?.[0] ?? "")
   ).toUpperCase();
 
-  const userName = userData?.first_name
-    ? `${userData.first_name}${userData.last_name ? " " + userData.last_name.split(" ")[0] : ""}`
-    : null;
+  const fullName = [userData?.first_name, userData?.last_name].filter(Boolean).join(" ");
 
   return (
     <>
@@ -165,36 +176,65 @@ export default function Navbar() {
                 </li>
               )}
 
-              {/* Divider */}
-              <li className="nav-item mx-2 d-none d-md-flex align-items-center">
-                <div style={{ width: 1, height: 26, background: "#e0e0e0" }} />
-              </li>
-
               {/* User identity + logout */}
               <li className="nav-item d-flex align-items-center pr-2" style={{ gap: "10px" }}>
-                {/* User initials pill */}
-                {userInitials && (
-                  <Link href="/perfil" className="navbar-user-pill" title={userName ?? "Ver perfil"}>
-                    <div className="navbar-user-avatar">
-                      {userInitials}
-                    </div>
-                    {userName && (
-                      <span className="navbar-user-name d-none d-lg-inline">{userName}</span>
-                    )}
-                  </Link>
-                )}
 
-                {/* Logout */}
-                <button
-                  type="button"
-                  className="navbar-logout-btn"
-                  data-toggle="modal"
-                  data-target="#modal-sesion"
-                  title="Cerrar sesión"
-                >
-                  <i className="mdi mdi-logout" style={{ fontSize: "1.35rem" }} />
-                  <span className="navbar-logout-label">Salir</span>
-                </button>
+                {/* Avatar with dropdown */}
+                {userData && (
+                  <div ref={userMenuRef} style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      className="navbar-avatar-btn"
+                      onClick={() => setShowUserMenu((prev) => !prev)}
+                      title="Ver perfil"
+                    >
+                      {userData.avatar ? (
+                        <img
+                          src={`${API_URL}${userData.avatar}`}
+                          alt="avatar"
+                          className="navbar-avatar-img"
+                        />
+                      ) : (
+                        <div className="navbar-user-avatar">
+                          {userInitials || <i className="mdi mdi-account" />}
+                        </div>
+                      )}
+                    </button>
+
+                    {showUserMenu && (
+                      <div className="navbar-user-dropdown animated fadeIn">
+                        <div className="navbar-user-dropdown-header">
+                          <div className="navbar-user-dropdown-avatar">
+                            {userData.avatar ? (
+                              <img src={`${API_URL}${userData.avatar}`} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                            ) : (
+                              <span>{userInitials}</span>
+                            )}
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            {fullName && <p className="navbar-user-dropdown-name">{fullName}</p>}
+                            {userData.email && <p className="navbar-user-dropdown-email">{userData.email}</p>}
+                          </div>
+                        </div>
+                        <div className="navbar-user-dropdown-divider" />
+                        <Link href="/main/profile" className="navbar-user-dropdown-item" onClick={() => setShowUserMenu(false)}>
+                          <i className="pi pi-user" style={{ fontSize: "0.85rem" }} />
+                          Ver perfil
+                        </Link>
+                        <button
+                          type="button"
+                          className="navbar-user-dropdown-item navbar-user-dropdown-item--danger w-100"
+                          data-toggle="modal"
+                          data-target="#modal-sesion"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <i className="mdi mdi-logout" style={{ fontSize: "1rem" }} />
+                          Cerrar sesión
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </li>
             </ul>
           </div>
