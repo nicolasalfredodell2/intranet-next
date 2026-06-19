@@ -258,7 +258,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                         value={typeOrg}
                         onChange={(e) => setTypeOrg(e.target.value)}
                         disabled={isLoadingGenerate}
-                        style={{ background: "#f4f4f4", borderRadius: "4px 0 0 4px" }}
+                        style={{ background: "#e9ecef", borderRadius: "4px 0 0 4px", fontSize: "0.82rem" }}
                       >
                         <option value="Departamento de">Departamento de</option>
                         <option value="Área de">Área de</option>
@@ -365,11 +365,6 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                   {groups.length === 0 && (
                     <small className="text-muted" style={{ fontSize: "0.75rem" }}>
                       No tenés grupos asignados.
-                    </small>
-                  )}
-                  {!selectedGroup && (
-                    <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-                      Requerido para usar "Guardar".
                     </small>
                   )}
                 </div>
