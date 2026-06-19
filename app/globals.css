@@ -395,6 +395,58 @@ input[disabled] {
   color: #a71d2a;
 }
 
+/* QR info block */
+.qr-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.qr-info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 8px 12px;
+  border-left: 3px solid transparent;
+}
+
+.qr-info-item:first-child {
+  border-left-color: #4a6cf7;
+}
+
+.qr-info-item:last-child {
+  border-left-color: #17a2b8;
+}
+
+.qr-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.qr-info-icon--primary {
+  background: #e8edff;
+  color: #4a6cf7;
+}
+
+.qr-info-icon--info {
+  background: #d1ecf1;
+  color: #17a2b8;
+}
+
+.qr-info-text {
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.4;
+}
+
 .dropzone-preview {
   display: flex;
   flex-direction: column;

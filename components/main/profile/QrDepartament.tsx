@@ -162,13 +162,25 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
 
   const footer = (
     <div>
+      <div className="qr-info-block mb-3">
+        <div className="qr-info-item">
+          <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-save" /></span>
+          <span className="qr-info-text"><b>Guardar QR</b> — actualiza el QR de notificaciones externas en Chasqui</span>
+        </div>
+        <div className="qr-info-item">
+          <span className="qr-info-icon qr-info-icon--info"><i className="pi pi-download" /></span>
+          <span className="qr-info-text"><b>Descargar QR</b> — descarga la firma en HTML para importarla en Thunderbird</span>
+        </div>
+      </div>
+
       <button
         onClick={saveQR}
         disabled={isLoadingGenerate || isFormInvalid || !selectedGroup}
         type="button"
         className="btn btn-primary waves-effect waves-light"
+        title="Actualiza el QR para notificaciones externas en Chasqui"
       >
-        {isLoadingSave ? <><i className="pi pi-spin pi-spinner mr-1" />Guardando QR</> : "Guardar QR"}
+        {isLoadingSave ? <><i className="pi pi-spin pi-spinner mr-1" />Guardando QR</> : <><i className="pi pi-save mr-1" />Guardar QR</>}
       </button>
 
       <button
@@ -176,8 +188,9 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
         disabled={isLoadingGenerate || isFormInvalid}
         type="button"
         className="btn btn-info waves-effect waves-light ml-2"
+        title="Descarga la firma en HTML para importarla en Thunderbird"
       >
-        {isLoadingGenerate ? <><i className="pi pi-spin pi-spinner mr-1" />Descargando QR</> : "Descargar QR"}
+        {isLoadingGenerate ? <><i className="pi pi-spin pi-spinner mr-1" />Descargando QR</> : <><i className="pi pi-download mr-1" />Descargar QR</>}
       </button>
 
       <button
@@ -186,7 +199,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
         className="btn btn-default waves-effect ml-2"
         onClick={dismiss}
       >
-        Cancelar
+        Volver
       </button>
     </div>
   );
