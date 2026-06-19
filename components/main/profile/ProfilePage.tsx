@@ -447,12 +447,19 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="row">
-
                       <div className="col-12 col-md-6 form-group">
                         <label>Legajo/Interno <small className="text-muted">(No lo puede modificar)</small></label>
                         <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
                       </div>
                     </div>
+
+                    {loading && (
+                      <div className="row fadeIn animated mt-2">
+                        <div className="col-12">
+                          <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
+                        </div>
+                      </div>
+                    )}
                   </form>
                 )}
               </div>
