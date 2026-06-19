@@ -458,6 +458,12 @@ export default function ProfilePage() {
                         />
                       ))
                     )}
+                    <div className="qr-info-item mt-3" style={{ borderLeftColor: "#17a2b8" }}>
+                      <span className="qr-info-icon qr-info-icon--info">
+                        <i className="pi pi-info-circle" />
+                      </span>
+                      <span className="qr-info-text">Sus jefes son quienes aprueban o rechazan sus solicitudes de salida.</span>
+                    </div>
                   </div>
                 )}
               </div>
