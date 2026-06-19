@@ -159,6 +159,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
 
   const errors = validateQrForm(form);
   const isFormInvalid = Object.keys(errors).length > 0;
+  const isWorking = isLoadingGenerate || isLoadingSave;
 
   const footer = (
     <div>
@@ -173,34 +174,40 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
         </div>
       </div>
 
-      <button
-        onClick={saveQR}
-        disabled={isLoadingGenerate || isFormInvalid || !selectedGroup}
-        type="button"
-        className="btn btn-primary waves-effect waves-light"
-        title="Actualiza el QR para notificaciones externas en Chasqui"
-      >
-        {isLoadingSave ? <><i className="pi pi-spin pi-spinner mr-1" />Guardando QR</> : <><i className="pi pi-save mr-1" />Guardar QR</>}
-      </button>
+      <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+        <button
+          onClick={saveQR}
+          disabled={isWorking || isFormInvalid || !selectedGroup}
+          type="button"
+          className="btn btn-primary d-flex align-items-center"
+          style={{ gap: "6px" }}
+          title={!selectedGroup ? "Seleccioná un grupo primero" : "Actualiza el QR para notificaciones externas en Chasqui"}
+        >
+          <i className={isLoadingSave ? "pi pi-spin pi-spinner" : "pi pi-save"} />
+          {isLoadingSave ? "Guardando..." : "Guardar QR"}
+        </button>
 
-      <button
-        onClick={generateQR}
-        disabled={isLoadingGenerate || isFormInvalid}
-        type="button"
-        className="btn btn-info waves-effect waves-light ml-2"
-        title="Descarga la firma en HTML para importarla en Thunderbird"
-      >
-        {isLoadingGenerate ? <><i className="pi pi-spin pi-spinner mr-1" />Descargando QR</> : <><i className="pi pi-download mr-1" />Descargar QR</>}
-      </button>
+        <button
+          onClick={generateQR}
+          disabled={isWorking || isFormInvalid}
+          type="button"
+          className="btn btn-info d-flex align-items-center"
+          style={{ gap: "6px" }}
+          title="Descarga la firma en HTML para importarla en Thunderbird"
+        >
+          <i className={isLoadingGenerate ? "pi pi-spin pi-spinner" : "pi pi-download"} />
+          {isLoadingGenerate ? "Descargando..." : "Descargar QR"}
+        </button>
 
-      <button
-        disabled={isLoadingGenerate}
-        type="button"
-        className="btn btn-default waves-effect ml-2"
-        onClick={dismiss}
-      >
-        Volver
-      </button>
+        <button
+          disabled={isWorking}
+          type="button"
+          className="btn text-muted ml-auto"
+          onClick={dismiss}
+        >
+          Volver
+        </button>
+      </div>
     </div>
   );
 
@@ -210,108 +217,168 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
 
       <Dialog
         visible={isShow}
-        style={{ width: "80vw" }}
+        style={{ width: "min(760px, 92vw)" }}
         draggable={false}
         resizable={false}
         closable={false}
+        dismissableMask
         modal
-        onHide={() => {}}
+        onHide={dismiss}
         footer={footer}
       >
-        <div className="row">
-          <div className="col-4">
-            <div className="form-group">
-              <label>Grupo</label>
-              <select
-                className="form-control"
-                value={selectedGroup}
-                onChange={(e) => setSelectedGroup(e.target.value)}
-                disabled={isLoadingGroups || isLoadingGenerate}
-              >
-                <option value="">{selectedGroup === "" ? "Seleccionar grupo" : ""}</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>{g.descripcion}</option>
-                ))}
-              </select>
-            </div>
+        {isLoadingGroups ? (
+          <div className="py-3">
+            <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
+            <p className="text-muted text-center mt-3 mb-0" style={{ fontSize: "0.85rem" }}>
+              Cargando grupos...
+            </p>
           </div>
+        ) : (
+          <div className="animated fadeIn">
 
-          <div className="animated fadeIn col-12">
-            <div className="row">
-              <div className="col-12 form-group">
-                <label className={touched.departament && errors.departament ? "text-danger" : ""}>
-                  Departamento
-                </label>
-                <div className="input-group">
-                  <div className="input-group-prepend">
-                    <select
-                      className="form-select"
-                      value={typeOrg}
-                      onChange={(e) => setTypeOrg(e.target.value)}
-                      disabled={isLoadingGroups || isLoadingGenerate}
-                    >
-                      <option value="Departamento de">Departamento de</option>
-                      <option value="Área de">Área de</option>
-                      <option value="Dirección de">Dirección de</option>
-                      <option value="Subdirección de">Subdirección de</option>
-                    </select>
+            {/* Datos del área */}
+            <div className="mb-4">
+              <div className="d-flex align-items-center mb-3" style={{ gap: "8px" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "8px", background: "#eef1ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className="pi pi-pencil" style={{ color: "#4a6cf7", fontSize: "0.8rem" }} />
+                </div>
+                <p className="mb-0 font-weight-bold" style={{ fontSize: "0.88rem", color: "#2f3d4a" }}>Datos del área</p>
+              </div>
+
+              <div className="row">
+                {/* Departamento */}
+                <div className="col-12 form-group">
+                  <label className={touched.departament && errors.departament ? "text-danger" : ""}>
+                    Nombre del área
+                  </label>
+                  <div className="input-group">
+                    <div className="input-group-prepend">
+                      <select
+                        className="form-select"
+                        value={typeOrg}
+                        onChange={(e) => setTypeOrg(e.target.value)}
+                        disabled={isLoadingGenerate}
+                        style={{ borderRadius: "4px 0 0 4px" }}
+                      >
+                        <option value="Departamento de">Departamento de</option>
+                        <option value="Área de">Área de</option>
+                        <option value="Dirección de">Dirección de</option>
+                        <option value="Subdirección de">Subdirección de</option>
+                      </select>
+                    </div>
+                    <input
+                      type="text"
+                      className="form-control form-control-line"
+                      placeholder="Ej: Recursos Humanos"
+                      value={form.departament}
+                      onChange={(e) => setForm((p) => ({ ...p, departament: e.target.value }))}
+                      onBlur={() => setTouched((p) => ({ ...p, departament: true }))}
+                      autoComplete="off"
+                      disabled={isLoadingGenerate}
+                    />
                   </div>
+                  {touched.departament && errors.departament && (
+                    <small className="text-danger animated fadeIn">{errors.departament}</small>
+                  )}
+                </div>
+
+                {/* Email */}
+                <div className="col-12 col-md-6 form-group">
+                  <label className={touched.email && errors.email ? "text-danger" : ""}>
+                    Correo institucional
+                  </label>
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control form-control-line"
+                      placeholder="Ej: rrhh"
+                      value={form.email}
+                      onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                      onBlur={() => setTouched((p) => ({ ...p, email: true }))}
+                      autoComplete="off"
+                      disabled={isLoadingGenerate}
+                    />
+                    <div className="input-group-append">
+                      <span className="input-group-text" style={{ fontSize: "0.82rem", color: "#666" }}>
+                        @tribcuentasrionegro.gov.ar
+                      </span>
+                    </div>
+                  </div>
+                  {touched.email && errors.email && (
+                    <small className="text-danger animated fadeIn">{errors.email}</small>
+                  )}
+                </div>
+
+                {/* Internos */}
+                <div className="col-12 col-md-6 form-group">
+                  <label className={touched.internals && errors.internals ? "text-danger" : ""}>
+                    Internos
+                  </label>
                   <input
                     type="text"
                     className="form-control form-control-line"
-                    value={form.departament}
-                    onChange={(e) => setForm((p) => ({ ...p, departament: e.target.value }))}
-                    onBlur={() => setTouched((p) => ({ ...p, departament: true }))}
+                    placeholder="Ej: 100 / 101"
+                    value={form.internals}
+                    onChange={(e) => setForm((p) => ({ ...p, internals: e.target.value }))}
+                    onBlur={() => setTouched((p) => ({ ...p, internals: true }))}
+                    onKeyUp={handleInternalsKeyUp}
                     autoComplete="off"
+                    disabled={isLoadingGenerate}
                   />
+                  {touched.internals && errors.internals && (
+                    <small className="text-danger animated fadeIn">{errors.internals}</small>
+                  )}
+                  <small className="text-muted" style={{ fontSize: "0.75rem" }}>
+                    Presioná espacio para agregar otro interno (Ej: 100/ 101)
+                  </small>
                 </div>
-                {touched.departament && errors.departament && (
-                  <small className="text-danger animated fadeIn">{errors.departament}</small>
-                )}
-              </div>
-
-              <div className="col-12 form-group">
-                <label className={touched.email && errors.email ? "text-danger" : ""}>
-                  Correo institucional
-                </label>
-                <div className="input-group">
-                  <input
-                    type="text"
-                    className="form-control form-control-line"
-                    value={form.email}
-                    onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                    onBlur={() => setTouched((p) => ({ ...p, email: true }))}
-                    autoComplete="off"
-                  />
-                  <div className="input-group-append">
-                    <span className="input-group-text">@tribcuentasrionegro.gov.ar</span>
-                  </div>
-                </div>
-                {touched.email && errors.email && (
-                  <small className="text-danger animated fadeIn">{errors.email}</small>
-                )}
-              </div>
-
-              <div className="col-12 form-group">
-                <label className={touched.internals && errors.internals ? "text-danger" : ""}>
-                  Internos
-                </label>
-                <input
-                  type="text"
-                  className="form-control form-control-line"
-                  value={form.internals}
-                  onChange={(e) => setForm((p) => ({ ...p, internals: e.target.value }))}
-                  onBlur={() => setTouched((p) => ({ ...p, internals: true }))}
-                  onKeyUp={handleInternalsKeyUp}
-                  autoComplete="off"
-                />
-                {touched.internals && errors.internals && (
-                  <small className="text-danger animated fadeIn">{errors.internals}</small>
-                )}
               </div>
             </div>
+
+            {/* Guardar en grupo */}
+            <div>
+              <div className="d-flex align-items-center mb-3" style={{ gap: "8px" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "8px", background: "#fff4e6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className="pi pi-users" style={{ color: "#fd7e14", fontSize: "0.8rem" }} />
+                </div>
+                <div>
+                  <p className="mb-0 font-weight-bold" style={{ fontSize: "0.88rem", color: "#2f3d4a" }}>
+                    Guardar en grupo
+                    <span className="ml-2" style={{ fontSize: "0.72rem", fontWeight: 400, color: "#aaa" }}>(opcional para descargar)</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="col-12 col-md-6 form-group mb-0">
+                  <label>Grupo de trabajo</label>
+                  <select
+                    className="form-control"
+                    value={selectedGroup}
+                    onChange={(e) => setSelectedGroup(e.target.value)}
+                    disabled={isLoadingGenerate || groups.length === 0}
+                  >
+                    <option value="">— Seleccionar grupo —</option>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>{g.descripcion}</option>
+                    ))}
+                  </select>
+                  {groups.length === 0 && (
+                    <small className="text-muted" style={{ fontSize: "0.75rem" }}>
+                      No tenés grupos asignados.
+                    </small>
+                  )}
+                  {!selectedGroup && (
+                    <small className="text-muted" style={{ fontSize: "0.75rem" }}>
+                      Requerido para usar "Guardar QR".
+                    </small>
+                  )}
+                </div>
+              </div>
+            </div>
+
           </div>
-        </div>
+        )}
       </Dialog>
     </>
   );
