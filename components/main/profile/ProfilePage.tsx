@@ -227,7 +227,6 @@ export default function ProfilePage() {
               disabled={Object.keys(errors).length > 0 || loading}
               className="btn btn-primary"
             >
-              <i className={`mr-1 ${loading ? "pi pi-spin pi-spinner" : "pi pi-pencil"}`} />
               {loading ? "Actualizando información" : "Actualizar información"}
             </button>
           </div>
@@ -436,7 +435,6 @@ export default function ProfilePage() {
                     className="btn btn-primary"
                     onClick={() => setShowModalBosses(true)}
                   >
-                    <i className="pi pi-users mr-1" />
                     Modificar jefes
                   </button>
                 )}
