@@ -395,21 +395,21 @@ export default function ProfilePage() {
                   <form className="form-horizontal form-material" onSubmit={handleSaveProfile} noValidate>
                     <div className="row">
                       <div className="col-12 col-md-6 form-group">
-                        <label className={touched.occupation && errors.occupation ? "text-danger" : ""}>Cargo</label>
-                        <input type="text" className="form-control form-control-line" value={form.occupation} onChange={(e) => setForm((p) => ({ ...p, occupation: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, occupation: true }))} autoComplete="off" disabled={loading} />
-                        {touched.occupation && errors.occupation && <small className="text-danger animated fadeIn">{errors.occupation}</small>}
-                      </div>
-                      
-                      <div className="col-12 col-md-6 form-group">
                         <label>Lugar <small className="text-muted">(No lo puede modificar)</small></label>
                         <input type="text" className="form-control form-control-line" value={form.location} disabled autoComplete="off" />
+                      </div>
+
+                      <div className="col-12 col-md-6 form-group">
+                        <label>Legajo <small className="text-muted">(No lo puede modificar)</small></label>
+                        <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
                       </div>
                     </div>
 
                     <div className="row">
                       <div className="col-12 col-md-6 form-group">
-                        <label>Legajo <small className="text-muted">(No lo puede modificar)</small></label>
-                        <input type="text" className="form-control form-control-line" value={form.internal} disabled autoComplete="off" />
+                        <label className={touched.occupation && errors.occupation ? "text-danger" : ""}>Cargo</label>
+                        <input type="text" className="form-control form-control-line" value={form.occupation} onChange={(e) => setForm((p) => ({ ...p, occupation: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, occupation: true }))} autoComplete="off" disabled={loading} />
+                        {touched.occupation && errors.occupation && <small className="text-danger animated fadeIn">{errors.occupation}</small>}
                       </div>
                     </div>
 
