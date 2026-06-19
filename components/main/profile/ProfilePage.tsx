@@ -405,7 +405,7 @@ export default function ProfilePage() {
                       </div>
                       <p className="qr-action-label">QR área</p>
                       <span style={{ fontSize: "0.7rem", color: "#94a3b8", textAlign: "center", lineHeight: 1.3 }}>
-                        Ver QR de tu departamento
+                        Ver QR de tu area
                       </span>
                     </div>
                   </div>
