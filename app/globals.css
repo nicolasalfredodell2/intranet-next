@@ -127,7 +127,8 @@ body::-webkit-scrollbar-track {
 }
 
 .card {
-  box-shadow: rgba(0, 0, 0, 0.1) -4px 9px 25px -6px;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
 .pointer {

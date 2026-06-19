@@ -250,6 +250,12 @@ export default function ProfilePage() {
                         <img className="mb-2 img-profile rounded-circle" src={`${API_URL}${user.avatar}`} alt="avatar" />
                       )}
 
+                      {user?.email && (
+                        <strong className="text-muted mt-1 mb-0" style={{ fontSize: "1rem" }}>
+                          {user.email}
+                        </strong>
+                      )}
+
                       {!isModeChangeImage ? (
                         <div className="fadeIn animated">
                           <button onClick={() => setIsModeChangeImage(true)} className="btn btn-primary fadeIn animated mt-3 btn-block">
@@ -356,13 +362,13 @@ export default function ProfilePage() {
                         <div className="row">
                           <div className="col-12 col-md-6 form-group">
                             <label className={touched.name && errors.name ? "text-danger" : ""}>Nombre/s</label>
-                            <input type="text" className="form-control form-control-line" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, name: true }))} autoComplete="off" />
+                            <input type="text" className="form-control form-control-line" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, name: true }))} autoComplete="off" disabled={loading} />
                             {touched.name && errors.name && <small className="text-danger animated fadeIn">{errors.name}</small>}
                           </div>
 
                           <div className="col-12 col-md-6 form-group">
                             <label className={touched.lastname && errors.lastname ? "text-danger" : ""}>Apellido/s</label>
-                            <input type="text" className="form-control form-control-line" value={form.lastname} onChange={(e) => setForm((p) => ({ ...p, lastname: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, lastname: true }))} autoComplete="off" />
+                            <input type="text" className="form-control form-control-line" value={form.lastname} onChange={(e) => setForm((p) => ({ ...p, lastname: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, lastname: true }))} autoComplete="off" disabled={loading} />
                             {touched.lastname && errors.lastname && <small className="text-danger animated fadeIn">{errors.lastname}</small>}
                           </div>
                         </div>
@@ -370,7 +376,7 @@ export default function ProfilePage() {
                         <div className="row">
                           <div className="col-12 col-md-6 form-group">
                             <label className={touched.datebirth && errors.datebirth ? "text-danger" : ""}>Fecha nacimiento</label>
-                            <input type="date" max="2003-01-01" min="1950-01-01" className="form-control form-control-line" value={form.datebirth} onChange={(e) => setForm((p) => ({ ...p, datebirth: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, datebirth: true }))} />
+                            <input type="date" max="2003-01-01" min="1950-01-01" className="form-control form-control-line" value={form.datebirth} onChange={(e) => setForm((p) => ({ ...p, datebirth: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, datebirth: true }))} disabled={loading} />
                             {touched.datebirth && errors.datebirth && <small className="text-danger animated fadeIn">{errors.datebirth}</small>}
                           </div>
 
@@ -383,13 +389,13 @@ export default function ProfilePage() {
                         <div className="row">
                           <div className="col-12 col-md-6 form-group">
                             <label className={touched.email && errors.email ? "text-danger" : ""}>Correo electrónico</label>
-                            <input type="email" className="form-control form-control-line" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, email: true }))} autoComplete="off" />
+                            <input type="email" className="form-control form-control-line" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, email: true }))} autoComplete="off" disabled={loading} />
                             {touched.email && errors.email && <small className="text-danger animated fadeIn">{errors.email}</small>}
                           </div>
 
                           <div className="col-12 col-md-6 form-group">
                             <label className={touched.occupation && errors.occupation ? "text-danger" : ""}>Cargo</label>
-                            <input type="text" className="form-control form-control-line" value={form.occupation} onChange={(e) => setForm((p) => ({ ...p, occupation: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, occupation: true }))} autoComplete="off" />
+                            <input type="text" className="form-control form-control-line" value={form.occupation} onChange={(e) => setForm((p) => ({ ...p, occupation: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, occupation: true }))} autoComplete="off" disabled={loading} />
                             {touched.occupation && errors.occupation && <small className="text-danger animated fadeIn">{errors.occupation}</small>}
                           </div>
                         </div>
@@ -397,7 +403,7 @@ export default function ProfilePage() {
                         <div className="row">
                           <div className="col-12 col-md-6 form-group">
                             <label className={touched.location && errors.location ? "text-danger" : ""}>Lugar</label>
-                            <input type="text" className="form-control form-control-line" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, location: true }))} autoComplete="off" />
+                            <input type="text" className="form-control form-control-line" value={form.location} onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))} onBlur={() => setTouched((p) => ({ ...p, location: true }))} autoComplete="off" disabled={loading} />
                             {touched.location && errors.location && <small className="text-danger animated fadeIn">{errors.location}</small>}
                           </div>
 
@@ -410,8 +416,8 @@ export default function ProfilePage() {
                         <div className="row">
                           <div className="col-12 col-md-6">
                             <button disabled={Object.keys(errors).length > 0} type="submit" className="btn btn-primary btn-block">
-                              {loading && <i className="pi pi-spin pi-spinner mr-1" />}
-                              {loading ? "Actualizando datos" : "Actualizar datos"}
+                              <i className={`mr-1 ${loading ? "pi pi-spin pi-spinner" : "pi pi-pencil"}`} />
+                              {loading ? "Actualizando información" : "Actualizar información"}
                             </button>
                           </div>
                         </div>
@@ -434,7 +440,7 @@ export default function ProfilePage() {
             <div className="card mt-3">
               <ul className="nav nav-tabs profile-tab" role="tablist">
                 <li className="nav-item">
-                  <a className="nav-link active" role="tab">Jefes directos</a>
+                  <a className="nav-link active" role="tab">Jefes</a>
                 </li>
               </ul>
               <div className="card-body">
@@ -463,7 +469,7 @@ export default function ProfilePage() {
                           onClick={() => setShowModalBosses(true)}
                         >
                           <i className="pi pi-users mr-1" />
-                          Cambiar jefe/s
+                          Modificar jefes
                         </button>
                       </div>
                     </div>

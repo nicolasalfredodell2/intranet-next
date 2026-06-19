@@ -101,8 +101,8 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
         onClick={handleSetBosses}
       >
         {loadingAction
-          ? selectedInternals.length > 1 ? "Asignando jefes" : "Asignando jefe"
-          : selectedInternals.length > 1 ? "Asignar jefes" : "Asignar jefe"}
+          ? "Modificando jefes"
+          : "Modificar jefes"}
       </button>
 
       {!isFirstSelect && (
@@ -112,7 +112,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
           className="btn btn-default waves-effect ml-2"
           onClick={() => dismiss(false)}
         >
-          Cancelar
+          Volver
         </button>
       )}
 
@@ -139,7 +139,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
       footer={footer}
     >
       <div className="modal-header my-0 py-0">
-        <h4 className="modal-title">Jefe/s directo/s</h4>
+        <h4 className="modal-title">Jefes</h4>
       </div>
 
       {isFirstSelect && (
