@@ -230,81 +230,102 @@ export default function ProfilePage() {
           <div className="col-lg-4 col-xlg-3 col-md-5">
             <div className="card">
               <div className="card-body">
-                <div className="m-t-30 text-center">
-                  {!user?.avatar ? (
-                    <i className="mdi mdi-account-circle" style={{ fontSize: "6rem" }} />
-                  ) : (
-                    <img className="mb-2 img-profile rounded-circle" src={`${API_URL}${user.avatar}`} alt="avatar" />
-                  )}
-
-                  {!isModeChangeImage ? (
-                    <div className="fadeIn animated">
-                      <button onClick={() => setIsModeChangeImage(true)} className="btn btn-primary fadeIn animated mt-3 btn-block">
-                        Cambiar imagen
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="fadeIn animated">
-                      {/* Dropzone */}
-                      <div
-                        className={`dropzone-area mt-3 ${isDragOver ? "drag-over" : ""}`}
-                        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-                        onDragLeave={() => setIsDragOver(false)}
-                        onDrop={(e) => { e.preventDefault(); setIsDragOver(false); const file = e.dataTransfer.files[0]; if (file) handleFileSelect(file); }}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                          style={{ display: "none" }}
-                          onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileSelect(file); }}
-                        />
-                        {selectedFile ? (
-                          <p className="my-2">{selectedFile.name}</p>
-                        ) : (
-                          <p className="my-2 text-muted">Seleccione o arrastre imagen de perfil</p>
-                        )}
-                      </div>
-
-                      {selectedFile && (
-                        <button disabled={isLoadingImage} onClick={handleSaveImage} className="btn btn-success fadeIn animated mt-3 btn-block">
-                          {isLoadingImage ? "Subiendo imagen" : "Subir imagen"}
-                        </button>
+                {loadingUser ? (
+                  <div className="text-center py-4 fadeIn animated">
+                    <div className="skeleton-circle mx-auto mb-3" />
+                    <div className="skeleton-btn mx-auto mb-2" />
+                    <div className="skeleton-btn mx-auto mb-2" />
+                    <div className="skeleton-btn mx-auto" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="m-t-30 text-center">
+                      {!user?.avatar ? (
+                        <i className="mdi mdi-account-circle" style={{ fontSize: "6rem" }} />
+                      ) : (
+                        <img className="mb-2 img-profile rounded-circle" src={`${API_URL}${user.avatar}`} alt="avatar" />
                       )}
 
-                      {isLoadingImage && (
-                        <div className="row fadeIn animated mt-2">
-                          <div className="col-12">
-                            <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
+                      {!isModeChangeImage ? (
+                        <div className="fadeIn animated">
+                          <button onClick={() => setIsModeChangeImage(true)} className="btn btn-primary fadeIn animated mt-3 btn-block">
+                            Cambiar imagen
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="fadeIn animated">
+                          {/* Dropzone */}
+                          <div
+                            className={`dropzone-area mt-3 ${isDragOver ? "drag-over" : ""}`}
+                            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                            onDragLeave={() => setIsDragOver(false)}
+                            onDrop={(e) => { e.preventDefault(); setIsDragOver(false); const file = e.dataTransfer.files[0]; if (file) handleFileSelect(file); }}
+                            onClick={() => fileInputRef.current?.click()}
+                          >
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                              style={{ display: "none" }}
+                              onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileSelect(file); }}
+                            />
+                            {selectedFile ? (
+                              <p className="my-2 d-flex align-items-center justify-content-center gap-2">
+                                <span>{selectedFile.name}</span>
+                                <button
+                                  type="button"
+                                  className="btn-remove-file"
+                                  onClick={(e) => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                                  title="Quitar imagen"
+                                >
+                                  <i className="pi pi-times" />
+                                </button>
+                              </p>
+                            ) : (
+                              <p className="my-2 text-muted">Seleccione o arrastre imagen de perfil</p>
+                            )}
                           </div>
+
+                          {selectedFile && (
+                            <button disabled={isLoadingImage} onClick={handleSaveImage} className="btn btn-success fadeIn animated mt-3 btn-block">
+                              {isLoadingImage ? "Subiendo imagen" : "Subir imagen"}
+                            </button>
+                          )}
+
+                          {isLoadingImage && (
+                            <div className="row fadeIn animated mt-2">
+                              <div className="col-12">
+                                <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
+                              </div>
+                            </div>
+                          )}
+
+                          <button onClick={() => { setIsModeChangeImage(false); setSelectedFile(null); }} className="btn btn-secondary fadeIn animated mt-3 btn-block">
+                            Cancelar
+                          </button>
                         </div>
                       )}
+                    </div>
 
-                      <button onClick={() => { setIsModeChangeImage(false); setSelectedFile(null); }} className="btn btn-secondary fadeIn animated mt-3 btn-block">
-                        Cancelar
+                    <div className="m-t-20 text-center">
+                      <button className="btn btn-primary btn-sm btn-block" onClick={downloadFirm} disabled={loadingActionQr}>
+                        <p className="my-0 py-0" style={{ fontSize: "1rem" }}>
+                          <i className={loadingActionQr ? "pi pi-spin pi-spinner" : "fa fa-qrcode"} />
+                          {" "}{loadingActionQr ? "Descargando firma" : "Descargar firma"}
+                        </p>
                       </button>
                     </div>
-                  )}
-                </div>
 
-                <div className="m-t-20 text-center">
-                  <button className="btn btn-primary btn-sm btn-block" onClick={downloadFirm} disabled={loadingActionQr}>
-                    <p className="my-0 py-0" style={{ fontSize: "1rem" }}>
-                      <i className={loadingActionQr ? "pi pi-spin pi-spinner" : "fa fa-qrcode"} />
-                      {" "}{loadingActionQr ? "Descargando firma" : "Descargar firma"}
-                    </p>
-                  </button>
-                </div>
-
-                <div className="m-t-20 text-center">
-                  <button className="btn btn-primary btn-sm btn-block" onClick={() => setIsOpenDialogQR(true)}>
-                    <p className="my-0 py-0" style={{ fontSize: "1rem" }}>
-                      <i className="fa fa-qrcode" />
-                      {" "}QR departamento o área
-                    </p>
-                  </button>
-                </div>
+                    <div className="m-t-20 text-center">
+                      <button className="btn btn-primary btn-sm btn-block" onClick={() => setIsOpenDialogQR(true)}>
+                        <p className="my-0 py-0" style={{ fontSize: "1rem" }}>
+                          <i className="fa fa-qrcode" />
+                          {" "}QR departamento o área
+                        </p>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>

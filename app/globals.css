@@ -321,6 +321,29 @@ header.topbar nav {
   object-fit: cover;
 }
 
+.skeleton-circle {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s infinite;
+}
+
+.skeleton-btn {
+  height: 38px;
+  border-radius: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 input:disabled,
 input[disabled] {
   background-color: #f4f4f4 !important;
@@ -355,6 +378,20 @@ input[disabled] {
   cursor: pointer;
   transition: border-color 0.2s, background-color 0.2s;
   text-align: center;
+}
+
+.btn-remove-file {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.btn-remove-file:hover {
+  color: #a71d2a;
 }
 
 .dropzone-area:hover,
