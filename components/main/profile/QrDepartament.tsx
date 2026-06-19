@@ -166,11 +166,11 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
       <div className="qr-info-block mb-3">
         <div className="qr-info-item">
           <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-save" /></span>
-          <span className="qr-info-text"><b>Guardar QR</b> — actualiza el QR de notificaciones externas en Chasqui</span>
+          <span className="qr-info-text"><b>Guardar</b> — actualiza el QR de notificaciones externas en Chasqui</span>
         </div>
         <div className="qr-info-item">
           <span className="qr-info-icon qr-info-icon--info"><i className="pi pi-download" /></span>
-          <span className="qr-info-text"><b>Descargar QR</b> — descarga la firma en HTML para importarla en Thunderbird</span>
+          <span className="qr-info-text"><b>Descargar</b> — descarga la firma en HTML para importarla en Thunderbird</span>
         </div>
       </div>
 
@@ -184,7 +184,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
           title={!selectedGroup ? "Seleccioná un grupo primero" : "Actualiza el QR para notificaciones externas en Chasqui"}
         >
           <i className={isLoadingSave ? "pi pi-spin pi-spinner" : "pi pi-save"} />
-          {isLoadingSave ? "Guardando..." : "Guardar QR"}
+          {isLoadingSave ? "Guardando..." : "Guardar"}
         </button>
 
         <button
@@ -196,7 +196,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
           title="Descarga la firma en HTML para importarla en Thunderbird"
         >
           <i className={isLoadingGenerate ? "pi pi-spin pi-spinner" : "pi pi-download"} />
-          {isLoadingGenerate ? "Descargando..." : "Descargar QR"}
+          {isLoadingGenerate ? "Descargando..." : "Descargar"}
         </button>
 
         <button
@@ -258,7 +258,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                         value={typeOrg}
                         onChange={(e) => setTypeOrg(e.target.value)}
                         disabled={isLoadingGenerate}
-                        style={{ borderRadius: "4px 0 0 4px" }}
+                        style={{ background: "#f4f4f4", borderRadius: "4px 0 0 4px" }}
                       >
                         <option value="Departamento de">Departamento de</option>
                         <option value="Área de">Área de</option>
@@ -269,7 +269,6 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                     <input
                       type="text"
                       className="form-control form-control-line"
-                      placeholder="Ej: Recursos Humanos"
                       value={form.departament}
                       onChange={(e) => setForm((p) => ({ ...p, departament: e.target.value }))}
                       onBlur={() => setTouched((p) => ({ ...p, departament: true }))}
@@ -283,15 +282,15 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                 </div>
 
                 {/* Email */}
-                <div className="col-12 col-md-6 form-group">
+                <div className="col-12 form-group">
                   <label className={touched.email && errors.email ? "text-danger" : ""}>
                     Correo institucional
                   </label>
                   <div className="input-group">
+                    
                     <input
                       type="text"
                       className="form-control form-control-line"
-                      placeholder="Ej: rrhh"
                       value={form.email}
                       onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                       onBlur={() => setTouched((p) => ({ ...p, email: true }))}
@@ -310,7 +309,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                 </div>
 
                 {/* Internos */}
-                <div className="col-12 col-md-6 form-group">
+                <div className="col-12 form-group">
                   <label className={touched.internals && errors.internals ? "text-danger" : ""}>
                     Internos
                   </label>
@@ -370,7 +369,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                   )}
                   {!selectedGroup && (
                     <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-                      Requerido para usar "Guardar QR".
+                      Requerido para usar "Guardar".
                     </small>
                   )}
                 </div>
