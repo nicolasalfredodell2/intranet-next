@@ -408,26 +408,6 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="row">
-                          <div className="col-12 form-group">
-                            <label>Jefes directos</label>
-                            <div>
-                              {bosses.map((boss) => (
-                                <Chip
-                                  key={boss.cuil}
-                                  label={boss.people?.lastname_name ?? boss.lastname_name}
-                                  className="mr-2 mt-2 custom-chip pointer"
-                                />
-                              ))}
-                              <Chip
-                                label="Cambiar jefe/s"
-                                className="mr-2 mt-2 custom-chip-change pointer"
-                                onClick={() => setShowModalBosses(true)}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="row">
                           <div className="col-12 col-md-6">
                             <button disabled={Object.keys(errors).length > 0} type="submit" className="btn btn-primary btn-block">
                               {loading && <i className="pi pi-spin pi-spinner mr-1" />}
@@ -447,6 +427,48 @@ export default function ProfilePage() {
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Jefes directos card */}
+            <div className="card mt-3">
+              <ul className="nav nav-tabs profile-tab" role="tablist">
+                <li className="nav-item">
+                  <a className="nav-link active" role="tab">Jefes directos</a>
+                </li>
+              </ul>
+              <div className="card-body">
+                {loadingUser ? (
+                  <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
+                ) : (
+                  <div className="fadeIn animated">
+                    <div className="mb-3">
+                      {bosses.length === 0 ? (
+                        <p className="text-muted mb-0">Sin jefes directos asignados.</p>
+                      ) : (
+                        bosses.map((boss) => (
+                          <Chip
+                            key={boss.cuil}
+                            label={boss.people?.lastname_name ?? boss.lastname_name}
+                            className="mr-2 mt-2 custom-chip pointer"
+                          />
+                        ))
+                      )}
+                    </div>
+                    <div className="row">
+                      <div className="col-12 col-lg-6">
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-block"
+                          onClick={() => setShowModalBosses(true)}
+                        >
+                          <i className="pi pi-users mr-1" />
+                          Cambiar jefe/s
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
