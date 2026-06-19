@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Dialog } from "primereact/dialog";
-import { ProgressBar } from "primereact/progressbar";
 import { Toast } from "primereact/toast";
 import { getDataUser } from "@/lib/services/perfil.service";
 import { connectRemote } from "@/lib/services/remote.service";
@@ -119,10 +117,10 @@ export default function Navbar() {
                 <li className="m-3 nav-item">
                   <button
                     onClick={() => setShowRemoteModal(true)}
-                    className={`btn m-1 p-1 rounded-circle ${canActionRemote ? "btn-primary" : "btn-muted"}`}
+                    className={`btn-remote-circle ${canActionRemote ? "btn-remote-active" : "btn-remote-disabled"}`}
                     disabled={!canActionRemote}
                   >
-                    <i className="mdi mdi-fingerprint" style={{ fontSize: "1.5rem" }} />
+                    <i className="mdi mdi-fingerprint" style={{ fontSize: "1.9rem" }} />
                   </button>
                 </li>
               )}
@@ -134,7 +132,7 @@ export default function Navbar() {
                   data-toggle="modal"
                   data-target="#modal-sesion"
                 >
-                  <i className="mdi mdi-logout" style={{ fontSize: "1.5rem" }} />
+                  <i className="mdi mdi-logout" style={{ fontSize: "1.9rem" }} />
                   <br />
                   <p style={{ fontSize: "0.55rem" }}>CERRAR SESIÓN</p>
                 </a>
@@ -144,33 +142,39 @@ export default function Navbar() {
         </nav>
       </header>
 
-      <Dialog
-        header="¿Fichar remoto?"
-        visible={showRemoteModal}
-        style={{ width: "50vw" }}
-        baseZIndex={10000}
-        modal
-        onHide={() => setShowRemoteModal(false)}
-      >
-        {isLoadingRemote ? (
-          <div className="animated fadeIn">
-            <ProgressBar style={{ height: "4px" }} mode="indeterminate" />
+      {showRemoteModal && (
+        <div className="main-remote-overlay" onClick={() => !isLoadingRemote && setShowRemoteModal(false)}>
+          <div className="main-remote-dialog animated fadeIn" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center pt-3 pb-2">
+              <div className="mb-3">
+                <i className="fa-solid fa-laptop-house text-primary" style={{ fontSize: "3rem", opacity: 0.8 }} />
+              </div>
+              <h5 className="font-weight-bold text-dark mb-2">¿Registrar fichada remota?</h5>
+              <p className="text-muted mb-0" style={{ fontSize: "0.95rem" }}>
+                Estás a punto de registrar tu horario desde una ubicación remota.
+              </p>
+            </div>
+
+            {isLoadingRemote && (
+              <div className="text-center my-3 animated fadeIn">
+                <i className="pi pi-spin pi-spinner mr-2" />
+                <small className="text-muted font-weight-bold">Procesando conexión...</small>
+              </div>
+            )}
+
+            {!isLoadingRemote && (
+              <div className="d-flex justify-content-between w-100 mt-3 animated fadeIn">
+                <button className="btn btn-light text-muted w-100 mr-2" style={{ borderRadius: "8px" }} onClick={() => setShowRemoteModal(false)}>
+                  Cancelar
+                </button>
+                <button className="btn btn-primary shadow-sm w-100 ml-2" style={{ borderRadius: "8px" }} onClick={handleConnectRemote}>
+                  <i className="fa-solid fa-check mr-1" /> Confirmar
+                </button>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="animated fadeIn d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-info py-2" onClick={handleConnectRemote}>
-              Si
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => setShowRemoteModal(false)}
-            >
-              Volver
-            </button>
-          </div>
-        )}
-      </Dialog>
+        </div>
+      )}
     </>
   );
 }
