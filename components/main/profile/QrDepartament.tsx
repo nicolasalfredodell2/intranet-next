@@ -47,7 +47,6 @@ function validateQrForm(f: QrForm): QrErrors {
 
   if (!f.internals) errors.internals = "* Campo obligatorio";
   else if (!/^[0-9/ ]+$/.test(f.internals)) errors.internals = "* Solo se acepta números, espacios y barra (/)";
-  else if (f.internals.length > 30) errors.internals = "* Puede ingresar hasta 30 caracteres";
 
   return errors;
 }
@@ -320,7 +319,6 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                     value={internalsChips}
                     onChange={(e) => handleChipsChange(e.value || [])}
                     onBlur={() => setTouched((p) => ({ ...p, internals: true }))}
-                    placeholder={internalsChips.length === 0 ? "Ej: 100" : ""}
                     allowDuplicate={false}
                     disabled={isLoadingGenerate}
                     className={`w-100${touched.internals && errors.internals ? " p-invalid" : ""}`}
