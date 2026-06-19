@@ -74,6 +74,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [isModeChangeImage, setIsModeChangeImage] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
   const [showModalBosses, setShowModalBosses] = useState(false);
@@ -156,7 +157,9 @@ export default function ProfilePage() {
       toast.current?.show({ severity: "info", summary: `El archivo ${file.name} no es una imagen válida.` });
       return;
     }
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
     setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
   }
 
   async function handleSaveImage() {
@@ -168,6 +171,7 @@ export default function ProfilePage() {
       const resp = await saveImageProfile(formData);
       setUser((prev: any) => ({ ...prev, avatar: resp.avatar }));
       setSelectedFile(null);
+      setPreviewUrl(null);
       setIsModeChangeImage(false);
       toast.current?.show({ severity: "success", summary: "Imagen de perfil subida." });
     } catch {
@@ -269,18 +273,21 @@ export default function ProfilePage() {
                               style={{ display: "none" }}
                               onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileSelect(file); }}
                             />
-                            {selectedFile ? (
-                              <p className="my-2 d-flex align-items-center justify-content-center gap-2">
-                                <span>{selectedFile.name}</span>
-                                <button
-                                  type="button"
-                                  className="btn-remove-file"
-                                  onClick={(e) => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                                  title="Quitar imagen"
-                                >
-                                  <i className="pi pi-times" />
-                                </button>
-                              </p>
+                            {selectedFile && previewUrl ? (
+                              <div className="dropzone-preview">
+                                <img src={previewUrl} alt="preview" className="dropzone-preview-img" />
+                                <div className="dropzone-preview-footer">
+                                  <span className="dropzone-preview-name">{selectedFile.name}</span>
+                                  <button
+                                    type="button"
+                                    className="btn-remove-file"
+                                    onClick={(e) => { e.stopPropagation(); setSelectedFile(null); setPreviewUrl(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                                    title="Quitar imagen"
+                                  >
+                                    <i className="pi pi-times" />
+                                  </button>
+                                </div>
+                              </div>
                             ) : (
                               <p className="my-2 text-muted">Seleccione o arrastre imagen de perfil</p>
                             )}
