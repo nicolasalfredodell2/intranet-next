@@ -324,13 +324,26 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                     allowDuplicate={false}
                     disabled={isLoadingGenerate}
                     className={`w-100${touched.internals && errors.internals ? " p-invalid" : ""}`}
-                    pt={{ container: { style: { width: "100%" } } }}
+                    pt={{
+                      container: { style: { width: "100%" } },
+                      input: {
+                        onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+                          const allowed = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter"];
+                          if (!/^\d$/.test(e.key) && !allowed.includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        },
+                      },
+                    }}
                   />
                   {touched.internals && errors.internals && (
-                    <small className="text-danger animated fadeIn">{errors.internals}</small>
+                    <>
+                      <small className="text-danger animated fadeIn">{errors.internals}</small>
+                      <br />
+                    </>
                   )}
                   <small className="text-muted" style={{ fontSize: "0.75rem" }}>
-                    Escribí un número y presioná Enter para agregarlo. Solo se aceptan dígitos.
+                    Escribí un número y presioná Enter para agregarlo.
                   </small>
                 </div>
               </div>
