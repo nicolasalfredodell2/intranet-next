@@ -188,25 +188,6 @@ export default function Navbar() {
             {/* Right actions */}
             <ul className="navbar-nav my-lg-0 align-items-center" style={{ gap: "4px" }}>
 
-              {/* Remote fichada */}
-              {canRemoteAccess && (
-                <li className="nav-item px-1">
-                  <div className="d-flex flex-column align-items-center" style={{ gap: "1px" }}>
-                    <button
-                      onClick={() => canActionRemote && setShowRemoteModal(true)}
-                      className={`btn-remote-circle ${canActionRemote ? "btn-remote-active" : "btn-remote-disabled"}`}
-                      disabled={!canActionRemote}
-                      title={canActionRemote ? "Fichar remotamente" : `Disponible en ${cooldownLeft}s`}
-                    >
-                      <i className="mdi mdi-fingerprint" style={{ fontSize: "1.7rem" }} />
-                    </button>
-                    {!canActionRemote && cooldownLeft > 0 && (
-                      <span className="navbar-cooldown-badge">{cooldownLeft}s</span>
-                    )}
-                  </div>
-                </li>
-              )}
-
               {/* Chip horario laboral + dropdown fichadas */}
               {horario && (
                 <li className="nav-item px-1">
@@ -223,17 +204,16 @@ export default function Navbar() {
                         color: "#4a6cf7",
                         borderRadius: "20px",
                         padding: "3px 10px",
-                        fontSize: "0.78rem",
+                        fontSize: "0.85rem",
                         fontWeight: 600,
                         border: "none",
                         cursor: "pointer",
                         whiteSpace: "nowrap",
                       }}
                     >
-                      <span style={{ background: "#4a6cf7", color: "#fff", borderRadius: "20px", padding: "1px 6px", fontSize: "0.7rem", fontWeight: 700 }}>HL</span>
                       {horario.in} - {horario.out}
                       {fichadas.length > 0 && (
-                        <span style={{ color: "#6c757d", fontSize: "0.72rem", fontWeight: 500 }}>
+                        <span style={{ color: "#6c757d", fontSize: "0.85rem", fontWeight: 500 }}>
                           · {fichadas[fichadas.length - 1]}
                         </span>
                       )}
@@ -253,10 +233,12 @@ export default function Navbar() {
                         overflow: "hidden",
                       }}>
                         <div style={{ padding: "10px 14px 6px", borderBottom: "1px solid #f0f0f0" }}>
-                          <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#aaa" }}>Fichadas del día</p>
-                          <p style={{ margin: "2px 0 0", fontSize: "0.75rem", color: "#6c757d" }}>Horario laboral: {horario.in} - {horario.out}</p>
+                          <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#aaa" }}>Horario laboral</p>
+                          <p style={{ margin: "2px 0 0", fontSize: "0.75rem", color: "#6c757d" }}>{horario.in} - {horario.out}</p>
                         </div>
 
+                        <div style={{ padding: "10px 14px 6px", borderBottom: "1px solid #f0f0f0" }}>
+                          <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#aaa" }}>Fichadas del día</p>
                         {fichadas.length === 0 ? (
                           <div style={{ padding: "12px 14px", textAlign: "center", color: "#aaa", fontSize: "0.8rem" }}>
                             Sin fichadas registradas
@@ -278,7 +260,7 @@ export default function Navbar() {
                                   display: "flex",
                                   alignItems: "center",
                                   gap: "8px",
-                                  padding: "5px 14px",
+                                  padding: "5px 1px",
                                   fontSize: "0.82rem",
                                   color: isFirst ? firstColor : isLastItem ? "#4a6cf7" : "#2f3d4a",
                                   fontWeight: isFirst || isLastItem ? 600 : 400,
@@ -299,18 +281,28 @@ export default function Navbar() {
                             })}
                           </div>
                         )}
-
-                        <div style={{ borderTop: "1px solid #f0f0f0", padding: "6px 8px" }}>
-                          <Link
-                            href="/main/income"
-                            onClick={() => setShowHLMenu(false)}
-                            style={{ display: "flex", alignItems: "center", gap: "6px", padding: "5px 6px", borderRadius: "8px", fontSize: "0.8rem", color: "#4a6cf7", textDecoration: "none", fontWeight: 500 }}
-                          >
-                            <i className="pi pi-external-link" style={{ fontSize: "0.75rem" }} />
-                            Ver detalles
-                          </Link>
                         </div>
+
                       </div>
+                    )}
+                  </div>
+                </li>
+              )}
+
+               {/* Remote fichada */}
+              {canRemoteAccess && (
+                <li className="nav-item px-1">
+                  <div className="d-flex flex-column align-items-center" style={{ gap: "1px" }}>
+                    <button
+                      onClick={() => canActionRemote && setShowRemoteModal(true)}
+                      className={`btn-remote-circle ${canActionRemote ? "btn-remote-active" : "btn-remote-disabled"}`}
+                      disabled={!canActionRemote}
+                      title={canActionRemote ? "Fichar remotamente" : `Disponible en ${cooldownLeft}s`}
+                    >
+                      <i className="mdi mdi-fingerprint" style={{ fontSize: "1.7rem" }} />
+                    </button>
+                    {!canActionRemote && cooldownLeft > 0 && (
+                      <span className="navbar-cooldown-badge">{cooldownLeft}s</span>
                     )}
                   </div>
                 </li>
