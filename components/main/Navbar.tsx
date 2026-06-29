@@ -36,11 +36,7 @@ export default function Navbar() {
   const [hourInDiffMins, setHourInDiffMins] = useState<number>(0);
   const [showHLMenu, setShowHLMenu] = useState(false);
 
-  useEffect(() => {
-    verifyTokenPermissions();
-    getDataUser()
-      .then((data) => setUserData(data))
-      .catch(() => {});
+  function fetchFichadas() {
     loadDailyPart({ user_authenticated: true })
       .then((resp) => {
         const row = Object.values(resp[0])[0] as any;
@@ -55,6 +51,16 @@ export default function Navbar() {
         setHourInDiffMins(row?.hour_in_diff ?? 0);
       })
       .catch(() => {});
+  }
+
+  useEffect(() => {
+    verifyTokenPermissions();
+    getDataUser()
+      .then((data) => setUserData(data))
+      .catch(() => {});
+    fetchFichadas();
+    const interval = setInterval(fetchFichadas, 3 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -211,12 +217,7 @@ export default function Navbar() {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {horario.in} - {horario.out}
-                      {fichadas.length > 0 && (
-                        <span style={{ color: "#6c757d", fontSize: "0.85rem", fontWeight: 500 }}>
-                          · {fichadas[fichadas.length - 1]}
-                        </span>
-                      )}
+                      Fichadas de hoy
                       <i className="pi pi-chevron-down" style={{ fontSize: "0.6rem", opacity: 0.6 }} />
                     </button>
 
@@ -239,48 +240,60 @@ export default function Navbar() {
 
                         <div style={{ padding: "10px 14px 6px", borderBottom: "1px solid #f0f0f0" }}>
                           <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#aaa" }}>Fichadas del día</p>
-                        {fichadas.length === 0 ? (
-                          <div style={{ padding: "12px 14px", textAlign: "center", color: "#aaa", fontSize: "0.8rem" }}>
-                            Sin fichadas registradas
-                          </div>
-                        ) : (
-                          <div style={{ padding: "6px 0" }}>
-                            {fichadas.map((f, idx) => {
-                              const isFirst = idx === 0;
-                              const isLastItem = idx === fichadas.length - 1;
-                              const firstColor = isLate ? "#dc3545" : "#28a745";
-                              const firstBg = isLate ? "#fff5f5" : "#f0fff4";
-                              const diffH = Math.floor(hourInDiffMins / 60);
-                              const diffM = hourInDiffMins % 60;
-                              const diffLabel = diffH > 0
-                                ? `+${diffH}h ${diffM.toString().padStart(2, "0")}m`
-                                : `+${diffM}m`;
-                              return (
-                                <div key={idx} style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px",
-                                  padding: "5px 1px",
-                                  fontSize: "0.82rem",
-                                  color: isFirst ? firstColor : isLastItem ? "#4a6cf7" : "#2f3d4a",
-                                  fontWeight: isFirst || isLastItem ? 600 : 400,
-                                  background: isFirst ? firstBg : isLastItem && !isFirst ? "#f5f7ff" : "transparent",
-                                }}>
-                                  <i className="pi pi-clock" style={{ fontSize: "0.75rem", opacity: 0.6 }} />
-                                  {f}
-                                  {isFirst && hourInDiffMins > 0 && (
-                                    <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: isLate ? "#ffe5e5" : "#e5ffe9", color: firstColor, borderRadius: "20px", padding: "1px 6px", fontWeight: 700 }}>
-                                      {diffLabel}
-                                    </span>
-                                  )}
-                                  {!isFirst && isLastItem && (
-                                    <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: "#eef1ff", color: "#4a6cf7", borderRadius: "20px", padding: "1px 6px" }}>última</span>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
+                          
+                          {fichadas.length === 0 ? (
+                            <div style={{ padding: "12px 14px", textAlign: "center", color: "#aaa", fontSize: "0.8rem" }}>
+                              Sin fichadas registradas
+                            </div>
+                          ) : (
+                            <div style={{ padding: "6px 0" }}>
+                              {fichadas.map((f, idx) => {
+                                const isFirst = idx === 0;
+                                const isLastItem = idx === fichadas.length - 1;
+                                const firstColor = isLate ? "#dc3545" : "#28a745";
+                                const firstBg = isLate ? "#fff5f5" : "#f0fff4";
+                                const diffH = Math.floor(hourInDiffMins / 60);
+                                const diffM = hourInDiffMins % 60;
+                                const diffLabel = diffH > 0
+                                  ? `+${diffH}h ${diffM.toString().padStart(2, "0")}m`
+                                  : `+${diffM}m`;
+                                return (
+                                  <div key={idx} style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "8px",
+                                    padding: "5px 1px",
+                                    fontSize: "0.82rem",
+                                    color: isFirst ? firstColor : isLastItem ? "#4a6cf7" : "#2f3d4a",
+                                    fontWeight: isFirst || isLastItem ? 600 : 400,
+                                    background: isFirst ? firstBg : isLastItem && !isFirst ? "#f5f7ff" : "transparent",
+                                  }}>
+                                    <i className="pi pi-clock" style={{ fontSize: "0.75rem", opacity: 0.6 }} />
+                                    {f}
+                                    {isFirst && hourInDiffMins > 0 && (
+                                      <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: isLate ? "#ffe5e5" : "#e5ffe9", color: firstColor, borderRadius: "20px", padding: "1px 6px", fontWeight: 700 }}>
+                                        {diffLabel}
+                                      </span>
+                                    )}
+                                    {!isFirst && isLastItem && (
+                                      <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: "#eef1ff", color: "#4a6cf7", borderRadius: "20px", padding: "1px 6px" }}>última</span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ borderTop: "1px solid #f0f0f0", padding: "6px 8px" }}>
+                          <Link
+                            href="/main/income"
+                            onClick={() => setShowHLMenu(false)}
+                            style={{ display: "flex", alignItems: "center", gap: "6px", padding: "5px 6px", borderRadius: "8px", fontSize: "0.8rem", color: "#4a6cf7", textDecoration: "none", fontWeight: 500 }}
+                          >
+                            <i className="pi pi-external-link" style={{ fontSize: "0.75rem" }} />
+                            Ver Fichadas Diarias
+                          </Link>
                         </div>
 
                       </div>
@@ -391,7 +404,7 @@ export default function Navbar() {
               </div>
               <h5 className="font-weight-bold text-dark mb-1">Fichada remota</h5>
               <p className="text-muted mb-0" style={{ fontSize: "0.88rem", lineHeight: 1.5 }}>
-                Estás a punto de registrar tu asistencia desde una ubicación remota.
+                Está a punto de registrar tu asistencia desde una ubicación remota.
               </p>
             </div>
 
@@ -403,19 +416,20 @@ export default function Navbar() {
             ) : (
               <div className="d-flex mt-4" style={{ gap: "10px" }}>
                 <button
-                  className="btn btn-light text-muted w-100"
-                  style={{ borderRadius: "10px", fontWeight: 500 }}
-                  onClick={() => setShowRemoteModal(false)}
-                >
-                  Cancelar
-                </button>
-                <button
                   className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
                   style={{ borderRadius: "10px", fontWeight: 600, gap: "6px" }}
                   onClick={handleConnectRemote}
                 >
                   <i className="pi pi-check" style={{ fontSize: "0.85rem" }} />
                   Confirmar
+                </button>
+
+                <button
+                  className="btn btn-light text-muted w-100"
+                  style={{ borderRadius: "10px", fontWeight: 500 }}
+                  onClick={() => setShowRemoteModal(false)}
+                >
+                  Volver
                 </button>
               </div>
             )}
