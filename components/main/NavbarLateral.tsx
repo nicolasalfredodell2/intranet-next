@@ -268,14 +268,6 @@ export default function NavbarLateral() {
           </nav>
         </div>
       </aside>
-
-      <button
-        className="sidebar-toggle-handle"
-        onClick={toggleSidebar}
-        title={isSidebarCollapsed ? "Expandir menú" : "Contraer menú"}
-      >
-        <i className={`pi ${isSidebarCollapsed ? "pi-chevron-right" : "pi-chevron-left"}`} />
-      </button>
     </>
   );
 }
