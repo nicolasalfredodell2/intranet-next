@@ -12,14 +12,14 @@ export async function getActivatedBanners() {
   const res = await fetch(`${API}banners/published`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error cargando banners");
   const json = await res.json();
-  return json.data;
+  return json.data.reverse();
 }
 
 export async function listBanners(): Promise<any[]> {
   const res = await fetch(`${API}banners`, { headers: authHeaders() });
   if (!res.ok) throw new Error("No se pudo cargar los banners");
   const resp = await res.json();
-  return resp.data;
+  return resp.data.reverse();
 }
 
 export async function createBanner(data: FormData): Promise<any> {

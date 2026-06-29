@@ -121,7 +121,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
         <i className="pi pi-users" style={{ color: "#fd7e14", fontSize: "1rem" }} />
       </div>
       <div>
-        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.95rem", color: "#2f3d4a" }}>Asignar jefes directos</p>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.95rem", color: "#2f3d4a" }}>Asignar jefes</p>
         <small className="text-muted" style={{ fontSize: "0.78rem" }}>Seleccioná quiénes aprobarán tus solicitudes</small>
       </div>
     </div>
@@ -189,7 +189,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
           <input
             type="text"
             className="form-control"
-            placeholder="Buscar por nombre, apellido, legajo o CUIL..."
+            placeholder="Buscar por nombre o apellido"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoComplete="off"
@@ -248,9 +248,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
                   <p className="mb-0" style={{ fontSize: "0.88rem", fontWeight: isSelected ? 600 : 400, color: "#2f3d4a" }}>
                     {internal.lastname_name}
                   </p>
-                  {internal.cuil && (
-                    <small className="text-muted" style={{ fontSize: "0.74rem" }}>CUIL: {internal.cuil}</small>
-                  )}
+                  <small className="text-info" style={{ fontSize: "0.74rem" }}>Cargo: {internal.occupation_signature ? internal.occupation_signature : '--'}</small>
                 </div>
                 {isSelected && (
                   <i className="pi pi-check-circle animated fadeIn" style={{ color: "#4a6cf7", fontSize: "1rem", flexShrink: 0 }} />

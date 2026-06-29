@@ -193,7 +193,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
           onClick={generateQR}
           disabled={isWorking || isFormInvalid}
           type="button"
-          className="btn btn-info d-flex align-items-center"
+          className="btn btn-primary d-flex align-items-center"
           style={{ gap: "6px" }}
           title="Descarga la firma en HTML para importarla en Thunderbird"
         >

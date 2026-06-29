@@ -12,7 +12,7 @@ export async function listShorts(): Promise<any[]> {
   const res = await fetch(`${API}shorts`, { headers: authHeaders() });
   if (!res.ok) throw new Error("No se pudo cargar los shorts");
   const resp = await res.json();
-  return resp.data;
+  return resp.data.reverse();
 }
 
 export async function createShort(data: FormData): Promise<any> {
@@ -38,7 +38,7 @@ export async function getActivatedShorts() {
   const res = await fetch(`${API}shorts/published`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error cargando shorts");
   const json = await res.json();
-  return json.data;
+  return json.data.reverse();
 }
 
 export async function likeShort(id: string) {
