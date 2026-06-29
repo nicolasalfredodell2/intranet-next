@@ -270,10 +270,9 @@ export default function NavbarLateral() {
       </aside>
 
       <button
-        type="button"
         className="sidebar-toggle-handle"
         onClick={toggleSidebar}
-        aria-label={isSidebarCollapsed ? "Expandir menu lateral" : "Contraer menu lateral"}
+        title={isSidebarCollapsed ? "Expandir menú" : "Contraer menú"}
       >
         <i className={`pi ${isSidebarCollapsed ? "pi-chevron-right" : "pi-chevron-left"}`} />
       </button>
