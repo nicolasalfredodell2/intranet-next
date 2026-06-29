@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Toast } from "primereact/toast";
 import { getDataUser } from "@/lib/services/perfil.service";
 import { connectRemote } from "@/lib/services/remote.service";
+import { loadDailyPart } from "@/lib/services/daily-part.service";
 
 function decodeJWT(token: string): any {
   try {
@@ -21,6 +22,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 export default function Navbar() {
   const toast = useRef<Toast>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const hlMenuRef = useRef<HTMLDivElement>(null);
   const [canRemoteAccess, setCanRemoteAccess] = useState(false);
   const [canActionRemote, setCanActionRemote] = useState(true);
   const [showRemoteModal, setShowRemoteModal] = useState(false);
@@ -28,11 +30,26 @@ export default function Navbar() {
   const [cooldownLeft, setCooldownLeft] = useState(0);
   const [userData, setUserData] = useState<{ first_name?: string; last_name?: string; email?: string; avatar?: string } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [horario, setHorario] = useState<{ in: string; out: string } | null>(null);
+  const [fichadas, setFichadas] = useState<string[]>([]);
+  const [showHLMenu, setShowHLMenu] = useState(false);
 
   useEffect(() => {
     verifyTokenPermissions();
     getDataUser()
       .then((data) => setUserData(data))
+      .catch(() => {});
+    loadDailyPart({ user_authenticated: true })
+      .then((resp) => {
+        const row = Object.values(resp[0])[0] as any;
+        if (row?.working?.hour_in && row?.working?.hour_out) {
+          setHorario({ in: row.working.hour_in, out: row.working.hour_out });
+        }
+        if (row?.check) {
+          const items = (row.check as string).split(",").map((t: string) => t.trim()).filter(Boolean);
+          setFichadas(items);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -45,6 +62,16 @@ export default function Navbar() {
     if (showUserMenu) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showUserMenu]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (hlMenuRef.current && !hlMenuRef.current.contains(e.target as Node)) {
+        setShowHLMenu(false);
+      }
+    }
+    if (showHLMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showHLMenu]);
 
   useEffect(() => {
     if (cooldownLeft <= 0) return;
@@ -171,6 +198,99 @@ export default function Navbar() {
                     </button>
                     {!canActionRemote && cooldownLeft > 0 && (
                       <span className="navbar-cooldown-badge">{cooldownLeft}s</span>
+                    )}
+                  </div>
+                </li>
+              )}
+
+              {/* Chip horario laboral + dropdown fichadas */}
+              {horario && (
+                <li className="nav-item px-1">
+                  <div ref={hlMenuRef} style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      title="Historial Laboral"
+                      onClick={() => setShowHLMenu((prev) => !prev)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "5px",
+                        background: "#eef1ff",
+                        color: "#4a6cf7",
+                        borderRadius: "20px",
+                        padding: "3px 10px",
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        border: "none",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <span style={{ background: "#4a6cf7", color: "#fff", borderRadius: "20px", padding: "1px 6px", fontSize: "0.7rem", fontWeight: 700 }}>HL</span>
+                      {horario.in} - {horario.out}
+                      {fichadas.length > 0 && (
+                        <span style={{ color: "#6c757d", fontSize: "0.72rem", fontWeight: 500 }}>
+                          · {fichadas[fichadas.length - 1]}
+                        </span>
+                      )}
+                      <i className="pi pi-chevron-down" style={{ fontSize: "0.6rem", opacity: 0.6 }} />
+                    </button>
+
+                    {showHLMenu && (
+                      <div className="animated fadeIn" style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        right: 0,
+                        background: "#fff",
+                        borderRadius: "12px",
+                        boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                        minWidth: "200px",
+                        zIndex: 1000,
+                        overflow: "hidden",
+                      }}>
+                        <div style={{ padding: "10px 14px 6px", borderBottom: "1px solid #f0f0f0" }}>
+                          <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#aaa" }}>Fichadas del día</p>
+                          <p style={{ margin: "2px 0 0", fontSize: "0.75rem", color: "#6c757d" }}>Horario laboral: {horario.in} - {horario.out}</p>
+                        </div>
+
+                        {fichadas.length === 0 ? (
+                          <div style={{ padding: "12px 14px", textAlign: "center", color: "#aaa", fontSize: "0.8rem" }}>
+                            Sin fichadas registradas
+                          </div>
+                        ) : (
+                          <div style={{ padding: "6px 0" }}>
+                            {fichadas.map((f, idx) => (
+                              <div key={idx} style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                padding: "5px 14px",
+                                fontSize: "0.82rem",
+                                color: idx === fichadas.length - 1 ? "#4a6cf7" : "#2f3d4a",
+                                fontWeight: idx === fichadas.length - 1 ? 600 : 400,
+                                background: idx === fichadas.length - 1 ? "#f5f7ff" : "transparent",
+                              }}>
+                                <i className="pi pi-clock" style={{ fontSize: "0.75rem", opacity: 0.6 }} />
+                                {f}
+                                {idx === fichadas.length - 1 && (
+                                  <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: "#eef1ff", color: "#4a6cf7", borderRadius: "20px", padding: "1px 6px" }}>última</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div style={{ borderTop: "1px solid #f0f0f0", padding: "6px 8px" }}>
+                          <Link
+                            href="/main/income"
+                            onClick={() => setShowHLMenu(false)}
+                            style={{ display: "flex", alignItems: "center", gap: "6px", padding: "5px 6px", borderRadius: "8px", fontSize: "0.8rem", color: "#4a6cf7", textDecoration: "none", fontWeight: 500 }}
+                          >
+                            <i className="pi pi-external-link" style={{ fontSize: "0.75rem" }} />
+                            Ver historial laboral
+                          </Link>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </li>
