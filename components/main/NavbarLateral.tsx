@@ -71,30 +71,15 @@ export default function NavbarLateral() {
         <div className="scroll-sidebar">
           <nav className="sidebar-nav">
             <ul id="sidebarnav">
-              {/* Perfil y sesión */}
+
+              {/* Perfil */}
               <li>
                 <Link href="/main/profile" className={active("/main/profile")} onClick={onNavClick}>
                   <i className="mdi mdi-account" />
                   <span className="hide-menu">Perfil</span>
                 </Link>
               </li>
-              <li>
-                <a
-                  href="#"
-                  className="text-danger"
-                  data-toggle="modal"
-                  data-target="#modal-sesion"
-                  onClick={onNavClick}
-                >
-                  <i className="mdi mdi-logout text-danger" />
-                  <span className="hide-menu">Cerrar sesión</span>
-                </a>
-              </li>
 
-              <li className="nav-devider" />
-              <li className="nav-small-cap">PERSONAL</li>
-
-              {/* Sección personal */}
               <li>
                 <Link href="/main/absence-notices" className={active("/main/absence-notices")} onClick={onNavClick}>
                   <i className="mdi mdi-alert" />
@@ -132,11 +117,11 @@ export default function NavbarLateral() {
                 </Link>
               </li>
 
-              {/* Sección administración */}
+              {/* Administración */}
               {isAdmin && (
                 <>
                   <li className="nav-devider" />
-                  <li className="nav-small-cap">ADMINISTRACIÓN</li>
+                  <li className="nav-small-cap">Administración</li>
 
                   {isAdminInformatic && (
                     <li className="fadeIn animated admin-item">
@@ -264,6 +249,21 @@ export default function NavbarLateral() {
                   )}
                 </>
               )}
+
+              {/* Cerrar sesión — al fondo (UX estándar) */}
+              <li className="nav-devider" />
+              <li className="sidebar-logout-item">
+                <a
+                  href="#"
+                  data-toggle="modal"
+                  data-target="#modal-sesion"
+                  onClick={onNavClick}
+                >
+                  <i className="mdi mdi-logout" />
+                  <span className="hide-menu">Cerrar sesión</span>
+                </a>
+              </li>
+
             </ul>
           </nav>
         </div>

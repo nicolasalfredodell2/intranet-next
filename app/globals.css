@@ -480,29 +480,152 @@ header.topbar nav {
    Main — NavbarLateral (sidebar)
    ======================== */
 
-#sidebarnav > li > a,
-#sidebarnav > li {
-  font-size: 0.9rem !important;
-  margin-bottom: 1px !important;
-  margin-top: 0.1px !important;
-  padding-bottom: 1px !important;
+/* Container */
+.left-sidebar {
+  background: linear-gradient(175deg, #19243a 0%, #1f2d42 100%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 4px 0 28px rgba(0, 0, 0, 0.22) !important;
 }
 
-#sidebarnav .active {
-  background-color: #242A33 !important;
+.sidebar-nav {
+  background: transparent !important;
+  padding: 10px 0 20px !important;
 }
 
-.admin-item > a > i {
-  color: #72b6ff !important;
+/* Section labels */
+.sidebar-nav ul li.nav-small-cap {
+  color: rgba(148, 163, 184, 0.45) !important;
+  font-size: 0.6rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  padding: 16px 20px 6px !important;
+  text-transform: uppercase !important;
 }
 
+/* Dividers */
+.sidebar-nav ul li.nav-devider {
+  background: rgba(255, 255, 255, 0.07) !important;
+  height: 1px !important;
+  margin: 8px 16px !important;
+}
+
+/* Nav items */
 #sidebarnav {
   max-height: 85vh;
   overflow-y: auto;
+  padding-bottom: 8px;
 }
 
+#sidebarnav > li {
+  margin: 1px 8px !important;
+  border-radius: 10px !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#sidebarnav > li > a {
+  align-items: center !important;
+  border-left: 3px solid transparent !important;
+  border-radius: 10px !important;
+  color: #8fa3b8 !important;
+  display: flex !important;
+  font-size: 0.83rem !important;
+  font-weight: 500 !important;
+  gap: 10px !important;
+  line-height: 1.4 !important;
+  padding: 9px 12px 9px 11px !important;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease !important;
+}
+
+#sidebarnav > li > a:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #e2e8f0 !important;
+  text-decoration: none !important;
+  transform: translateX(2px) !important;
+}
+
+#sidebarnav > li > a.active,
+#sidebarnav > li.active > a {
+  background: rgba(74, 108, 247, 0.14) !important;
+  border-left: 3px solid #4a6cf7 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+
+/* Icons */
+#sidebarnav > li > a i {
+  color: #4a5568 !important;
+  flex-shrink: 0 !important;
+  font-size: 20px !important;
+  transition: color 0.18s ease !important;
+  width: 24px !important;
+}
+
+#sidebarnav > li > a:hover i {
+  color: #718096 !important;
+}
+
+#sidebarnav > li > a.active i,
+#sidebarnav > li.active > a i {
+  color: #818cf8 !important;
+}
+
+/* Admin items */
+.admin-item > a > i {
+  color: #60a5fa !important;
+}
+
+.admin-item > a:hover > i {
+  color: #93c5fd !important;
+}
+
+.admin-item > a.active > i {
+  color: #818cf8 !important;
+}
+
+/* Logout item */
+.sidebar-logout-item > a {
+  color: #f87171 !important;
+}
+
+.sidebar-logout-item > a:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #fca5a5 !important;
+}
+
+.sidebar-logout-item > a i {
+  color: #f87171 !important;
+}
+
+.sidebar-logout-item > a:hover i {
+  color: #fca5a5 !important;
+}
+
+/* Submenu */
+.sidebar-nav ul li ul {
+  background: rgba(0, 0, 0, 0.18) !important;
+  border-radius: 8px !important;
+  margin: 2px 0 4px !important;
+  padding-left: 12px !important;
+}
+
+.sidebar-nav ul li ul li a {
+  border-radius: 6px !important;
+  color: #64748b !important;
+  font-size: 0.79rem !important;
+  padding: 6px 12px !important;
+  transition: color 0.15s ease, background 0.15s ease !important;
+}
+
+.sidebar-nav ul li ul li a:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+}
+
+/* Scrollbar */
 #sidebarnav::-webkit-scrollbar {
-  width: 16px;
+  width: 4px;
 }
 
 #sidebarnav::-webkit-scrollbar-track {
@@ -510,44 +633,49 @@ header.topbar nav {
 }
 
 #sidebarnav::-webkit-scrollbar-thumb {
-  background-color: #505A68;
+  background-color: rgba(100, 116, 139, 0.35);
   border-radius: 20px;
-  border: 6px solid transparent;
-  background-clip: content-box;
-  min-height: 150px !important;
+  min-height: 60px;
 }
 
 #sidebarnav::-webkit-scrollbar-thumb:hover {
-  background-color: #505A68;
+  background-color: rgba(100, 116, 139, 0.6);
 }
 
-/* Sidebar toggle button */
+/* Toggle handle */
 .sidebar-toggle-handle {
   align-items: center;
-  background-color: #2f3d4a;
+  background: linear-gradient(135deg, #4a6cf7 0%, #6a8aff 100%);
   border: 0;
   border-radius: 50%;
-  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(74, 108, 247, 0.45);
+  color: #fff;
   cursor: pointer;
   display: inline-flex;
-  height: 32px;
+  height: 30px;
   justify-content: center;
-  left: 224px;
+  left: 225px;
   position: fixed;
   top: 74px;
-  transition: left 0.2s ease-in-out;
-  width: 32px;
+  transition: left 0.25s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  width: 30px;
   z-index: 1100;
 }
 
+.sidebar-toggle-handle:hover {
+  box-shadow: 0 4px 16px rgba(74, 108, 247, 0.6);
+  transform: scale(1.08);
+}
+
 .sidebar-toggle-handle i {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .mini-sidebar .sidebar-toggle-handle {
   left: 50px;
 }
 
+/* Mini sidebar */
 @media (min-width: 768px) {
   .mini-sidebar .left-sidebar {
     display: block !important;
@@ -558,15 +686,20 @@ header.topbar nav {
     position: relative !important;
   }
 
+  .mini-sidebar #sidebarnav > li {
+    margin: 1px 4px !important;
+  }
+
   .mini-sidebar #sidebarnav > li > a {
-    width: 70px !important;
-    padding-left: 24px !important;
-    padding-right: 24px !important;
+    justify-content: center !important;
+    padding: 10px 0 !important;
+    width: 62px !important;
   }
 
   .mini-sidebar #sidebarnav > li:hover > a {
-    width: 70px !important;
-    background: inherit !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+    transform: none !important;
+    width: 62px !important;
   }
 
   .mini-sidebar #sidebarnav > li > a .hide-menu,
@@ -584,8 +717,7 @@ header.topbar nav {
 
 @media screen and (min-width: 750px) and (max-width: 1150px) {
   #sidebarnav a {
-    font-size: 0.9rem !important;
-    padding: 8px 35px 8px 15px !important;
+    font-size: 0.83rem !important;
   }
 }
 
