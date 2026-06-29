@@ -32,6 +32,8 @@ export default function Navbar() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [horario, setHorario] = useState<{ in: string; out: string } | null>(null);
   const [fichadas, setFichadas] = useState<string[]>([]);
+  const [isLate, setIsLate] = useState<boolean>(false);
+  const [hourInDiffMins, setHourInDiffMins] = useState<number>(0);
   const [showHLMenu, setShowHLMenu] = useState(false);
 
   useEffect(() => {
@@ -49,6 +51,8 @@ export default function Navbar() {
           const items = (row.check as string).split(",").map((t: string) => t.trim()).filter(Boolean);
           setFichadas(items);
         }
+        setIsLate(row?.is_late === 1);
+        setHourInDiffMins(row?.hour_in_diff ?? 0);
       })
       .catch(() => {});
   }, []);
@@ -259,24 +263,40 @@ export default function Navbar() {
                           </div>
                         ) : (
                           <div style={{ padding: "6px 0" }}>
-                            {fichadas.map((f, idx) => (
-                              <div key={idx} style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "8px",
-                                padding: "5px 14px",
-                                fontSize: "0.82rem",
-                                color: idx === fichadas.length - 1 ? "#4a6cf7" : "#2f3d4a",
-                                fontWeight: idx === fichadas.length - 1 ? 600 : 400,
-                                background: idx === fichadas.length - 1 ? "#f5f7ff" : "transparent",
-                              }}>
-                                <i className="pi pi-clock" style={{ fontSize: "0.75rem", opacity: 0.6 }} />
-                                {f}
-                                {idx === fichadas.length - 1 && (
-                                  <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: "#eef1ff", color: "#4a6cf7", borderRadius: "20px", padding: "1px 6px" }}>última</span>
-                                )}
-                              </div>
-                            ))}
+                            {fichadas.map((f, idx) => {
+                              const isFirst = idx === 0;
+                              const isLastItem = idx === fichadas.length - 1;
+                              const firstColor = isLate ? "#dc3545" : "#28a745";
+                              const firstBg = isLate ? "#fff5f5" : "#f0fff4";
+                              const diffH = Math.floor(hourInDiffMins / 60);
+                              const diffM = hourInDiffMins % 60;
+                              const diffLabel = diffH > 0
+                                ? `+${diffH}h ${diffM.toString().padStart(2, "0")}m`
+                                : `+${diffM}m`;
+                              return (
+                                <div key={idx} style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                  padding: "5px 14px",
+                                  fontSize: "0.82rem",
+                                  color: isFirst ? firstColor : isLastItem ? "#4a6cf7" : "#2f3d4a",
+                                  fontWeight: isFirst || isLastItem ? 600 : 400,
+                                  background: isFirst ? firstBg : isLastItem && !isFirst ? "#f5f7ff" : "transparent",
+                                }}>
+                                  <i className="pi pi-clock" style={{ fontSize: "0.75rem", opacity: 0.6 }} />
+                                  {f}
+                                  {isFirst && hourInDiffMins > 0 && (
+                                    <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: isLate ? "#ffe5e5" : "#e5ffe9", color: firstColor, borderRadius: "20px", padding: "1px 6px", fontWeight: 700 }}>
+                                      {diffLabel}
+                                    </span>
+                                  )}
+                                  {!isFirst && isLastItem && (
+                                    <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: "#eef1ff", color: "#4a6cf7", borderRadius: "20px", padding: "1px 6px" }}>última</span>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
 
@@ -287,7 +307,7 @@ export default function Navbar() {
                             style={{ display: "flex", alignItems: "center", gap: "6px", padding: "5px 6px", borderRadius: "8px", fontSize: "0.8rem", color: "#4a6cf7", textDecoration: "none", fontWeight: 500 }}
                           >
                             <i className="pi pi-external-link" style={{ fontSize: "0.75rem" }} />
-                            Ver historial laboral
+                            Ver detalles
                           </Link>
                         </div>
                       </div>
