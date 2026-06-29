@@ -5,6 +5,7 @@ import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
+import { Dropdown } from "primereact/dropdown";
 import { loadLicenses } from "@/lib/services/license.service";
 
 interface Filters {
@@ -189,12 +190,17 @@ export default function LicensePage() {
     },
   ];
 
-  const filterFields: { field: keyof Filters; placeholder: string; icon: string }[] = [
-    { field: "articulo", placeholder: "Artículo", icon: "pi-hashtag" },
-    { field: "descripcion", placeholder: "Descripción", icon: "pi-align-left" },
-    { field: "norma_aprobatoria", placeholder: "Norma", icon: "pi-book" },
-    { field: "anio_ref", placeholder: "Año", icon: "pi-calendar" },
-    { field: "cant", placeholder: "Días", icon: "pi-clock" },
+  const articuloOptions = [...new Set(licensesCompact.map((l) => String(l.articulo)))].sort();
+  const descripcionOptions = [...new Set(licensesCompact.map((l) => l.descripcion).filter(Boolean))].sort() as string[];
+  const normaOptions = [...new Set(licensesCompact.map((l) => l.norma_aprobatoria).filter(Boolean))].sort() as string[];
+  const anioOptions = [...new Set(licensesCompact.map((l) => String(l.anio_ref)))].sort((a, b) => Number(b) - Number(a));
+
+  const filterFields: { field: keyof Filters; placeholder: string; icon: string; type: "select" | "input"; options?: string[] }[] = [
+    { field: "articulo", placeholder: "Artículo", icon: "pi-hashtag", type: "select", options: articuloOptions },
+    { field: "descripcion", placeholder: "Descripción", icon: "pi-align-left", type: "select", options: descripcionOptions },
+    { field: "norma_aprobatoria", placeholder: "Norma", icon: "pi-book", type: "select", options: normaOptions },
+    { field: "anio_ref", placeholder: "Año", icon: "pi-calendar", type: "select", options: anioOptions },
+    { field: "cant", placeholder: "Días", icon: "pi-clock", type: "input" },
   ];
 
   return (
@@ -214,15 +220,28 @@ export default function LicensePage() {
                 {/* Filter bar */}
                 <div className="license-filter-bar">
                   <div className="license-filter-bar-inputs">
-                    {filterFields.map(({ field, placeholder, icon }) => (
-                      <div key={field} className="license-filter-input-wrap">
+                    {filterFields.map(({ field, placeholder, icon, type, options }) => (
+                      <div key={field} className={`license-filter-input-wrap${filters[field] ? " license-filter-input-wrap--active" : ""}`}>
                         <i className={`pi ${icon} license-filter-icon`} />
-                        <input
-                          className="license-filter-input"
-                          placeholder={placeholder}
-                          value={filters[field]}
-                          onChange={(e) => setFilters((p) => ({ ...p, [field]: e.target.value }))}
-                        />
+                        {type === "select" ? (
+                          <Dropdown
+                            value={filters[field] || null}
+                            options={options || []}
+                            onChange={(e) => setFilters((p) => ({ ...p, [field]: e.value ?? "" }))}
+                            placeholder={placeholder}
+                            className="license-filter-dropdown"
+                            panelClassName="license-filter-dropdown-panel"
+                            showClear={!!filters[field]}
+                            emptyMessage="Sin opciones"
+                          />
+                        ) : (
+                          <input
+                            className="license-filter-input"
+                            placeholder={placeholder}
+                            value={filters[field]}
+                            onChange={(e) => setFilters((p) => ({ ...p, [field]: e.target.value }))}
+                          />
+                        )}
                       </div>
                     ))}
                   </div>

@@ -1146,6 +1146,15 @@ input[disabled] {
   border-color: #4a6cf7;
 }
 
+.license-filter-input-wrap--active {
+  background: rgba(74,108,247,0.05) !important;
+  border-color: #4a6cf7 !important;
+}
+
+.license-filter-input-wrap--active .license-filter-icon {
+  color: #4a6cf7 !important;
+}
+
 .license-filter-icon {
   color: #cbd5e1 !important;
   flex-shrink: 0;
@@ -1163,6 +1172,83 @@ input[disabled] {
 
 .license-filter-input::placeholder {
   color: #cbd5e1;
+}
+
+/* Dropdown de PrimeReact dentro del filter bar */
+.license-filter-dropdown {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.license-filter-dropdown .p-dropdown-label {
+  color: #374151;
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif !important;
+  font-size: 0.8rem !important;
+  padding: 0 !important;
+}
+
+.license-filter-dropdown .p-dropdown-label.p-placeholder {
+  color: #cbd5e1 !important;
+}
+
+.license-filter-dropdown .p-dropdown-trigger {
+  color: #94a3b8;
+  padding-right: 2px;
+  width: 20px;
+}
+
+.license-filter-dropdown .p-dropdown-trigger-icon {
+  font-size: 0.62rem;
+}
+
+.license-filter-dropdown .p-dropdown-clear-icon {
+  font-size: 0.62rem;
+  right: 22px;
+}
+
+.license-filter-input-wrap--active .license-filter-dropdown .p-dropdown-trigger {
+  color: #4a6cf7;
+}
+
+/* Panel del dropdown */
+.license-filter-dropdown-panel {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+  margin-top: 4px !important;
+  overflow: hidden;
+}
+
+.license-filter-dropdown-panel .p-dropdown-items-wrapper {
+  max-height: 220px !important;
+}
+
+.license-filter-dropdown-panel .p-dropdown-items {
+  padding: 4px !important;
+}
+
+.license-filter-dropdown-panel .p-dropdown-item {
+  border-radius: 6px !important;
+  color: #374151 !important;
+  font-size: 0.82rem !important;
+  padding: 8px 12px !important;
+  transition: background 0.12s ease !important;
+}
+
+.license-filter-dropdown-panel .p-dropdown-item:hover,
+.license-filter-dropdown-panel .p-dropdown-item.p-focus {
+  background: #f5f7ff !important;
+  color: #4a6cf7 !important;
+}
+
+.license-filter-dropdown-panel .p-dropdown-item.p-highlight {
+  background: rgba(74, 108, 247, 0.1) !important;
+  color: #4a6cf7 !important;
+  font-weight: 600 !important;
 }
 
 .license-filter-clear {
