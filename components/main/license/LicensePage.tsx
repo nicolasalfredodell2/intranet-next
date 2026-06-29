@@ -19,6 +19,58 @@ function formatDate(d: string) {
   return d.split("-").reverse().join("/").replace("-", "/").replace("-", "/");
 }
 
+function DayBadge({ days }: { days: number }) {
+  const isLow = days <= 5;
+  const isMid = days > 5 && days <= 15;
+  return (
+    <span
+      style={{
+        background: isLow ? "#dcfce7" : isMid ? "#fef3c7" : "#fee2e2",
+        color: isLow ? "#16a34a" : isMid ? "#d97706" : "#dc2626",
+        borderRadius: "20px",
+        padding: "3px 10px",
+        fontSize: "0.78rem",
+        fontWeight: 700,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {days} {days === 1 ? "día" : "días"}
+    </span>
+  );
+}
+
+function ArticleChip({ value }: { value: string }) {
+  return (
+    <span
+      style={{
+        background: "rgba(74,108,247,0.09)",
+        color: "#4a6cf7",
+        borderRadius: "8px",
+        padding: "3px 10px",
+        fontSize: "0.78rem",
+        fontWeight: 700,
+        letterSpacing: "0.02em",
+      }}
+    >
+      {value}
+    </span>
+  );
+}
+
+function SkeletonRows() {
+  return (
+    <div style={{ padding: "4px 0 8px" }}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="license-skeleton-row">
+          {[10, 30, 22, 8, 12, 8].map((w, j) => (
+            <div key={j} className="license-skeleton-cell" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function LicensePage() {
   const toast = useRef<Toast>(null);
   const [loading, setLoading] = useState(false);
@@ -26,9 +78,17 @@ export default function LicensePage() {
   const [licensesTotal, setLicensesTotal] = useState<any[]>([]);
   const [licensesForDetail, setLicensesForDetail] = useState<any[]>([]);
   const [showDetail, setShowDetail] = useState(false);
-  const [filters, setFilters] = useState<Filters>({ articulo: "", descripcion: "", norma_aprobatoria: "", anio_ref: "", cant: "" });
+  const [filters, setFilters] = useState<Filters>({
+    articulo: "",
+    descripcion: "",
+    norma_aprobatoria: "",
+    anio_ref: String(new Date().getFullYear()),
+    cant: "",
+  });
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   async function loadData() {
     setLoading(true);
@@ -46,7 +106,11 @@ export default function LicensePage() {
         license.fecha_inicio = formatDate(license.fecha_inicio);
         license.fecha_finaliz = formatDate(license.fecha_finaliz);
 
-        if (temp.length === 0) { license.cant = license.dias_computados; temp.push(license); return; }
+        if (temp.length === 0) {
+          license.cant = license.dias_computados;
+          temp.push(license);
+          return;
+        }
 
         let isRepeat = false;
         temp.forEach((t: any) => {
@@ -56,13 +120,20 @@ export default function LicensePage() {
           }
         });
 
-        if (!isRepeat) { license.cant = license.dias_computados; temp.push(license); }
+        if (!isRepeat) {
+          license.cant = license.dias_computados;
+          temp.push(license);
+        }
       });
 
       setLicensesCompact(temp.reverse());
       setLicensesTotal(licenses);
     } catch (err: any) {
-      toast.current?.show({ severity: "error", summary: "No se pudieron cargar las licencias", detail: err.message });
+      toast.current?.show({
+        severity: "error",
+        summary: "No se pudieron cargar las licencias",
+        detail: err.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -70,88 +141,226 @@ export default function LicensePage() {
 
   function openDetail(license: any) {
     setLicensesForDetail(
-      licensesTotal.filter((l: any) => l.articulo === license.articulo && l.anio_ref === license.anio_ref).reverse()
+      licensesTotal
+        .filter((l: any) => l.articulo === license.articulo && l.anio_ref === license.anio_ref)
+        .reverse()
     );
     setShowDetail(true);
   }
 
-  const filtered = licensesCompact.filter((l) =>
-    (!filters.articulo || String(l.articulo).toLowerCase().includes(filters.articulo.toLowerCase())) &&
-    (!filters.descripcion || l.descripcion?.toLowerCase().includes(filters.descripcion.toLowerCase())) &&
-    (!filters.norma_aprobatoria || l.norma_aprobatoria?.toLowerCase().includes(filters.norma_aprobatoria.toLowerCase())) &&
-    (!filters.anio_ref || String(l.anio_ref).includes(filters.anio_ref)) &&
-    (!filters.cant || String(l.cant).includes(filters.cant))
+  const hasFilters = Object.values(filters).some(Boolean);
+
+  const filtered = licensesCompact.filter(
+    (l) =>
+      (!filters.articulo || String(l.articulo).toLowerCase().includes(filters.articulo.toLowerCase())) &&
+      (!filters.descripcion || l.descripcion?.toLowerCase().includes(filters.descripcion.toLowerCase())) &&
+      (!filters.norma_aprobatoria ||
+        l.norma_aprobatoria?.toLowerCase().includes(filters.norma_aprobatoria.toLowerCase())) &&
+      (!filters.anio_ref || String(l.anio_ref).includes(filters.anio_ref)) &&
+      (!filters.cant || String(l.cant).includes(filters.cant))
   );
+
+  const latestYear = licensesCompact.reduce((max, l) => Math.max(max, Number(l.anio_ref) || 0), 0);
+  const totalDaysLatestYear = licensesCompact
+    .filter((l) => l.anio_ref === latestYear)
+    .reduce((sum, l) => sum + (l.cant ?? 0), 0);
+
+  const summaryCards = [
+    {
+      label: "Tipos de licencia",
+      value: licensesCompact.length,
+      icon: "pi-list",
+      color: "#4a6cf7",
+      bg: "rgba(74,108,247,0.08)",
+    },
+    {
+      label: "Año más reciente",
+      value: latestYear || "—",
+      icon: "pi-calendar",
+      color: "#059669",
+      bg: "rgba(5,150,105,0.08)",
+    },
+    {
+      label: `Días en ${latestYear || "—"}`,
+      value: `${totalDaysLatestYear} días`,
+      icon: "pi-clock",
+      color: "#d97706",
+      bg: "rgba(217,119,6,0.08)",
+    },
+  ];
+
+  const filterFields: { field: keyof Filters; placeholder: string; icon: string }[] = [
+    { field: "articulo", placeholder: "Artículo", icon: "pi-hashtag" },
+    { field: "descripcion", placeholder: "Descripción", icon: "pi-align-left" },
+    { field: "norma_aprobatoria", placeholder: "Norma", icon: "pi-book" },
+    { field: "anio_ref", placeholder: "Año", icon: "pi-calendar" },
+    { field: "cant", placeholder: "Días", icon: "pi-clock" },
+  ];
 
   return (
     <>
       <Toast ref={toast} position="bottom-center" />
 
       <div className="animated fadeIn">
-        <div className="row page-titles">
-          <div className="align-self-center col-md-5">
-            <h3 className="text-themecolor">Licencias</h3>
-          </div>
-          <div className="align-self-center col-md-7">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Licencias</li>
-            </ol>
-          </div>
-        </div>
 
-        <div className="row">
-          <div className="col-md-12">
-            <div className="card card-body">
-              {loading ? (
-                <div className="animated fadeIn"><i className="pi pi-spin pi-spinner" /> Cargando licencias</div>
-              ) : (
-                <div className="animated fadeIn">
-                  {/* Filter row */}
-                  <div className="row mb-2">
-                    {(["articulo", "descripcion", "norma_aprobatoria", "anio_ref", "cant"] as (keyof Filters)[]).map((field) => (
-                      <div key={field} className="col">
+        {/* Main card */}
+        <div className="card license-main-card">
+          <div className="card-body">
+            {loading ? (
+              <SkeletonRows />
+            ) : (
+              <div className="animated fadeIn">
+
+                {/* Filter bar */}
+                <div className="license-filter-bar">
+                  <div className="license-filter-bar-inputs">
+                    {filterFields.map(({ field, placeholder, icon }) => (
+                      <div key={field} className="license-filter-input-wrap">
+                        <i className={`pi ${icon} license-filter-icon`} />
                         <input
-                          className="form-control form-control-sm"
-                          placeholder={field.replace("_", " ").toUpperCase()}
+                          className="license-filter-input"
+                          placeholder={placeholder}
                           value={filters[field]}
                           onChange={(e) => setFilters((p) => ({ ...p, [field]: e.target.value }))}
                         />
                       </div>
                     ))}
-                    <div className="col" />
                   </div>
-
-                  <DataTable value={filtered} className="p-datatable-sm p-datatable-striped" emptyMessage="No hay licencias.">
-                    <Column field="articulo" header="ARTÍCULO" style={{ width: "10%" }} body={(r) => <small>{r.articulo}</small>} sortable />
-                    <Column field="descripcion" header="DESCRIPCIÓN" style={{ width: "22.5%", textAlign: "left" }} body={(r) => <small>{r.descripcion}</small>} sortable />
-                    <Column field="norma_aprobatoria" header="NORMA" style={{ width: "22.5%", textAlign: "left" }} body={(r) => <small>{r.norma_aprobatoria}</small>} sortable />
-                    <Column field="anio_ref" header="AÑO" style={{ width: "10%" }} body={(r) => <small>{r.anio_ref}</small>} sortable />
-                    <Column field="cant" header="DÍAS TOTALES" style={{ width: "15%" }} body={(r) => <small>{r.cant}</small>} sortable />
-                    <Column header="ACCIONES" body={(r) => (
-                      <small className="pointer text-primary" onClick={() => openDetail(r)}>Ver detalle</small>
-                    )} />
-                  </DataTable>
+                  {hasFilters && (
+                    <button
+                      type="button"
+                      className="license-filter-clear"
+                      onClick={() =>
+                        setFilters({ articulo: "", descripcion: "", norma_aprobatoria: "", anio_ref: "", cant: "" })
+                      }
+                    >
+                      <i className="pi pi-times" /> Limpiar
+                    </button>
+                  )}
                 </div>
-              )}
-            </div>
+
+                <DataTable
+                  value={filtered}
+                  className="p-datatable-sm license-table"
+                  emptyMessage={
+                    <div className="license-empty">
+                      <i className="pi pi-inbox" />
+                      <p>No hay licencias registradas</p>
+                    </div>
+                  }
+                >
+                  <Column
+                    field="articulo"
+                    header="ARTÍCULO"
+                    style={{ width: "10%" }}
+                    body={(r) => <ArticleChip value={r.articulo} />}
+                    sortable
+                  />
+                  <Column
+                    field="descripcion"
+                    header="DESCRIPCIÓN"
+                    style={{ width: "30%" }}
+                    body={(r) => <span className="license-cell-primary">{r.descripcion}</span>}
+                    sortable
+                  />
+                  <Column
+                    field="norma_aprobatoria"
+                    header="NORMA"
+                    style={{ width: "22%" }}
+                    body={(r) => <span className="license-cell-secondary">{r.norma_aprobatoria}</span>}
+                    sortable
+                  />
+                  <Column
+                    field="anio_ref"
+                    header="AÑO"
+                    style={{ width: "9%", textAlign: "center" }}
+                    body={(r) => <span className="license-cell-year">{r.anio_ref}</span>}
+                    sortable
+                  />
+                  <Column
+                    field="cant"
+                    header="DÍAS TOTALES"
+                    style={{ width: "14%", textAlign: "center" }}
+                    body={(r) => <DayBadge days={r.cant} />}
+                    sortable
+                  />
+                  <Column
+                    header=""
+                    style={{ width: "7%", textAlign: "center" }}
+                    body={(r) => (
+                      <button
+                        type="button"
+                        className="license-action-btn"
+                        onClick={() => openDetail(r)}
+                        title="Ver detalle"
+                        aria-label="Ver detalle"
+                      >
+                        <i className="pi pi-eye" />
+                      </button>
+                    )}
+                  />
+                </DataTable>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       <Dialog
-        header={`Detalles de ${licensesForDetail[0]?.descripcion} (${licensesForDetail[0]?.anio_ref})`}
+        header={
+          <div className="license-dialog-header">
+            <div className="license-dialog-header-icon">
+              <i className="pi pi-calendar-minus" />
+            </div>
+            <div>
+              <div className="license-dialog-title">{licensesForDetail[0]?.descripcion}</div>
+              <span className="license-dialog-year-badge">{licensesForDetail[0]?.anio_ref}</span>
+            </div>
+          </div>
+        }
         visible={showDetail}
         draggable={false}
         modal
-        style={{ width: "95vw" }}
+        style={{ width: "min(95vw, 780px)" }}
         onHide={() => setShowDetail(false)}
       >
-        <DataTable value={licensesForDetail} className="p-datatable-sm p-datatable-striped" paginator rows={10} showCurrentPageReport>
-          <Column field="fecha_inicio" header="FECHA INICIO" />
-          <Column field="fecha_finaliz" header="FECHA FIN" />
-          <Column field="dias_computados" header="DÍAS COMPUTADOS" />
-          <Column field="norma_aprobatoria" header="NORMA APROBATORIA" />
+        <DataTable
+          value={licensesForDetail}
+          className="p-datatable-sm license-table"
+          paginator
+          rows={10}
+        >
+          <Column
+            field="fecha_inicio"
+            header="FECHA INICIO"
+            body={(r) => (
+              <span className="license-date-cell">
+                <i className="pi pi-calendar" />
+                {r.fecha_inicio}
+              </span>
+            )}
+          />
+          <Column
+            field="fecha_finaliz"
+            header="FECHA FIN"
+            body={(r) => (
+              <span className="license-date-cell">
+                <i className="pi pi-calendar" />
+                {r.fecha_finaliz}
+              </span>
+            )}
+          />
+          <Column
+            field="dias_computados"
+            header="DÍAS"
+            style={{ textAlign: "center" }}
+            body={(r) => <DayBadge days={r.dias_computados} />}
+          />
+          <Column
+            field="norma_aprobatoria"
+            header="NORMA APROBATORIA"
+            body={(r) => <span className="license-cell-secondary">{r.norma_aprobatoria}</span>}
+          />
         </DataTable>
       </Dialog>
     </>
