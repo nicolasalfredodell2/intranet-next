@@ -13,7 +13,6 @@ interface Filters {
   descripcion: string;
   norma_aprobatoria: string;
   anio_ref: string;
-  cant: string;
 }
 
 function formatDate(d: string) {
@@ -21,17 +20,15 @@ function formatDate(d: string) {
 }
 
 function DayBadge({ days }: { days: number }) {
-  const isLow = days <= 5;
-  const isMid = days > 5 && days <= 15;
   return (
     <span
       style={{
-        background: isLow ? "#dcfce7" : isMid ? "#fef3c7" : "#fee2e2",
-        color: isLow ? "#16a34a" : isMid ? "#d97706" : "#dc2626",
+        background: "#f1f5f9",
+        color: "#475569",
         borderRadius: "20px",
         padding: "3px 10px",
         fontSize: "0.78rem",
-        fontWeight: 700,
+        fontWeight: 600,
         whiteSpace: "nowrap",
       }}
     >
@@ -83,8 +80,7 @@ export default function LicensePage() {
     articulo: "",
     descripcion: "",
     norma_aprobatoria: "",
-    anio_ref: String(new Date().getFullYear()),
-    cant: "",
+    anio_ref: "",
   });
 
   useEffect(() => {
@@ -157,8 +153,7 @@ export default function LicensePage() {
       (!filters.descripcion || l.descripcion?.toLowerCase().includes(filters.descripcion.toLowerCase())) &&
       (!filters.norma_aprobatoria ||
         l.norma_aprobatoria?.toLowerCase().includes(filters.norma_aprobatoria.toLowerCase())) &&
-      (!filters.anio_ref || String(l.anio_ref).includes(filters.anio_ref)) &&
-      (!filters.cant || String(l.cant).includes(filters.cant))
+      (!filters.anio_ref || String(l.anio_ref).includes(filters.anio_ref))
   );
 
   const latestYear = licensesCompact.reduce((max, l) => Math.max(max, Number(l.anio_ref) || 0), 0);
@@ -196,11 +191,10 @@ export default function LicensePage() {
   const anioOptions = [...new Set(licensesCompact.map((l) => String(l.anio_ref)))].sort((a, b) => Number(b) - Number(a));
 
   const filterFields: { field: keyof Filters; placeholder: string; icon: string; type: "select" | "input"; options?: string[] }[] = [
+    { field: "anio_ref", placeholder: "Año", icon: "pi-calendar", type: "select", options: anioOptions },
     { field: "articulo", placeholder: "Artículo", icon: "pi-hashtag", type: "select", options: articuloOptions },
     { field: "descripcion", placeholder: "Descripción", icon: "pi-align-left", type: "select", options: descripcionOptions },
     { field: "norma_aprobatoria", placeholder: "Norma", icon: "pi-book", type: "select", options: normaOptions },
-    { field: "anio_ref", placeholder: "Año", icon: "pi-calendar", type: "select", options: anioOptions },
-    { field: "cant", placeholder: "Días", icon: "pi-clock", type: "input" },
   ];
 
   return (
@@ -250,7 +244,7 @@ export default function LicensePage() {
                       type="button"
                       className="license-filter-clear"
                       onClick={() =>
-                        setFilters({ articulo: "", descripcion: "", norma_aprobatoria: "", anio_ref: "", cant: "" })
+                        setFilters({ articulo: "", descripcion: "", norma_aprobatoria: "", anio_ref: "" })
                       }
                     >
                       <i className="pi pi-times" /> Limpiar
@@ -268,6 +262,13 @@ export default function LicensePage() {
                     </div>
                   }
                 >
+                  <Column
+                    field="anio_ref"
+                    header="AÑO"
+                    style={{ width: "9%", textAlign: "left" }}
+                    body={(r) => <span className="license-cell-year">{r.anio_ref}</span>}
+                    sortable
+                  />
                   <Column
                     field="articulo"
                     header="ARTÍCULO"
@@ -290,16 +291,9 @@ export default function LicensePage() {
                     sortable
                   />
                   <Column
-                    field="anio_ref"
-                    header="AÑO"
-                    style={{ width: "9%", textAlign: "center" }}
-                    body={(r) => <span className="license-cell-year">{r.anio_ref}</span>}
-                    sortable
-                  />
-                  <Column
                     field="cant"
                     header="DÍAS TOTALES"
-                    style={{ width: "14%", textAlign: "center" }}
+                    style={{ width: "14%", textAlign: "left" }}
                     body={(r) => <DayBadge days={r.cant} />}
                     sortable
                   />
@@ -372,7 +366,6 @@ export default function LicensePage() {
           <Column
             field="dias_computados"
             header="DÍAS"
-            style={{ textAlign: "center" }}
             body={(r) => <DayBadge days={r.dias_computados} />}
           />
           <Column
