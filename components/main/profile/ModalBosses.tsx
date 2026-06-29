@@ -20,29 +20,41 @@ interface Props {
   onBossesAssigned: (bosses: any[]) => void;
 }
 
+const SEARCH_DEBOUNCE_MS = 600;
+
 export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Props) {
-  const [allInternals, setAllInternals] = useState<Internal[]>([]);
-  const [selectedCuils, setSelectedCuils] = useState<string[]>([]);
+  const [searchResults, setSearchResults] = useState<Internal[]>([]);
+  const [selectedMap, setSelectedMap] = useState<Record<string, Internal>>({});
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
   const [isFirstSelect, setIsFirstSelect] = useState(false);
   const [msg, setMsg] = useState<{ severity: string; text: string } | null>(null);
   const msgTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!show) return;
-    loadInternals();
 
     const bosses = user?.bosses ?? [];
     if (bosses.length === 0) {
       setIsFirstSelect(true);
-      setSelectedCuils([]);
+      setSelectedMap({});
     } else {
       setIsFirstSelect(false);
-      setSelectedCuils(bosses.map((b: any) => b.people?.cuil ?? b.cuil));
+      const map: Record<string, Internal> = {};
+      bosses.forEach((b: any) => {
+        const internal = b.people ?? b;
+        if (internal?.cuil) map[internal.cuil] = internal;
+      });
+      setSelectedMap(map);
     }
+
+    fetchResults("");
   }, [show]);
+
+  const selectedItems = useMemo(() => Object.values(selectedMap), [selectedMap]);
+  const selectedCuils = useMemo(() => Object.keys(selectedMap), [selectedMap]);
 
   function showMsg(severity: string, text: string) {
     setMsg({ severity, text });
@@ -50,12 +62,12 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
     msgTimer.current = setTimeout(() => setMsg(null), 5000);
   }
 
-  async function loadInternals() {
+  async function fetchResults(query: string) {
     setLoading(true);
     try {
-      const data = await getInternals("");
       const userCuil = localStorage.getItem("user");
-      setAllInternals(data.filter((u: any) => u.cuil !== userCuil));
+      const data = await getInternals(query);
+      setSearchResults(data.filter((u: any) => u.cuil !== userCuil));
     } catch {
       showMsg("error", "No se pudieron cargar los usuarios.");
     } finally {
@@ -63,34 +75,40 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
     }
   }
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return allInternals;
-    const q = search.toLowerCase();
-    return allInternals.filter((u) =>
-      [u.cuil, u.lastname_name, u.name, u.lastname, u.legajo]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q))
-    );
-  }, [search, allInternals]);
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
-  const selectedItems = useMemo(
-    () => allInternals.filter((u) => selectedCuils.includes(u.cuil)),
-    [selectedCuils, allInternals]
-  );
+    if (!value.trim()) {
+      fetchResults("");
+      return;
+    }
 
-  function toggleSelection(cuil: string) {
-    setSelectedCuils((prev) =>
-      prev.includes(cuil) ? prev.filter((c) => c !== cuil) : [...prev, cuil]
-    );
+    debounceRef.current = setTimeout(() => {
+      fetchResults(value.trim());
+    }, SEARCH_DEBOUNCE_MS);
+  }
+
+  function toggleSelection(internal: Internal) {
+    setSelectedMap((prev) => {
+      const next = { ...prev };
+      if (next[internal.cuil]) {
+        delete next[internal.cuil];
+      } else {
+        next[internal.cuil] = internal;
+      }
+      return next;
+    });
   }
 
   function dismiss(emitBosses = false) {
     if (emitBosses) {
       onBossesAssigned(selectedItems);
     }
-    setAllInternals([]);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    setSearchResults([]);
     setSearch("");
-    setSelectedCuils([]);
+    setSelectedMap({});
     setLoading(false);
     onHide();
   }
@@ -191,7 +209,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
             className="form-control"
             placeholder="Buscar por nombre o apellido"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             autoComplete="off"
             disabled={loading}
           />
@@ -201,7 +219,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
                 type="button"
                 className="input-group-text"
                 style={{ background: "#f8f9fa", cursor: "pointer" }}
-                onClick={() => setSearch("")}
+                onClick={() => handleSearchChange("")}
               >
                 <i className="pi pi-times" style={{ fontSize: "0.75rem", color: "#aaa" }} />
               </button>
@@ -216,13 +234,13 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
           <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
           <p className="text-muted text-center mt-3 mb-0" style={{ fontSize: "0.85rem" }}>Cargando usuarios...</p>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : searchResults.length === 0 ? (
         <div className="text-center py-4 text-muted animated fadeIn" style={{ fontSize: "0.88rem" }}>
           {search ? "Sin resultados para tu búsqueda." : "No hay usuarios disponibles."}
         </div>
       ) : (
         <div style={{ maxHeight: "240px", overflowY: "auto", borderRadius: "8px", border: "1px solid #eee" }}>
-          {filtered.map((internal, idx) => {
+          {searchResults.map((internal: Internal, idx: number) => {
             const isSelected = selectedCuils.includes(internal.cuil);
             return (
               <div
@@ -231,16 +249,16 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
                 style={{
                   cursor: "pointer",
                   background: isSelected ? "#f0f4ff" : "transparent",
-                  borderBottom: idx < filtered.length - 1 ? "1px solid #f4f4f4" : "none",
+                  borderBottom: idx < searchResults.length - 1 ? "1px solid #f4f4f4" : "none",
                   transition: "background 0.15s",
                   gap: "10px",
                 }}
-                onClick={() => toggleSelection(internal.cuil)}
+                onClick={() => toggleSelection(internal)}
               >
                 <input
                   type="checkbox"
                   checked={isSelected}
-                  onChange={() => toggleSelection(internal.cuil)}
+                  onChange={() => toggleSelection(internal)}
                   onClick={(e) => e.stopPropagation()}
                   style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "#4a6cf7", flexShrink: 0 }}
                 />
@@ -271,7 +289,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
                 key={item.cuil}
                 label={item.lastname_name}
                 removable
-                onRemove={() => { toggleSelection(item.cuil); return true; }}
+                onRemove={() => { toggleSelection(item); return true; }}
                 className="animated fadeIn custom-chip-internal"
               />
             ))}
