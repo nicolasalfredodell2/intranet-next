@@ -349,13 +349,6 @@ export default function Navbar() {
                     {showUserMenu && (
                       <div className="navbar-user-dropdown animated fadeIn">
                         <div className="navbar-user-dropdown-header">
-                          <div className="navbar-user-dropdown-avatar">
-                            {userData.avatar ? (
-                              <img src={`${API_URL}${userData.avatar}`} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-                            ) : (
-                              <span>{userInitials}</span>
-                            )}
-                          </div>
                           <div style={{ minWidth: 0 }}>
                             {fullName && <p className="navbar-user-dropdown-name">{fullName}</p>}
                             {userData.email && <p className="navbar-user-dropdown-email">{userData.email}</p>}
