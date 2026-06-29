@@ -121,7 +121,7 @@ export default function NavbarLateral() {
               {isAdmin && (
                 <>
                   <li className="nav-devider" />
-                  <li className="nav-small-cap">Administración</li>
+                  <li className="nav-small-cap nav-small-cap-admin">Administración</li>
 
                   {isAdminInformatic && (
                     <li className="fadeIn animated admin-item">

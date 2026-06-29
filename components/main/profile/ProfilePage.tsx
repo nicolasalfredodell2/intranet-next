@@ -248,26 +248,6 @@ export default function ProfilePage() {
 
       <div className="fadeIn animated">
 
-        {/* Page header */}
-        <div className="row page-titles mb-3 align-items-center">
-          <div className="col">
-            <h3 className="text-themecolor mb-0">Mi Perfil</h3>
-            <p className="text-muted mb-0" style={{ fontSize: "0.82rem" }}>Administrá tu información personal y laboral</p>
-          </div>
-          <div className="col-auto">
-            <button
-              form="profile-form"
-              type="submit"
-              disabled={Object.keys(errors).length > 0 || loading}
-              className="btn btn-primary d-flex align-items-center"
-              style={{ gap: "6px" }}
-            >
-              <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} />
-              {loading ? "Guardando..." : "Guardar cambios"}
-            </button>
-          </div>
-        </div>
-
         <div className="row">
 
           {/* ── Left column ── */}
@@ -425,7 +405,21 @@ export default function ProfilePage() {
                 iconColor="#4a6cf7"
                 title="Información Personal"
                 subtitle="Datos básicos de tu cuenta"
-              />
+                action={
+                  !loadingUser ? (
+                    <button
+                      form="profile-form"
+                      type="submit"
+                      disabled={Object.keys(errors).length > 0 || loading}
+                      className="btn btn-primary btn-sm d-flex align-items-center"
+                      style={{ gap: "6px" }}
+                    >
+                      <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} />
+                      {loading ? "Guardando..." : "Guardar cambios"}
+                    </button>
+                          ) : undefined
+                        }
+                      />
               <div className="card-body py-2">
                 {loadingUser ? (
                   <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
@@ -548,7 +542,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* JefesW */}
+            {/* Jefes */}
             <div
               className="card"
               style={!loadingUser && bosses.length === 0 ? {
@@ -566,7 +560,7 @@ export default function ProfilePage() {
                   !loadingUser ? (
                     <button
                       type="button"
-                      className="btn btn-outline-primary btn-sm d-flex align-items-center"
+                      className="btn btn-primary btn-sm d-flex align-items-center"
                       style={{ gap: "5px", flexShrink: 0, fontSize: "0.82rem" }}
                       onClick={() => setShowModalBosses(true)}
                     >
