@@ -548,13 +548,13 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Jefes directos */}
+            {/* JefesW */}
             <div className="card">
               <CardSectionHeader
                 icon="pi pi-users"
                 iconBg="#fff4e6"
                 iconColor="#fd7e14"
-                title="Jefes directos"
+                title="Jefes"
                 subtitle="Quién aprueba tus solicitudes"
                 action={
                   !loadingUser ? (

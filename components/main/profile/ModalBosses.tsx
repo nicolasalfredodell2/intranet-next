@@ -140,7 +140,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
       </div>
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.95rem", color: "#2f3d4a" }}>Asignar jefes</p>
-        <small className="text-muted" style={{ fontSize: "0.78rem" }}>Seleccioná quiénes aprobarán tus solicitudes</small>
+        <small className="text-muted" style={{ fontSize: "0.78rem" }}>Seleccioná quiénes aprobarán tus solicitudes de salida</small>
       </div>
     </div>
   );
@@ -279,18 +279,19 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
 
       {/* Chips de seleccionados */}
       {selectedItems.length > 0 && (
-        <div className="mt-3 animated fadeIn">
+        <div className="mt-4 mb-2 animated fadeIn">
           <p className="mb-2" style={{ fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "#aaa" }}>
             {selectedItems.length === 1 ? "1 jefe seleccionado" : `${selectedItems.length} jefes seleccionados`}
           </p>
-          <div className="d-flex flex-wrap" style={{ gap: "6px" }}>
+          <div className="d-flex" style={{ gap: "6px", overflowX: "auto", paddingBottom: "6px" }}>
             {selectedItems.map((item) => (
               <Chip
                 key={item.cuil}
                 label={item.lastname_name}
                 removable
                 onRemove={() => { toggleSelection(item); return true; }}
-                className="animated fadeIn custom-chip-internal"
+                className="animated fadeIn custom-chip"
+                style={{ flexShrink: 0 }}
               />
             ))}
           </div>
