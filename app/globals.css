@@ -557,9 +557,9 @@ header.topbar nav {
 #sidebarnav > li > a i {
   color: #4a5568 !important;
   flex-shrink: 0 !important;
-  font-size: 20px !important;
+  font-size: 16px !important;
   transition: color 0.18s ease !important;
-  width: 24px !important;
+  width: 22px !important;
 }
 
 #sidebarnav > li > a:hover i {

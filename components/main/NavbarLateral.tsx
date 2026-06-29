@@ -75,44 +75,44 @@ export default function NavbarLateral() {
               {/* Perfil */}
               <li>
                 <Link href="/main/profile" className={active("/main/profile")} onClick={onNavClick}>
-                  <i className="mdi mdi-account" />
+                  <i className="pi pi-user" />
                   <span className="hide-menu">Perfil</span>
                 </Link>
               </li>
 
               <li>
                 <Link href="/main/absence-notices" className={active("/main/absence-notices")} onClick={onNavClick}>
-                  <i className="mdi mdi-alert" />
+                  <i className="pi pi-bell" />
                   <span className="hide-menu">Avisos</span>
                 </Link>
               </li>
               <li>
                 <Link href="/main/income" className={active("/main/income")} onClick={onNavClick}>
-                  <i className="mdi mdi-sync" />
+                  <i className="pi pi-history" />
                   <span className="hide-menu">Fichadas Diarias</span>
                 </Link>
               </li>
               <li>
                 <Link href="/main/files" className={active("/main/files")} onClick={onNavClick}>
-                  <i className="mdi mdi-certificate" />
+                  <i className="pi pi-id-card" />
                   <span className="hide-menu">Legajo</span>
                 </Link>
               </li>
               <li>
                 <Link href="/main/license" className={active("/main/license")} onClick={onNavClick}>
-                  <i className="mdi mdi-account-card-details" />
+                  <i className="pi pi-calendar-minus" />
                   <span className="hide-menu">Licencias</span>
                 </Link>
               </li>
               <li>
                 <Link href="/main/receipts" className={active("/main/receipts")} onClick={onNavClick}>
-                  <i className="mdi mdi-cash-usd" />
+                  <i className="pi pi-wallet" />
                   <span className="hide-menu">Recibos</span>
                 </Link>
               </li>
               <li>
                 <Link href="/main/exits" className={active("/main/exits")} onClick={onNavClick}>
-                  <i className="mdi mdi-glassdoor" />
+                  <i className="pi pi-sign-out" />
                   <span className="hide-menu">Salidas</span>
                 </Link>
               </li>
@@ -126,7 +126,7 @@ export default function NavbarLateral() {
                   {isAdminInformatic && (
                     <li className="fadeIn animated admin-item">
                       <Link href="/main/areas" className={active("/main/areas")} onClick={onNavClick}>
-                        <i className="mdi mdi-domain" />
+                        <i className="pi pi-building" />
                         <span className="hide-menu">Areas</span>
                       </Link>
                     </li>
@@ -134,7 +134,7 @@ export default function NavbarLateral() {
 
                   <li className="admin-item">
                     <Link href="/main/absence-notices-admin" className={active("/main/absence-notices-admin")} onClick={onNavClick}>
-                      <i className="mdi mdi-alert" />
+                      <i className="pi pi-bell" />
                       <span className="hide-menu">Avisos</span>
                     </Link>
                   </li>
@@ -143,21 +143,21 @@ export default function NavbarLateral() {
                     <>
                       <li className="fadeIn animated admin-item">
                         <Link href="/main/banners" className={active("/main/banners")} onClick={onNavClick}>
-                          <i className="mdi mdi-view-carousel" />
+                          <i className="pi pi-images" />
                           <span className="hide-menu">Baners</span>
                         </Link>
                       </li>
 
                       <li className="fadeIn animated admin-item">
                         <Link href="/main/whiten-key" className={active("/main/whiten-key")} onClick={onNavClick}>
-                          <i className="mdi mdi-key" />
+                          <i className="pi pi-key" />
                           <span className="hide-menu">Blanqueo de clave</span>
                         </Link>
                       </li>
 
                       <li className="fadeIn animated admin-item">
                         <a className="has-arrow waves-effect waves-dark" href="#" onClick={handleGroupMenuClick}>
-                          <i className="mdi mdi-calendar-blank" />
+                          <i className="pi pi-calendar" />
                           <span className="hide-menu">Calendario</span>
                         </a>
                         <ul aria-expanded="false" className="collapse">
@@ -178,7 +178,7 @@ export default function NavbarLateral() {
 
                   <li className="fadeIn animated admin-item">
                     <Link href="/main/recorded" className={active("/main/recorded")} onClick={onNavClick}>
-                      <i className="mdi mdi-timetable" />
+                      <i className="pi pi-clock" />
                       <span className="hide-menu">Editar fichadas</span>
                     </Link>
                   </li>
@@ -186,7 +186,7 @@ export default function NavbarLateral() {
                   {isAdminInformatic && (
                     <li className="fadeIn animated admin-item">
                       <Link href="/main/survey" className={active("/main/survey")} onClick={onNavClick}>
-                        <i className="mdi mdi-comment-question-outline" />
+                        <i className="pi pi-comments" />
                         <span className="hide-menu">Encuestas</span>
                       </Link>
                     </li>
@@ -194,7 +194,7 @@ export default function NavbarLateral() {
 
                   <li className="fadeIn animated admin-item">
                     <a className="has-arrow waves-effect waves-dark" href="#" onClick={handleGroupMenuClick}>
-                      <i className="mdi mdi-chart-bar" />
+                      <i className="pi pi-chart-bar" />
                       <span className="hide-menu">Informes</span>
                     </a>
                     <ul aria-expanded="false" className="collapse">
@@ -209,7 +209,7 @@ export default function NavbarLateral() {
 
                   <li className="fadeIn animated admin-item">
                     <a className="has-arrow waves-effect waves-dark" href="#" onClick={handleGroupMenuClick}>
-                      <i className="mdi mdi-certificate" />
+                      <i className="pi pi-folder" />
                       <span className="hide-menu">Legajo</span>
                     </a>
                     <ul aria-expanded="false" className="collapse">
@@ -222,7 +222,7 @@ export default function NavbarLateral() {
                     <>
                       <li className="fadeIn animated admin-item">
                         <a className="has-arrow waves-effect waves-dark" href="#" onClick={handleGroupMenuClick}>
-                          <i className="mdi mdi-newspaper" />
+                          <i className="pi pi-file-edit" />
                           <span className="hide-menu">Notas</span>
                         </a>
                         <ul aria-expanded="false" className="collapse">
@@ -234,14 +234,14 @@ export default function NavbarLateral() {
 
                       <li className="fadeIn animated admin-item">
                         <Link href="/main/shorts" className={active("/main/shorts")} onClick={onNavClick}>
-                          <i className="mdi mdi-movie" />
+                          <i className="pi pi-video" />
                           <span className="hide-menu">Shorts</span>
                         </Link>
                       </li>
 
                       <li className="fadeIn animated admin-item">
                         <Link href="/main/tickets" className={active("/main/tickets")} onClick={onNavClick}>
-                          <i className="mdi mdi-ticket-confirmation" />
+                          <i className="pi pi-ticket" />
                           <span className="hide-menu">Tickets</span>
                         </Link>
                       </li>
@@ -259,7 +259,7 @@ export default function NavbarLateral() {
                   data-target="#modal-sesion"
                   onClick={onNavClick}
                 >
-                  <i className="mdi mdi-logout" />
+                  <i className="pi pi-power-off" />
                   <span className="hide-menu">Cerrar sesión</span>
                 </a>
               </li>
@@ -275,7 +275,7 @@ export default function NavbarLateral() {
         onClick={toggleSidebar}
         aria-label={isSidebarCollapsed ? "Expandir menu lateral" : "Contraer menu lateral"}
       >
-        <i className={`mdi ${isSidebarCollapsed ? "mdi-chevron-right" : "mdi-chevron-left"}`} />
+        <i className={`pi ${isSidebarCollapsed ? "pi-chevron-right" : "pi-chevron-left"}`} />
       </button>
     </>
   );
