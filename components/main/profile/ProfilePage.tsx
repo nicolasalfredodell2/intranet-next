@@ -549,13 +549,19 @@ export default function ProfilePage() {
             </div>
 
             {/* JefesW */}
-            <div className="card">
+            <div
+              className="card"
+              style={!loadingUser && bosses.length === 0 ? {
+                border: "1.5px solid #fd7e14",
+                boxShadow: "0 0 0 4px rgba(253,126,20,0.12)",
+              } : undefined}
+            >
               <CardSectionHeader
                 icon="pi pi-users"
                 iconBg="#fff4e6"
                 iconColor="#fd7e14"
                 title="Jefes"
-                subtitle="Quién aprueba tus solicitudes"
+                subtitle="Quién aprueba tus solicitudes de salida"
                 action={
                   !loadingUser ? (
                     <button
@@ -577,13 +583,11 @@ export default function ProfilePage() {
                   <div className="fadeIn animated">
                     {bosses.length === 0 ? (
                       <div className="text-center py-3">
-                        <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#f4f4f4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px" }}>
-                          <i className="pi pi-users" style={{ fontSize: "1.5rem", color: "#ccc" }} />
-                        </div>
-                        <p className="text-muted mb-2" style={{ fontSize: "0.88rem" }}>No tenés jefes directos asignados</p>
+                        <p className="mb-1" style={{ fontSize: "0.9rem", fontWeight: 600, color: "#2f3d4a" }}>Debés seleccionar tus jefes</p>
+                        <p className="text-muted mb-3" style={{ fontSize: "0.82rem" }}>Aún no tenés jefes asignados.</p>
                         <button type="button" className="btn btn-sm btn-primary" onClick={() => setShowModalBosses(true)}>
                           <i className="pi pi-plus mr-1" style={{ fontSize: "0.75rem" }} />
-                          Asignar ahora
+                          Seleccionar ahora
                         </button>
                       </div>
                     ) : (
