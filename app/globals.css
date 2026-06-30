@@ -826,6 +826,13 @@ header.topbar nav {
   to   { transform: translateX(0);    opacity: 1; }
 }
 
+.receipts-table-row {
+  transition: background 0.15s;
+}
+.receipts-table-row:hover {
+  background: rgba(74, 108, 247, 0.04);
+}
+
 input:disabled,
 input[disabled] {
   background-color: #f4f4f4 !important;

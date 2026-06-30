@@ -299,7 +299,7 @@ export default function ReceiptsPage() {
                     {filteredReceipts.map((receipt: any) =>
                       (receipt as any[]).map((receiptData: any, idx: number) =>
                         receiptData.label && (!filters.mes || String(receiptData.interval) === filters.mes) && matchesDesc(receiptData.label) ? (
-                          <tr key={`${(receipt as any).year}-${idx}`} className="fadeIn animated" style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
+                          <tr key={`${(receipt as any).year}-${idx}`} className="fadeIn animated receipts-table-row" style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
                             <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
                               <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
                                 {(receipt as any).year}
