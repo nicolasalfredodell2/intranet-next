@@ -2,445 +2,877 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
-import { ProgressBar } from "primereact/progressbar";
-import { Paginator } from "primereact/paginator";
 import { Dialog } from "primereact/dialog";
+import { Paginator } from "primereact/paginator";
+import { getAllBosses } from "@/lib/services/boss.service";
 import {
-  loadExitOrders, createExitOrderRequest, cancelExitOrder, loadExitPDF,
-  loadExitOrdersAdmin, updateExitOrderAdmin, deleteExitOrderAdmin,
+  loadExitOrders,
+  createExitOrderRequest,
+  cancelExitOrder,
+  loadExitPDF,
+  loadExitOrdersAdmin,
+  updateExitOrderAdmin,
+  deleteExitOrderAdmin,
 } from "@/lib/services/exits.service";
 import CreateExitAdminModal from "./CreateExitAdminModal";
 
-const EXIT_TYPES = [
-  { value: "Officials", label: "Oficial" },
-  { value: "Individuals", label: "Particular" },
-  { value: "Education", label: "Licencia por estudio/capacitación" },
-  { value: "Health", label: "Salud o cuidado familiar" },
-  { value: "Maternity_Breastfeeding", label: "Lactancia - Maternidad" },
-  { value: "Guild_Meeting_Attendance", label: "Asamblea" },
-  { value: "Others_Justify", label: "Otras justificaciones" },
-];
+// ── Constants ──────────────────────────────────────────────────────────────────
 
 const TYPE_LABELS: Record<string, string> = {
-  Officials: "Oficial", Unexpected: "Sin orden de salida", Individuals: "Particular",
-  Education: "Licencia por estudio/capacitación", Health: "Salud o cuidado familiar",
-  Maternity_Breastfeeding: "Lactancia - Maternidad", Guild_Meeting_Attendance: "Asamblea",
+  Officials: "Oficial",
+  Unexpected: "Sin orden de salida",
+  Individuals: "Particular",
+  Education: "Licencia por estudio/capacitación",
+  Health: "Salud o cuidado familiar",
+  Maternity_Breastfeeding: "Lactancia - Maternidad",
+  Guild_Meeting_Attendance: "Asamblea",
   Others_Justify: "Otras justificaciones",
 };
 
-const STATUS_DATA: Record<string, { label: string; css: string; canCancel?: boolean; canArrival?: boolean }> = {
-  Waiting: { label: "Esperando llegada", css: "warning", canCancel: true, canArrival: true },
-  Cancel:  { label: "Cancelado", css: "danger" },
-  Done:    { label: "Finalizado", css: "success" },
-  Pending: { label: "Pendiente aprobación", css: "muted", canCancel: true },
-};
+// Display label → English key (for the modify form)
+const TYPE_REVERSE: Record<string, string> = Object.fromEntries(
+  Object.entries(TYPE_LABELS).map(([k, v]) => [v, k])
+);
 
-const STATUS_OPTIONS = [
-  { value: "Waiting", label: "Esperando llegada" },
-  { value: "Cancel", label: "Cancelado" },
-  { value: "Done", label: "Finalizado" },
-  { value: "Pending", label: "Pendiente aprobación" },
+const EXIT_TYPE_OPTIONS = [
+  { value: "Unexpected",              label: "Sin órden de salida" },
+  { value: "Individuals",             label: "Particular" },
+  { value: "Officials",               label: "Oficial" },
+  { value: "Guild_Meeting_Attendance",label: "Asamblea" },
+  { value: "Education",               label: "Licencia por estudio/capacitación" },
+  { value: "Health",                  label: "Salud o cuidado familiar" },
+  { value: "Maternity_Breastfeeding", label: "Lactancia - Maternidad" },
+  { value: "Others_Justify",          label: "Otras justificaciones" },
 ];
 
-function mapItem(item: any) {
-  const rawType = item._rawType ?? item.type;
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function mapItem(item: any): any {
+  const rawType   = item._rawType   ?? item.type;
   const rawStatus = item._rawStatus ?? item.status;
-  const sd = STATUS_DATA[rawStatus] ?? {};
+
+  let cls = "", statusLabel = rawStatus, statusEnglish = rawStatus;
+  let canArrival = false, canShowPdf = false, canCancel = false, canModificate = false;
+
+  switch (rawStatus) {
+    case "Waiting":
+      cls = "warning"; statusLabel = "Esperando llegada"; statusEnglish = "Waiting";
+      canArrival = true; canShowPdf = true; canCancel = true; canModificate = true; break;
+    case "Cancel":
+      cls = "danger";  statusLabel = "Cancelado";          statusEnglish = "Cancel";
+      canShowPdf = true; canModificate = true; break;
+    case "Done":
+      cls = "success"; statusLabel = "Finalizado";          statusEnglish = "Done";
+      canShowPdf = true; canModificate = true; break;
+    case "Pending":
+      cls = "muted";   statusLabel = "Pendiente aprobación"; statusEnglish = "Pending";
+      canShowPdf = true; canCancel = true; canModificate = true; break;
+  }
+
   return {
     ...item,
     _rawType: rawType,
     _rawStatus: rawStatus,
     type: TYPE_LABELS[rawType] ?? rawType,
-    statusLabel: sd.label ?? rawStatus,
-    statusCss: sd.css ?? "secondary",
-    canCancel: !!sd.canCancel,
-    canArrival: !!sd.canArrival,
-    lastname_name: item.boss?.lastname_name ?? item.people?.lastname_name ?? item.lastname_name,
+    class: cls,
+    status: statusLabel,
+    statusEnglish,
+    canArrival, canShowPdf, canCancel, canModificate,
+    lastname_name: item.boss?.lastname_name ?? item.people?.lastname_name ?? item.lastname_name ?? "",
   };
 }
 
 function isAdminUser(): boolean {
   try {
-    const allRoles = JSON.parse(localStorage.getItem("roles") ?? "{}");
-    const roles: any[] = allRoles?.frontend_workflow?.roles ?? [];
-    return roles.some((r: string) => r === "manager_informatica" || r === "manager_rrhh");
+    const roles: string[] = JSON.parse(localStorage.getItem("roles") ?? "{}")?.frontend_workflow?.roles ?? [];
+    return roles.some((r) => r === "manager_informatica" || r === "manager_rrhh");
   } catch { return false; }
 }
 
+function formatDate(str: string | null | undefined): string {
+  if (!str) return "--";
+  try {
+    return new Date(str).toLocaleString("es-AR", {
+      year: "numeric", month: "long", day: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
+  } catch { return str; }
+}
+
+type AdminFilters = { limit: number; page: number; status: string; type: string; user_lastname: string };
+
+// ── Component ──────────────────────────────────────────────────────────────────
+
 export default function ExitsPage() {
-  const toast = useRef<Toast>(null);
-  const [items, setItems] = useState<any[]>([]);
-  const [itemsAdmin, setItemsAdmin] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingAdmin, setLoadingAdmin] = useState(false);
-  const [loadingCreate, setLoadingCreate] = useState(false);
-  const [loadingPdf, setLoadingPdf] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [form, setForm] = useState({ cuil: "", type: "" });
-  const [touched, setTouched] = useState(false);
-  const [itemToCancel, setItemToCancel] = useState<any>(null);
-  const [loadingCancel, setLoadingCancel] = useState(false);
-  const [totalAdmin, setTotalAdmin] = useState(0);
-  const [adminPage, setAdminPage] = useState(1);
-  const [adminLimit] = useState(10);
-  const [adminFilters, setAdminFilters] = useState({ user_lastname: "", status: "", type: "" });
-  const [userLastnameSearch, setUserLastnameSearch] = useState("");
-  const [modifyItem, setModifyItem] = useState<any>(null);
-  const [modifyForm, setModifyForm] = useState({ departure_hour: "", arrival_hour: "", status: "", type: "" });
-  const [modifyTouched, setModifyTouched] = useState(false);
-  const [loadingModify, setLoadingModify] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<any>(null);
-  const [loadingDelete, setLoadingDelete] = useState(false);
-  const [showCreateAdmin, setShowCreateAdmin] = useState(false);
+  const toast       = useRef<Toast>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref to always have the latest admin filters inside async/debounce callbacks
+  const adminFiltersRef = useRef<AdminFilters>({ limit: 10, page: 1, status: "", type: "", user_lastname: "" });
+
+  // Bosses + create form
+  const [bosses,              setBosses]              = useState<any[]>([]);
+  const [formType,            setFormType]            = useState("");
+  const [formCuil,            setFormCuil]            = useState("");
+  const [cuilTouched,         setCuilTouched]         = useState(false);
+  const [loadingActionCreate, setLoadingActionCreate] = useState(false);
+
+  // My exits
+  const [items,           setItems]           = useState<any[]>([]);
+  const [loadingExits,    setLoadingExits]    = useState(false);
+  const [filtersForExists, setFiltersForExists] = useState({ lastname_name: "", status: "", type: "" });
+
+  // PDF
+  const [idSelectedExitForViewPDF,    setIdSelectedExitForViewPDF]    = useState<number | null>(null);
+  const [isLoadingActionOpenPdfExit,  setIsLoadingActionOpenPdfExit]  = useState(false);
+
+  // Cancel
+  const [isOpenModalCancelExit,   setIsOpenModalCancelExit]   = useState(false);
+  const [loadingActionCancelExit, setLoadingActionCancelExit] = useState(false);
+
+  // Admin exits
+  const [isAdmin,         setIsAdmin]         = useState(false);
+  const [itemsAdmin,      setItemsAdmin]      = useState<any[]>([]);
+  const [loadingExitsAdmin, setLoadingExitsAdmin] = useState(false);
+  const [totalExitsAdmin, setTotalExitsAdmin] = useState(0);
+  const [adminFilters,    setAdminFilters]    = useState<AdminFilters>({ limit: 10, page: 1, status: "", type: "", user_lastname: "" });
+  const [paginatorFirst,  setPaginatorFirst]  = useState(0);
+
+  // Modify
+  const [showModalModificateItem,    setShowModalModificateItem]    = useState(false);
+  const [loadingActionModificateItem, setLoadingActionModificateItem] = useState(false);
+  const [modifyForm,      setModifyForm]      = useState({ status: "", type: "", departure_hour: "", arrival_hour: "" });
+  const [modifyTouched,   setModifyTouched]   = useState(false);
+
+  // Delete
+  const [isOpenModalDeleteExitAdmin, setIsOpenModalDeleteExitAdmin] = useState(false);
+  const [loadingActionDeleteItem,    setLoadingActionDeleteItem]    = useState(false);
+
+  // Create admin modal
+  const [isOpenModalCreateExitAdmin, setIsOpenModalCreateExitAdmin] = useState(false);
+
+  // Shared selected item (cancel / modify / delete)
+  const [itemSelected, setItemSelected] = useState<any>(null);
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const admin = isAdminUser();
     setIsAdmin(admin);
-    loadMyExits();
-    if (admin) loadAdminExits(1, adminFilters);
+    loadBossesData();
+    loadExitsData();
+    if (admin) loadExitsAdminData(adminFiltersRef.current);
+    const t = setInterval(loadExitsData, 300_000);
+    return () => clearInterval(t);
   }, []);
 
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (isAdmin) {
-        const next = { ...adminFilters, user_lastname: userLastnameSearch };
-        setAdminFilters(next);
-        setAdminPage(1);
-        loadAdminExits(1, next);
-      }
-    }, 500);
-    return () => clearTimeout(t);
-  }, [userLastnameSearch]);
+  // ── Data loaders ──────────────────────────────────────────────────────────────
 
-  async function loadMyExits() {
-    setLoading(true);
+  async function loadBossesData() {
+    try {
+      const resp = await getAllBosses();
+      const userCuil = localStorage.getItem("user");
+      const list: any[] = Object.values(resp.bosses ?? {}).filter(
+        (b: any) =>
+          b.occupation_signature !== "Vocal" &&
+          b.occupation_signature !== "Presidente" &&
+          b.cuil !== userCuil
+      );
+      setBosses(list);
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "No se pudieron cargar los jefes", detail: err.message });
+    }
+  }
+
+  async function loadExitsData() {
+    setLoadingExits(true);
     try {
       const raw = await loadExitOrders();
-      setItems([...raw].reverse().map(mapItem));
+      setItems((Array.isArray(raw) ? [...raw].reverse() : []).map(mapItem));
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudieron cargar sus salidas", detail: err.message });
-    } finally { setLoading(false); }
+    } finally { setLoadingExits(false); }
   }
 
-  async function loadAdminExits(page: number, filters: any) {
-    setLoadingAdmin(true);
+  async function loadExitsAdminData(filters: AdminFilters) {
+    setLoadingExitsAdmin(true);
     try {
-      const resp = await loadExitOrdersAdmin({ limit: adminLimit, page }, filters);
+      const resp = await loadExitOrdersAdmin({ limit: filters.limit, page: filters.page }, filters);
       if (!resp.message) {
-        setTotalAdmin(resp.total ?? 0);
+        setTotalExitsAdmin(resp.total ?? 0);
         setItemsAdmin((resp.data ?? []).map((i: any) => mapItem({ ...i, _rawType: i.type, _rawStatus: i.status })));
       } else {
-        setTotalAdmin(0); setItemsAdmin([]);
+        setTotalExitsAdmin(0);
+        setItemsAdmin([]);
       }
     } catch (err: any) {
-      toast.current?.show({ severity: "error", summary: "No se pudieron cargar salidas de terceros", detail: err.message });
-    } finally { setLoadingAdmin(false); }
+      toast.current?.show({ severity: "error", summary: "No se pudieron cargar salidas solicitadas por terceros", detail: err.message });
+    } finally { setLoadingExitsAdmin(false); }
   }
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    setTouched(true);
-    if (!form.cuil || !form.type) return;
-    setLoadingCreate(true);
+  // ── Create exit ───────────────────────────────────────────────────────────────
+
+  function changeTypeOfExit(type: string) {
+    setFormType(type);
+    setFormCuil("");
+    setCuilTouched(false);
+  }
+
+  async function create() {
+    setCuilTouched(true);
+    if (!formCuil || !formType) return;
+    setLoadingActionCreate(true);
     try {
-      const resp = await createExitOrderRequest({ cuil: form.cuil, type: form.type });
+      const resp = await createExitOrderRequest({ cuil: formCuil, type: formType });
       toast.current?.show({ severity: "success", summary: "Solicitud de salida creada" });
       if (resp.exit_order) {
-        const ni = mapItem({ ...resp.exit_order, boss: resp.boss, _rawStatus: "Pending", _rawType: form.type });
-        setItems((p) => [ni, ...p]);
+        setItems((p) => [mapItem({ ...resp.exit_order, boss: resp.boss, _rawStatus: "Pending", _rawType: formType }), ...p]);
       }
-      setForm({ cuil: "", type: "" }); setTouched(false);
+      setFormType("");
+      setFormCuil("");
+      setCuilTouched(false);
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudo crear la orden", detail: err.message });
-    } finally { setLoadingCreate(false); }
+    } finally { setLoadingActionCreate(false); }
   }
 
-  async function handleCancelExit() {
-    if (!itemToCancel || loadingCancel) return;
-    setLoadingCancel(true);
-    try {
-      await cancelExitOrder(itemToCancel.id);
-      setItems((p) => p.map((i) => i.id === itemToCancel.id ? mapItem({ ...i, _rawStatus: "Cancel" }) : i));
-      toast.current?.show({ severity: "success", summary: "Salida cancelada" });
-      setItemToCancel(null);
-    } catch { toast.current?.show({ severity: "error", summary: "No se puede cancelar la salida" }); }
-    finally { setLoadingCancel(false); }
+  // ── Filters ───────────────────────────────────────────────────────────────────
+
+  function setFilter(e: React.ChangeEvent<HTMLInputElement>, field: string) {
+    setFiltersForExists((p) => ({ ...p, [field]: e.target.value }));
   }
 
-  async function handleOpenPdf(exit: any) {
-    if (!exit.path_end || loadingPdf) return;
-    setLoadingPdf(exit.id);
+  function setFilterAdmin(e: React.ChangeEvent<HTMLSelectElement>, field: string) {
+    const next = { ...adminFiltersRef.current, [field]: e.target.value, page: 1 };
+    adminFiltersRef.current = next;
+    setAdminFilters(next);
+    setPaginatorFirst(0);
+    loadExitsAdminData(next);
+  }
+
+  function handleUserLastnameFilter(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const next = { ...adminFiltersRef.current, user_lastname: value, page: 1 };
+      adminFiltersRef.current = next;
+      setAdminFilters(next);
+      setPaginatorFirst(0);
+      loadExitsAdminData(next);
+    }, 500);
+  }
+
+  // ── PDF ───────────────────────────────────────────────────────────────────────
+
+  async function openPdfExit(exit: any) {
+    setIdSelectedExitForViewPDF(exit.id);
+    if (isLoadingActionOpenPdfExit) return;
+    if (!exit.path_end) {
+      setIdSelectedExitForViewPDF(null);
+      toast.current?.show({ severity: "error", summary: "No se encontró el PDF" });
+      return;
+    }
+    setIsLoadingActionOpenPdfExit(true);
     try {
       const buffer = await loadExitPDF(exit.id);
       window.open(URL.createObjectURL(new Blob([buffer], { type: "application/pdf" })));
-    } catch { toast.current?.show({ severity: "error", summary: "No se encontró el PDF" }); }
-    finally { setLoadingPdf(null); }
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se encontró el PDF" });
+    } finally {
+      setIdSelectedExitForViewPDF(null);
+      setIsLoadingActionOpenPdfExit(false);
+    }
   }
 
-  function openModify(item: any) {
-    setModifyItem(item);
+  // ── Cancel ────────────────────────────────────────────────────────────────────
+
+  function openModalCancelExit(exit: any) {
+    setItemSelected(exit);
+    setIsOpenModalCancelExit(true);
+  }
+
+  function closeModalCancelExit() {
+    setItemSelected(null);
+    setIsOpenModalCancelExit(false);
+  }
+
+  async function cancelExit() {
+    if (loadingActionCancelExit) return;
+    setLoadingActionCancelExit(true);
+    try {
+      await cancelExitOrder(itemSelected.id);
+      toast.current?.show({ severity: "success", summary: "Salida cancelada" });
+      setItems((p) => p.map((i) => i.id === itemSelected.id ? mapItem({ ...i, _rawStatus: "Cancel" }) : i));
+      closeModalCancelExit();
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se puede cancelar la salida" });
+    } finally { setLoadingActionCancelExit(false); }
+  }
+
+  // ── Modify ────────────────────────────────────────────────────────────────────
+
+  function openModalModificateItem(item: any) {
+    setItemSelected(item);
     setModifyForm({
       departure_hour: item.departure_hour ?? "",
-      arrival_hour: item.arrival_hour ?? "",
-      status: item._rawStatus ?? "",
-      type: item._rawType ?? "",
+      arrival_hour:   item.arrival_hour   ?? "",
+      status:         item.statusEnglish  ?? "",
+      type:           TYPE_REVERSE[item.type] ?? item._rawType ?? "",
     });
     setModifyTouched(false);
+    setShowModalModificateItem(true);
   }
 
-  async function handleModify(e: React.FormEvent) {
-    e.preventDefault();
+  function closeModalModificateItem() {
+    setItemSelected(null);
+    setModifyForm({ status: "", type: "", departure_hour: "", arrival_hour: "" });
+    setShowModalModificateItem(false);
+  }
+
+  async function modificateItem() {
     setModifyTouched(true);
     if (!modifyForm.departure_hour || !modifyForm.status || !modifyForm.type) return;
     if (modifyForm.arrival_hour && new Date(modifyForm.departure_hour) >= new Date(modifyForm.arrival_hour)) {
       toast.current?.show({ severity: "info", summary: "La hora de llegada no puede ser anterior a la hora de salida" });
       return;
     }
-    setLoadingModify(true);
+    setLoadingActionModificateItem(true);
     const data = {
       departure_hour: modifyForm.departure_hour.replace("T", " "),
-      arrival_hour: modifyForm.arrival_hour ? modifyForm.arrival_hour.replace("T", " ") : "",
+      arrival_hour:   modifyForm.arrival_hour ? modifyForm.arrival_hour.replace("T", " ") : "",
       status: modifyForm.status,
-      type: modifyForm.type,
+      type:   modifyForm.type,
     };
     try {
-      await updateExitOrderAdmin([], data, String(modifyItem.id));
-      setItemsAdmin((p) => p.map((i) => i.id === modifyItem.id ? mapItem({ ...i, ...data, _rawStatus: data.status, _rawType: data.type }) : i));
+      await updateExitOrderAdmin([], data, String(itemSelected.id));
       toast.current?.show({ severity: "success", summary: "Salida modificada" });
-      setModifyItem(null);
+      setItemsAdmin((p) => p.map((i) =>
+        i.id === itemSelected.id
+          ? mapItem({ ...i, ...data, _rawStatus: data.status, _rawType: data.type })
+          : i
+      ));
+      closeModalModificateItem();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudo modificar la salida", detail: err.message });
-    } finally { setLoadingModify(false); }
+    } finally { setLoadingActionModificateItem(false); }
   }
 
-  async function handleDelete() {
-    if (!itemToDelete) return;
-    setLoadingDelete(true);
+  // ── Delete ────────────────────────────────────────────────────────────────────
+
+  function openModalDeleteItem(item: any) {
+    setItemSelected(item);
+    setIsOpenModalDeleteExitAdmin(true);
+  }
+
+  async function deleteItem() {
+    if (loadingActionDeleteItem) return;
+    setLoadingActionDeleteItem(true);
     try {
-      await deleteExitOrderAdmin(itemToDelete.id);
-      setItemsAdmin((p) => p.filter((i) => i.id !== itemToDelete.id));
+      await deleteExitOrderAdmin(itemSelected.id);
+      setItemsAdmin((p) => p.filter((i) => i.id !== itemSelected.id));
       toast.current?.show({ severity: "success", summary: "Orden eliminada" });
-      setItemToDelete(null);
-    } catch { toast.current?.show({ severity: "error", summary: "No se pudo eliminar la orden" }); }
-    finally { setLoadingDelete(false); }
+      setIsOpenModalDeleteExitAdmin(false);
+      setItemSelected(null);
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se pudo eliminar la orden" });
+    } finally { setLoadingActionDeleteItem(false); }
   }
 
-  function onAdminPage(e: any) {
-    const page = e.page + 1;
-    setAdminPage(page);
-    loadAdminExits(page, adminFilters);
+  // ── Pagination ────────────────────────────────────────────────────────────────
+
+  function pageChange(event: any) {
+    const next = { ...adminFiltersRef.current, limit: Number(event.rows), page: Number(event.page + 1) };
+    adminFiltersRef.current = next;
+    setAdminFilters(next);
+    setPaginatorFirst(event.first);
+    loadExitsAdminData(next);
   }
+
+  // ── Client-side filter (equivalent to exitsOrder2 pipe) ───────────────────────
+
+  const filteredItems = items.filter((item) => {
+    if (filtersForExists.type         && !item.type.toLowerCase().includes(filtersForExists.type.toLowerCase()))               return false;
+    if (filtersForExists.lastname_name && !item.lastname_name?.toLowerCase().includes(filtersForExists.lastname_name.toLowerCase())) return false;
+    if (filtersForExists.status       && !item.status.toLowerCase().includes(filtersForExists.status.toLowerCase()))           return false;
+    return true;
+  });
+
+  // ── JSX ───────────────────────────────────────────────────────────────────────
 
   return (
     <>
       <Toast ref={toast} position="bottom-center" />
 
-      <div className="fadeIn animated">
+      <div className="animated fadeIn">
+
+        {/* Page titles */}
         <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Ordenes de salida</h3>
+          <div className="align-self-center col-md-5">
+            <h3 className="text-themecolor">Salidas</h3>
           </div>
-          <div className="col-md-7 align-self-center">
+          <div className="align-self-center col-md-7">
             <ol className="breadcrumb">
               <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Ordenes de salida</li>
+              <li className="breadcrumb-item">Salidas</li>
             </ol>
           </div>
         </div>
 
-        {/* Create form */}
-        <div className="card">
-          <div className="card-body">
-            <form className="row" onSubmit={handleCreate} noValidate>
-              <div className="form-group col-12 col-md-5">
-                <label><small>CUIL *</small></label>
-                <input type="text" className="form-control form-control-sm" placeholder="Sin guiones" value={form.cuil} onChange={(e) => setForm((p) => ({ ...p, cuil: e.target.value }))} />
-                {touched && !form.cuil && <small className="text-danger">* Obligatorio</small>}
+        <div className="row">
+          <div className="col-md-12">
+            <div className="card card-body">
+
+              {/* ── Creación de salida ──────────────────────────────────────── */}
+              <div className="row">
+                <div className="col-12">
+                  <h5 className="h5">Creación de salida</h5>
+
+                  <div className="d-flex justify-content-center row animated fadeIn">
+                    <div className="col-12">
+                      <div className="form-group text-center">
+                        <label>Seleccione el tipo de salida</label>
+
+                        <div className="row d-flex justify-content-around">
+                          {([
+                            { value: "Individuals",              label: "Particular" },
+                            { value: "Officials",                label: "Oficial" },
+                            { value: "Guild_Meeting_Attendance", label: "Asamblea" },
+                          ] as const).map((t) => (
+                            <div
+                              key={t.value}
+                              onClick={() => changeTypeOfExit(t.value)}
+                              className={`d-flex col-12 col-lg-3 pt-3 pt-lg-0 justify-content-center align-items-center text-center text-white pointer ${formType === t.value ? "bg-info" : "bg-secondary"}`}
+                              style={{ height: 50, cursor: "pointer" }}
+                            >
+                              <strong>{t.label}</strong>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="form-group col-12 col-md-5">
-                <label><small>Tipo *</small></label>
-                <select className="custom-select w-100" value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}>
-                  <option value=""></option>
-                  {EXIT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-                {touched && !form.type && <small className="text-danger">* Obligatorio</small>}
+
+              <div className="my-2 row">
+                <div className="col-12"><hr /></div>
               </div>
-              <div className="form-group col-12 col-md-2 d-flex align-items-end">
-                <button disabled={loadingCreate} type="submit" className="btn btn-info w-100">
-                  {loadingCreate ? "Enviando..." : "Solicitar"}
-                </button>
+
+              {/* ── Mis salidas ─────────────────────────────────────────────── */}
+              <div className="animated fadeIn mb-5 mt-3 row">
+                <div className="col-12">
+                  <h5 className="h5">
+                    {loadingExits ? "Cargando mis salidas" : "Mis salidas"}
+                  </h5>
+
+                  <div className="table-responsive">
+                    <table className="table table-sm table-striped p-datatable-sm p-datatable-striped">
+                      <thead>
+                        <tr>
+                          <th>TIPO</th>
+                          <th>SOLICITADO A</th>
+                          <th>ESTADO</th>
+                          <th>HORA SALIDA</th>
+                          <th>HORA LLEGADA</th>
+                          <th>ACCIONES</th>
+                        </tr>
+                        <tr>
+                          <th><input className="form-control form-control-sm" type="text" onChange={(e) => setFilter(e, "type")} /></th>
+                          <th><input className="form-control form-control-sm" type="text" onChange={(e) => setFilter(e, "lastname_name")} /></th>
+                          <th><input className="form-control form-control-sm" type="text" onChange={(e) => setFilter(e, "status")} /></th>
+                          <th /><th /><th />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {loadingExits && (
+                          <tr><td colSpan={6} className="text-center py-3"><i className="pi pi-spin pi-spinner" /></td></tr>
+                        )}
+                        {!loadingExits && filteredItems.length === 0 && (
+                          <tr><td colSpan={6} className="text-center text-muted py-3">No hay salidas registradas.</td></tr>
+                        )}
+                        {filteredItems.map((item) => (
+                          <tr key={item.id}>
+                            <td><small>{item.type}</small></td>
+                            <td><small>{item.lastname_name}</small></td>
+                            <td>
+                              <span className={`pointer p-1 status-${item.class}`}>
+                                <small>{item.status}</small>
+                              </span>
+                            </td>
+                            <td><small>{formatDate(item.departure_hour)}</small></td>
+                            <td><small>{formatDate(item.arrival_hour)}</small></td>
+                            <td>
+                              {item.canShowPdf && (
+                                <i
+                                  onClick={() => openPdfExit(item)}
+                                  className={`pointer text-dark ${isLoadingActionOpenPdfExit && idSelectedExitForViewPDF === item.id ? "pi pi-spin pi-spinner" : "fa-regular fa-file-pdf"}`}
+                                  aria-hidden="true"
+                                  title="Visualizar PDF"
+                                  style={{ margin: "0 5px" }}
+                                />
+                              )}
+                              {item.canCancel && (
+                                <i
+                                  onClick={() => openModalCancelExit(item)}
+                                  className="fa-regular fa-circle-xmark pointer text-danger"
+                                  aria-hidden="true"
+                                  title="Cancelar salida"
+                                />
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            </form>
+
+              {/* ── Admin section ───────────────────────────────────────────── */}
+              {isAdmin && (
+                <div className="animated fadeIn row">
+                  <div className="col-12">
+                    <h5 className="h5">
+                      {loadingExitsAdmin
+                        ? "Cargando salidas solicitadas por terceros"
+                        : "Salidas solicitadas por terceros"}
+                    </h5>
+
+                    <button
+                      className="btn btn-info mb-3 mt-2"
+                      onClick={() => setIsOpenModalCreateExitAdmin(true)}
+                    >
+                      Crear salida para terceros
+                    </button>
+
+                    <div className="table-responsive">
+                      <table className="table table-sm table-striped animate__animated animate__fadeIn p-datatable-sm p-datatable-striped">
+                        <thead>
+                          <tr>
+                            <th>SOLICITADA POR</th>
+                            <th>ESTADO</th>
+                            <th>TIPO</th>
+                            <th>HORA SALIDA</th>
+                            <th>HORA LLEGADA</th>
+                            <th>ACCIONES</th>
+                          </tr>
+                          <tr>
+                            <th>
+                              <input
+                                className="form-control form-control-sm"
+                                type="text"
+                                onChange={handleUserLastnameFilter}
+                              />
+                            </th>
+                            <th>
+                              <select
+                                className="form-control form-control-sm"
+                                onChange={(e) => setFilterAdmin(e, "status")}
+                              >
+                                <option value=""></option>
+                                <option value="Pending">Pendiente de aprobación</option>
+                                <option value="Waiting">En espera</option>
+                                <option value="Done">Finalizado</option>
+                                <option value="Cancel">Cancelado</option>
+                              </select>
+                            </th>
+                            <th>
+                              <select
+                                className="form-control form-control-sm"
+                                onChange={(e) => setFilterAdmin(e, "type")}
+                              >
+                                <option value=""></option>
+                                {EXIT_TYPE_OPTIONS.map((t) => (
+                                  <option key={t.value} value={t.value}>{t.label}</option>
+                                ))}
+                              </select>
+                            </th>
+                            <th /><th /><th />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {loadingExitsAdmin && (
+                            <tr><td colSpan={6} className="text-center py-3"><i className="pi pi-spin pi-spinner" /></td></tr>
+                          )}
+                          {!loadingExitsAdmin && itemsAdmin.length === 0 && (
+                            <tr><td colSpan={6} className="text-center text-muted py-3">No hay salidas registradas.</td></tr>
+                          )}
+                          {itemsAdmin.map((item) => (
+                            <tr key={item.id}>
+                              <td><small>{item.lastname_name}</small></td>
+                              <td>
+                                <span className={`pointer p-1 status-${item.class}`}>
+                                  <small>{item.status}</small>
+                                </span>
+                              </td>
+                              <td><small>{item.type}</small></td>
+                              <td><small>{formatDate(item.departure_hour)}</small></td>
+                              <td><small>{formatDate(item.arrival_hour)}</small></td>
+                              <td>
+                                {item.canShowPdf && (
+                                  <i
+                                    onClick={() => openPdfExit(item)}
+                                    className={`pointer text-dark ${isLoadingActionOpenPdfExit && idSelectedExitForViewPDF === item.id ? "pi pi-spin pi-spinner" : "fa-regular fa-file-pdf"}`}
+                                    aria-hidden="true"
+                                    title="Visualizar PDF"
+                                    style={{ marginRight: "7.5px" }}
+                                  />
+                                )}
+                                {item.canModificate && (
+                                  <i
+                                    onClick={() => openModalModificateItem(item)}
+                                    className="fa fa-pencil-square-o pointer text-primary"
+                                    aria-hidden="true"
+                                    title="Modificar"
+                                    style={{ marginRight: "2.5px" }}
+                                  />
+                                )}
+                                <i
+                                  onClick={() => openModalDeleteItem(item)}
+                                  className="fa-regular fa-circle-xmark mx-1 pointer text-danger"
+                                  aria-hidden="true"
+                                  title="Eliminar"
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="col-12">
+                      <Paginator
+                        first={paginatorFirst}
+                        rows={adminFilters.limit}
+                        totalRecords={totalExitsAdmin}
+                        pageLinkSize={3}
+                        rowsPerPageOptions={[10]}
+                        onPageChange={pageChange}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
           </div>
         </div>
-
-        {/* My exits table */}
-        <div className="card">
-          <div className="card-header"><h5>Mis salidas</h5></div>
-          <div className="card-body">
-            {loading && <ProgressBar mode="indeterminate" style={{ height: "4px" }} />}
-            <div className="table-responsive">
-              <table className="table table-sm table-striped">
-                <thead>
-                  <tr><th>JEFE</th><th>TIPO</th><th>SALIDA</th><th>LLEGADA</th><th>ESTADO</th><th>ACCIONES</th></tr>
-                </thead>
-                <tbody>
-                  {items.map((i) => (
-                    <tr key={i.id} className="fadeIn animated">
-                      <td><small>{i.lastname_name}</small></td>
-                      <td><small>{i.type}</small></td>
-                      <td><small>{i.departure_hour}</small></td>
-                      <td><small>{i.arrival_hour ?? "-"}</small></td>
-                      <td><span className={`badge badge-${i.statusCss}`}>{i.statusLabel}</span></td>
-                      <td className="text-nowrap">
-                        {i.path_end && <button className="btn btn-sm btn-light mr-1" onClick={() => handleOpenPdf(i)} disabled={loadingPdf === i.id}><i className="mdi mdi-file-pdf-box text-danger" /></button>}
-                        {i.canCancel && <button className="btn btn-sm btn-danger" onClick={() => setItemToCancel(i)}><i className="mdi mdi-close-circle-outline" /></button>}
-                      </td>
-                    </tr>
-                  ))}
-                  {!loading && items.length === 0 && <tr><td colSpan={6} className="text-center text-muted">No hay ordenes de salida.</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Admin table */}
-        {isAdmin && (
-          <div className="card mt-3">
-            <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="mb-0">Gestión de salidas (Admin)</h5>
-              <button className="btn btn-info btn-sm" onClick={() => setShowCreateAdmin(true)}>
-                Crear salida para terceros
-              </button>
-            </div>
-            <div className="card-body">
-              <div className="row mb-3">
-                <div className="col-12 col-md-4">
-                  <input type="text" className="form-control form-control-sm" placeholder="Buscar por apellido..." value={userLastnameSearch} onChange={(e) => setUserLastnameSearch(e.target.value)} />
-                </div>
-                <div className="col-6 col-md-3">
-                  <select className="custom-select custom-select-sm w-100" value={adminFilters.status} onChange={(e) => { const f = { ...adminFilters, status: e.target.value }; setAdminFilters(f); setAdminPage(1); loadAdminExits(1, f); }}>
-                    <option value="">Estado</option>
-                    {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-                  </select>
-                </div>
-                <div className="col-6 col-md-3">
-                  <select className="custom-select custom-select-sm w-100" value={adminFilters.type} onChange={(e) => { const f = { ...adminFilters, type: e.target.value }; setAdminFilters(f); setAdminPage(1); loadAdminExits(1, f); }}>
-                    <option value="">Tipo</option>
-                    {EXIT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                </div>
-              </div>
-              {loadingAdmin && <ProgressBar mode="indeterminate" style={{ height: "4px" }} />}
-              <div className="table-responsive">
-                <table className="table table-sm table-striped">
-                  <thead>
-                    <tr><th>EMPLEADO</th><th>TIPO</th><th>SALIDA</th><th>LLEGADA</th><th>ESTADO</th><th>ACCIONES</th></tr>
-                  </thead>
-                  <tbody>
-                    {itemsAdmin.map((i) => (
-                      <tr key={i.id} className="fadeIn animated">
-                        <td><small>{i.lastname_name}</small></td>
-                        <td><small>{i.type}</small></td>
-                        <td><small>{i.departure_hour}</small></td>
-                        <td><small>{i.arrival_hour ?? "-"}</small></td>
-                        <td><span className={`badge badge-${i.statusCss}`}>{i.statusLabel}</span></td>
-                        <td className="text-nowrap">
-                          {i.path_end && <button className="btn btn-sm btn-light mr-1" onClick={() => handleOpenPdf(i)} disabled={loadingPdf === i.id}><i className="mdi mdi-file-pdf-box text-danger" /></button>}
-                          <button className="btn btn-sm btn-info mr-1" onClick={() => openModify(i)}><i className="mdi mdi-pencil-outline" /></button>
-                          <button className="btn btn-sm btn-danger" onClick={() => setItemToDelete(i)}><i className="mdi mdi-delete-outline" /></button>
-                        </td>
-                      </tr>
-                    ))}
-                    {!loadingAdmin && itemsAdmin.length === 0 && <tr><td colSpan={6} className="text-center text-muted">No hay salidas.</td></tr>}
-                  </tbody>
-                </table>
-              </div>
-              <Paginator first={(adminPage - 1) * adminLimit} rows={adminLimit} totalRecords={totalAdmin} onPageChange={onAdminPage} />
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Cancel modal */}
-      {itemToCancel && (
-        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 400 }}>
-            <div className="modal-content text-center p-4">
-              <i className="mdi mdi-alert-circle-outline text-warning mb-3" style={{ fontSize: "3rem" }} />
-              <h4>¿Cancelar salida?</h4>
-              <p className="text-muted">Tipo: <strong>{itemToCancel?.type}</strong></p>
-              <div className="row g-2 mt-3">
-                <div className="col-6"><button disabled={loadingCancel} className="btn btn-light w-100" onClick={() => setItemToCancel(null)}>No</button></div>
-                <div className="col-6"><button disabled={loadingCancel} className="btn btn-warning w-100" onClick={handleCancelExit}>{loadingCancel ? "..." : "Sí, cancelar"}</button></div>
+      {/* ── Boss selection dialog ─────────────────────────────────────────────── */}
+      <Dialog
+        header=""
+        visible={formType !== ""}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        style={{ width: "50vw" }}
+        onHide={() => setFormType("")}
+      >
+        <div className="row">
+          {formType && (
+            <div className="animated fadeIn col-12">
+              <div className="form-group text-center">
+                <label>Seleccione su jefe</label>
+
+                <select
+                  className="form-control form-control-sm custom-select"
+                  value={formCuil}
+                  onChange={(e) => setFormCuil(e.target.value)}
+                >
+                  <option value=""></option>
+                  {bosses.map((boss) => (
+                    <option key={boss.cuil} value={boss.cuil}>{boss.lastname_name}</option>
+                  ))}
+                </select>
+
+                {cuilTouched && !formCuil && (
+                  <div className="animated fadeIn text-danger text-left d-flex flex-column" role="alert">
+                    <small className="m-0 animated fadeIn">* Campo obligatorio</small>
+                  </div>
+                )}
               </div>
+            </div>
+          )}
+
+          <div className="col-12 d-flex justify-content-end">
+            <button
+              onClick={create}
+              disabled={loadingActionCreate}
+              type="button"
+              className="btn btn-info mr-2"
+            >
+              {!loadingActionCreate ? "Aceptar" : "Solicitando salida"}
+            </button>
+            <button
+              onClick={() => setFormType("")}
+              type="button"
+              className="btn"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* ── Modify dialog ─────────────────────────────────────────────────────── */}
+      <Dialog
+        header={`Modificar salida de ${itemSelected?.lastname_name ?? ""}`}
+        visible={showModalModificateItem}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        style={{ width: "90vw" }}
+        onHide={closeModalModificateItem}
+        footer={
+          <div>
+            <button
+              disabled={loadingActionModificateItem || !modifyForm.status || !modifyForm.type}
+              onClick={modificateItem}
+              type="button"
+              className="btn btn-primary p-button-raised mr-2"
+            >
+              {!loadingActionModificateItem ? "Modificar" : "Modificando"}
+            </button>
+            <button
+              disabled={loadingActionModificateItem}
+              type="button"
+              onClick={closeModalModificateItem}
+              className="btn btn-light"
+            >
+              Cerrar
+            </button>
+          </div>
+        }
+      >
+        <div className="row">
+          <div className="col-12">
+            <div className="row animated fadeIn">
+
+              <div className="col-12 col-md-6">
+                <div className="form-group">
+                  <label>Estado</label>
+                  <select
+                    className="form-control form-control-sm custom-select"
+                    value={modifyForm.status}
+                    onChange={(e) => setModifyForm((p) => ({ ...p, status: e.target.value }))}
+                  >
+                    <option value="Pending">Pendiente de aprobación</option>
+                    <option value="Waiting">En espera</option>
+                    <option value="Done">Finalizado</option>
+                    <option value="Cancel">Cancelado</option>
+                  </select>
+                  {modifyTouched && !modifyForm.status && (
+                    <div className="animated fadeIn text-danger text-left d-flex flex-column" role="alert">
+                      <small className="m-0 animated fadeIn">* Campo obligatorio</small>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="col-12 col-md-6">
+                <div className="form-group">
+                  <label>Tipo de salida</label>
+                  <select
+                    className="form-control form-control-sm custom-select"
+                    value={modifyForm.type}
+                    onChange={(e) => setModifyForm((p) => ({ ...p, type: e.target.value }))}
+                  >
+                    <option value=""></option>
+                    {EXIT_TYPE_OPTIONS.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                  {modifyTouched && !modifyForm.type && (
+                    <div className="animated fadeIn text-danger text-left d-flex flex-column" role="alert">
+                      <small className="m-0 animated fadeIn">* Campo obligatorio</small>
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
-      )}
-
-      {/* Modify Dialog */}
-      <Dialog header="Modificar salida" visible={!!modifyItem} modal draggable={false} resizable={false} style={{ width: "480px" }} onHide={() => setModifyItem(null)}>
-        <form onSubmit={handleModify} noValidate>
-          <div className="row">
-            <div className="form-group col-12 col-md-6">
-              <label><small>Hora de salida *</small></label>
-              <input type="datetime-local" className="form-control" value={modifyForm.departure_hour} onChange={(e) => setModifyForm((p) => ({ ...p, departure_hour: e.target.value }))} />
-              {modifyTouched && !modifyForm.departure_hour && <small className="text-danger">* Obligatorio</small>}
-            </div>
-            <div className="form-group col-12 col-md-6">
-              <label><small>Hora de llegada</small></label>
-              <input type="datetime-local" className="form-control" value={modifyForm.arrival_hour} onChange={(e) => setModifyForm((p) => ({ ...p, arrival_hour: e.target.value }))} />
-            </div>
-            <div className="form-group col-12 col-md-6">
-              <label><small>Estado *</small></label>
-              <select className="custom-select w-100" value={modifyForm.status} onChange={(e) => setModifyForm((p) => ({ ...p, status: e.target.value }))}>
-                <option value=""></option>
-                {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-              {modifyTouched && !modifyForm.status && <small className="text-danger">* Obligatorio</small>}
-            </div>
-            <div className="form-group col-12 col-md-6">
-              <label><small>Tipo *</small></label>
-              <select className="custom-select w-100" value={modifyForm.type} onChange={(e) => setModifyForm((p) => ({ ...p, type: e.target.value }))}>
-                <option value=""></option>
-                {EXIT_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-              {modifyTouched && !modifyForm.type && <small className="text-danger">* Obligatorio</small>}
-            </div>
-          </div>
-          <button disabled={loadingModify} type="submit" className="btn btn-info btn-block mt-2">
-            {loadingModify ? "Guardando..." : "Guardar cambios"}
-          </button>
-        </form>
       </Dialog>
 
-      {/* Create exit admin modal */}
+      {/* ── Cancel dialog ─────────────────────────────────────────────────────── */}
+      <Dialog
+        header="¿Cancelar orden de salida?"
+        visible={isOpenModalCancelExit}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        style={{ width: "65vw" }}
+        onHide={closeModalCancelExit}
+        footer={
+          <div>
+            <button
+              disabled={loadingActionCancelExit}
+              onClick={cancelExit}
+              type="button"
+              className="btn btn-danger p-button-raised mr-2"
+            >
+              {!loadingActionCancelExit ? "Si" : "Cancelando"}
+            </button>
+            <button
+              disabled={loadingActionCancelExit}
+              type="button"
+              onClick={closeModalCancelExit}
+              className="btn btn-light"
+            >
+              No
+            </button>
+          </div>
+        }
+      >
+        <span />
+      </Dialog>
+
+      {/* ── Delete dialog ─────────────────────────────────────────────────────── */}
+      <Dialog
+        header="¿Eliminar orden de salida?"
+        visible={isOpenModalDeleteExitAdmin}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        style={{ width: "50vw" }}
+        onHide={() => { setIsOpenModalDeleteExitAdmin(false); setItemSelected(null); }}
+        footer={
+          <div>
+            <button
+              disabled={loadingActionDeleteItem}
+              onClick={deleteItem}
+              type="button"
+              className="btn btn-danger p-button-raised mr-2"
+            >
+              {!loadingActionDeleteItem ? "Si" : "Eliminando"}
+            </button>
+            <button
+              disabled={loadingActionDeleteItem}
+              type="button"
+              onClick={() => { setIsOpenModalDeleteExitAdmin(false); setItemSelected(null); }}
+              className="btn btn-light"
+            >
+              No
+            </button>
+          </div>
+        }
+      >
+        <span />
+      </Dialog>
+
+      {/* ── CreateExitAdminModal ──────────────────────────────────────────────── */}
       <CreateExitAdminModal
-        isOpen={showCreateAdmin}
-        onHide={() => setShowCreateAdmin(false)}
+        isOpen={isOpenModalCreateExitAdmin}
+        onHide={() => setIsOpenModalCreateExitAdmin(false)}
         onCreated={(exitOrder) => {
           setItemsAdmin((p) => [mapItem({ ...exitOrder, _rawType: exitOrder.type, _rawStatus: exitOrder.status }), ...p]);
         }}
       />
-
-      {/* Delete modal */}
-      {itemToDelete && (
-        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 400 }}>
-            <div className="modal-content text-center p-4">
-              <i className="mdi mdi-alert-circle-outline text-danger mb-3" style={{ fontSize: "3rem" }} />
-              <h4>¿Eliminar orden de salida?</h4>
-              <p className="text-muted">{itemToDelete?.type}</p>
-              <div className="row g-2 mt-3">
-                <div className="col-6"><button disabled={loadingDelete} className="btn btn-light w-100" onClick={() => setItemToDelete(null)}>Cancelar</button></div>
-                <div className="col-6"><button disabled={loadingDelete} className="btn btn-danger w-100" onClick={handleDelete}>{loadingDelete ? "..." : "Eliminar"}</button></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
