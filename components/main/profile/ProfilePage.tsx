@@ -316,7 +316,7 @@ export default function ProfilePage() {
                           title="Copiar interno"
                         >
                           <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-phone" /></span>
-                          <span className="qr-info-text flex-grow-1">Int. {user.internal}</span>
+                          <span className="qr-info-text flex-grow-1">{user.internal}</span>
                           <i className={copiedField === "internal" ? "pi pi-check" : "pi pi-copy"} style={{ fontSize: "0.85rem", color: copiedField === "internal" ? "#28a745" : "#aaa", flexShrink: 0, transition: "color 0.2s" }} />
                         </div>
                       )}
