@@ -104,10 +104,15 @@ export default function LicensePage() {
     norma_aprobatoria: "",
     anio_ref: "",
   });
+  const [paginatorFirst, setPaginatorFirst] = useState(0);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    setPaginatorFirst(0);
+  }, [filters]);
 
   async function loadData() {
     setLoading(true);
@@ -188,30 +193,6 @@ export default function LicensePage() {
   const totalDaysLatestYear = licensesCompact
     .filter((l) => l.anio_ref === latestYear)
     .reduce((sum, l) => sum + (l.cant ?? 0), 0);
-
-  const summaryCards = [
-    {
-      label: "Tipos de licencia",
-      value: licensesCompact.length,
-      icon: "pi-list",
-      color: "#4a6cf7",
-      bg: "rgba(74,108,247,0.08)",
-    },
-    {
-      label: "Año más reciente",
-      value: latestYear || "—",
-      icon: "pi-calendar",
-      color: "#059669",
-      bg: "rgba(5,150,105,0.08)",
-    },
-    {
-      label: `Días en ${latestYear || "—"}`,
-      value: `${totalDaysLatestYear} días`,
-      icon: "pi-clock",
-      color: "#d97706",
-      bg: "rgba(217,119,6,0.08)",
-    },
-  ];
 
   const articuloOptions = [...new Set(licensesCompact.map((l) => String(l.articulo)))].sort();
   const descripcionOptions = [...new Set(licensesCompact.map((l) => l.descripcion).filter(Boolean))].sort() as string[];
@@ -296,6 +277,16 @@ export default function LicensePage() {
                 <DataTable
                   value={filtered}
                   className="p-datatable-sm license-table"
+                  paginator
+                  rows={10}
+                  rowsPerPageOptions={[10, 15, 20]}
+                  first={paginatorFirst}
+                  onPage={(e) => setPaginatorFirst(e.first)}
+                  paginatorRight={
+                    <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                      {filtered.length} {filtered.length === 1 ? "licencia" : "licencias"}
+                    </span>
+                  }
                   emptyMessage={
                     <div className="license-empty">
                       <i className="pi pi-inbox" />
