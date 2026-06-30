@@ -482,6 +482,12 @@ export default function ExitsPage() {
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
 
             {/* ── Tipo de salida ── */}
+            <div className="mb-3 d-flex align-items-center" style={{ gap: "8px" }}>
+              <div style={{ width: 28, height: 28, borderRadius: "8px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "0.8rem" }} />
+              </div>
+              <h6 className="mb-0 font-weight-bold" style={{ fontSize: "0.88rem", color: "#1e293b" }}>Creación de salida</h6>
+            </div>
             <p className="mb-2" style={{ fontSize: "0.82rem", color: "#64748b", fontWeight: 500 }}>Seleccioná el tipo de salida</p>
             <div className="d-flex" style={{ gap: "10px", flexWrap: "wrap", marginBottom: "20px" }}>
               {([
