@@ -1427,3 +1427,124 @@ input[disabled] {
     flex-direction: column;
   }
 }
+
+/* ═══════════════════════════════════════════
+   Profile / Legajo page
+   ═══════════════════════════════════════════ */
+
+.profile-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06) !important;
+  margin-bottom: 20px;
+  transition: box-shadow 0.25s ease;
+}
+
+.profile-card:hover {
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.10) !important;
+}
+
+.profile-card--warning {
+  border: 1.5px solid #fd7e14 !important;
+  box-shadow: 0 0 0 4px rgba(253, 126, 20, 0.10), 0 2px 20px rgba(0,0,0,0.06) !important;
+}
+
+/* Field labels */
+.profile-field-label {
+  align-items: center;
+  color: #64748b;
+  display: flex;
+  font-size: 0.71rem;
+  font-weight: 700;
+  gap: 6px;
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+/* Modern input */
+.profile-input {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  color: #2f3d4a;
+  display: block;
+  font-size: 0.88rem;
+  outline: none;
+  padding: 9px 13px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  width: 100%;
+}
+
+.profile-input:focus {
+  background: #fff;
+  border-color: #4a6cf7;
+  box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.12);
+}
+
+.profile-input:disabled,
+.profile-input[disabled] {
+  background: #f1f5f9 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+}
+
+/* Section sub-labels within a card */
+.profile-section-sub {
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  padding: 14px 0 8px;
+  text-transform: uppercase;
+}
+
+/* Boss chips */
+.profile-boss-chip {
+  align-items: center;
+  background: rgba(74, 108, 247, 0.07);
+  border: 1px solid rgba(74, 108, 247, 0.18);
+  border-radius: 24px;
+  color: #4a6cf7;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 600;
+  gap: 7px;
+  padding: 5px 14px 5px 10px;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.profile-boss-chip:hover {
+  background: rgba(74, 108, 247, 0.13);
+  border-color: rgba(74, 108, 247, 0.30);
+  box-shadow: 0 2px 8px rgba(74, 108, 247, 0.15);
+}
+
+/* Skeleton fields */
+.profile-skeleton-label {
+  animation: skeleton-shimmer 1.4s infinite;
+  background: linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  height: 10px;
+  margin-bottom: 7px;
+  width: 80px;
+}
+
+.profile-skeleton-input {
+  animation: skeleton-shimmer 1.4s infinite;
+  background: linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%);
+  background-size: 200% 100%;
+  border-radius: 10px;
+  height: 40px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .profile-card {
+    border-radius: 12px !important;
+  }
+}
