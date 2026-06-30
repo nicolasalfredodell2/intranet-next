@@ -39,6 +39,8 @@ export default function ReceiptsPage() {
   const [receipts, setReceipts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfReceipt, setPdfReceipt] = useState<any>(null);
   const [cuilSearch, setCuilSearch] = useState("");
   const [filters, setFilters] = useState<Filters>({ anio: "", mes: "", desc: "" });
   const [errMessage, setErrMessage] = useState<string | null>(null);
@@ -83,12 +85,20 @@ export default function ReceiptsPage() {
     try {
       const buffer = await getReceiptPDF(receiptData.idn, cuilSearch);
       const blob = new Blob([buffer], { type: "application/pdf" });
-      window.open(URL.createObjectURL(blob));
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(URL.createObjectURL(blob));
+      setPdfReceipt(receiptData);
     } catch {
       toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: "No existe el archivo de esta liquidación." });
     } finally {
       setLoadingAction(null);
     }
+  }
+
+  function closePdf() {
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    setPdfUrl(null);
+    setPdfReceipt(null);
   }
 
   async function handleSendToFirm() {
@@ -377,6 +387,51 @@ export default function ReceiptsPage() {
           Se enviará el recibo <strong>{confirmReceipt?.label}</strong> para ser firmado por RRHH.
         </p>
       </Dialog>
+
+      {/* PDF sidebar panel */}
+      {pdfUrl && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 1050, display: "flex", alignItems: "stretch" }}
+          onClick={closePdf}
+        >
+          {/* Backdrop */}
+          <div style={{ flex: 1, background: "rgba(0,0,0,0.35)" }} />
+
+          {/* Panel */}
+          <div
+            style={{ width: "min(820px, 92vw)", background: "#fff", display: "flex", flexDirection: "column", boxShadow: "-8px 0 32px rgba(0,0,0,0.18)", animation: "slideInRight 0.22s ease" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ padding: "12px 18px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "10px", background: "#fff0f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className="mdi mdi-file-pdf-box" style={{ color: "#dc3545", fontSize: "1.2rem" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: "0.9rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {pdfReceipt?.label}
+                </p>
+                <small style={{ color: "#94a3b8", fontSize: "0.74rem" }}>Recibo de haberes</small>
+              </div>
+              <button
+                type="button"
+                onClick={closePdf}
+                style={{ background: "none", border: "1.5px solid #e2e8f0", cursor: "pointer", padding: "5px 8px", borderRadius: "8px", color: "#94a3b8", display: "flex", alignItems: "center" }}
+                title="Cerrar"
+              >
+                <i className="pi pi-times" style={{ fontSize: "0.85rem" }} />
+              </button>
+            </div>
+
+            {/* PDF iframe */}
+            <iframe
+              src={pdfUrl}
+              style={{ flex: 1, border: "none", width: "100%" }}
+              title="Recibo PDF"
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }
