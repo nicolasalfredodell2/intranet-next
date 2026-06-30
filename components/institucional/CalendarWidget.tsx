@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Calendar, CalendarDateTemplateEvent, CalendarMonthChangeEvent } from "primereact/calendar";
 import { addLocale } from "primereact/api";
 import { getAllDates, getBirthdays } from "@/lib/services/calendar.service";
@@ -15,6 +15,8 @@ addLocale("es", {
   today: "Hoy",
   clear: "Limpiar",
 });
+
+const MONTHS_ES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 
 /* ── Types ── */
 
@@ -37,6 +39,12 @@ export interface CalendarDetail {
   data: EventEntry[];
 }
 
+interface HoverInfo {
+  details: CalendarDetail[];
+  x: number;
+  y: number;
+}
+
 interface Props {
   onDetails?: (details: CalendarDetail[] | null) => void;
 }
@@ -45,6 +53,17 @@ interface Props {
 
 function dateKey(year: number, month: number, day: number): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/** Parsea "YYYY-MM-DD" sin pasar por Date constructor (evita desfase UTC). */
+function parseDateParts(dateStr: string): { year: number; month: number; day: number } | null {
+  const parts = dateStr.split("-");
+  if (parts.length < 3) return null;
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  return { year, month, day };
 }
 
 function upsertEvent(map: EventMap, key: string, type: "birthday" | "holiday", color: string, entry: EventEntry) {
@@ -57,61 +76,110 @@ function upsertEvent(map: EventMap, key: string, type: "birthday" | "holiday", c
   }
 }
 
-/**
- * Replica la lógica de transformDataBirthdays del componente Angular.
- * Itera year-1, year, year+1 para cubrir cumpleaños que caen en meses limítrofes.
- */
 function transformBirthdays(birthdayDates: any[], map: EventMap): void {
   const base = new Date().getFullYear();
 
   [base - 1, base, base + 1].forEach((year) => {
     birthdayDates.forEach((person: any) => {
       if (!person.datebirth) return;
-
-      const lastTwo = person.datebirth.slice(-2);
-      const withYear = `${year}${person.datebirth.substring(4)}`;
-      const d = new Date(withYear);
-      if (isNaN(d.getTime())) return;
-
-      let month = d.getMonth();
-      // Ajuste de borde: si el día es "01" (UTC offset) sumar 2 en lugar de 1
-      month = lastTwo !== "01" ? month + 1 : month + 2;
-      if (month < 1 || month > 12) return;
-
-      const key = dateKey(year, month, d.getDate());
+      // datebirth is "AAAA-MM-DD" — tomamos solo mes y día
+      const parts = person.datebirth.split("-");
+      if (parts.length < 3) return;
+      const month = Number(parts[1]);
+      const day = Number(parts[2]);
+      if (!month || !day) return;
+      const key = dateKey(year, month, day);
       upsertEvent(map, key, "birthday", "#9EB0CE", {
-        description: person.lastname_name,
+        description: person.lastname_name ?? person.name ?? "—",
         color: "#9EB0CE",
       });
     });
   });
 }
 
-/**
- * Replica la lógica de transformDatesImportant del componente Angular.
- */
 function transformImportantDates(importantDates: any[], map: EventMap): void {
   importantDates.forEach((item: any) => {
     if (!item.date) return;
-
-    const lastTwo = item.date.slice(-2);
-    const d = new Date(item.date);
-    if (isNaN(d.getTime())) return;
-
-    let month = d.getMonth();
-    month = lastTwo !== "01" ? month + 1 : month + 2;
-    if (month < 1 || month > 12) return;
-
-    const color = item.colour ?? item.category?.colour ?? "#4CAF50";
-    const key = dateKey(d.getFullYear(), month, d.getDate());
-    upsertEvent(map, key, "holiday", color, { description: item.event, color });
+    const parsed = parseDateParts(item.date);
+    if (!parsed) return;
+    const { year, month, day } = parsed;
+    const color = item.colour ?? item.color ?? item.category?.colour ?? "#4CAF50";
+    const key = dateKey(year, month, day);
+    upsertEvent(map, key, "holiday", color, { description: item.event ?? item.title ?? "—", color });
   });
+}
+
+function formatDateLabel(key: string): string {
+  const parts = key.split("-");
+  if (parts.length < 3) return key;
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
+  return `${day} de ${MONTHS_ES[month - 1] ?? ""}`;
+}
+
+/* ── Tooltip ── */
+
+function EventTooltip({ info }: { info: HoverInfo }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ left: info.x, top: info.y });
+
+  useEffect(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    let left = info.x - rect.width / 2;
+    let top = info.y - rect.height - 12;
+    if (left < 8) left = 8;
+    if (left + rect.width > window.innerWidth - 8) left = window.innerWidth - rect.width - 8;
+    if (top < 8) top = info.y + 20;
+    setPos({ left, top });
+  }, [info.x, info.y]);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: "fixed",
+        left: pos.left,
+        top: pos.top,
+        zIndex: 9999,
+        background: "#1e2533",
+        color: "#f1f5f9",
+        borderRadius: "10px",
+        padding: "10px 14px",
+        minWidth: "180px",
+        maxWidth: "260px",
+        boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
+        pointerEvents: "none",
+        fontSize: "0.8rem",
+        lineHeight: 1.5,
+      }}
+    >
+      <div style={{ fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.08em", color: "#94a3b8", marginBottom: "8px", textTransform: "uppercase" }}>
+        {formatDateLabel(info.details[0]?.date ?? "")}
+      </div>
+
+      {info.details.map((group, gi) => (
+        <div key={gi} style={{ marginBottom: gi < info.details.length - 1 ? 8 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: group.data[0]?.color ?? "#9EB0CE", flexShrink: 0 }} />
+            <span style={{ fontWeight: 600, fontSize: "0.75rem", color: "#e2e8f0" }}>{group.title}</span>
+          </div>
+          {group.data.map((entry, ei) => (
+            <div key={ei} style={{ paddingLeft: "14px", color: "#cbd5e1", fontSize: "0.78rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {entry.description}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 /* ── Component ── */
 
 export default function CalendarWidget({ onDetails }: Props) {
   const [eventMap, setEventMap] = useState<EventMap>({});
+  const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -130,6 +198,7 @@ export default function CalendarWidget({ onDetails }: Props) {
   }, []);
 
   const handleMonthChange = useCallback((_e: CalendarMonthChangeEvent) => {
+    setHoverInfo(null);
     onDetails?.(null);
   }, [onDetails]);
 
@@ -142,11 +211,7 @@ export default function CalendarWidget({ onDetails }: Props) {
     const events = eventMap[key];
 
     if (!events?.length) {
-      return (
-        <span onMouseEnter={() => onDetails?.(null)}>
-          {e.day}
-        </span>
-      );
+      return <span onMouseEnter={() => setHoverInfo(null)}>{e.day}</span>;
     }
 
     const hasBirthday = events.some((ev) => ev.type === "birthday");
@@ -163,7 +228,7 @@ export default function CalendarWidget({ onDetails }: Props) {
     }
 
     const details: CalendarDetail[] = events.map((ev) => ({
-      title: ev.type === "birthday" ? "Cumpleaños" : "Día del profesional",
+      title: ev.type === "birthday" ? "Cumpleaños" : "Día especial",
       date: key,
       data: ev.entries,
     }));
@@ -171,8 +236,14 @@ export default function CalendarWidget({ onDetails }: Props) {
     return (
       <span
         style={{ background, color: "#fff", borderRadius: "50%", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-        onMouseEnter={() => onDetails?.(details)}
-        onMouseLeave={() => onDetails?.(null)}
+        onMouseEnter={(ev) => {
+          setHoverInfo({ details, x: ev.clientX, y: ev.clientY });
+          onDetails?.(details);
+        }}
+        onMouseLeave={() => {
+          setHoverInfo(null);
+          onDetails?.(null);
+        }}
       >
         {e.day}
       </span>
@@ -188,6 +259,8 @@ export default function CalendarWidget({ onDetails }: Props) {
         onMonthChange={handleMonthChange}
         dateTemplate={dateTemplate}
       />
+
+      {hoverInfo && <EventTooltip info={hoverInfo} />}
 
       <style jsx global>{`
         .calendar-widget-wrapper .p-calendar {
@@ -249,7 +322,6 @@ export default function CalendarWidget({ onDetails }: Props) {
           padding: 0px !important;
         }
 
-        /* Table layout */
         .calendar-widget-wrapper .p-datepicker table {
           width: 100% !important;
           table-layout: fixed !important;
@@ -263,13 +335,11 @@ export default function CalendarWidget({ onDetails }: Props) {
           text-align: center !important;
         }
 
-        /* Day headers */
         .calendar-widget-wrapper .p-datepicker table th > span {
           color: rgba(255, 255, 255, 0.6) !important;
           font-size: clamp(10px, 2.5vw, 14px) !important;
         }
 
-        /* Day cells — circular, fluid */
         .calendar-widget-wrapper .p-datepicker table td > span {
           width: 100% !important;
           max-width: 40px !important;
@@ -285,20 +355,17 @@ export default function CalendarWidget({ onDetails }: Props) {
           color: #fff !important;
         }
 
-        /* Today */
         .calendar-widget-wrapper .p-datepicker table td.p-datepicker-today > span {
           background-color: #fff !important;
           color: #4B5667 !important;
           font-weight: bold !important;
         }
 
-        /* Selected */
         .calendar-widget-wrapper .p-datepicker table td > span.p-highlight {
           background-color: #4285F4 !important;
           color: #fff !important;
         }
 
-        /* Other-month days */
         .calendar-widget-wrapper .p-datepicker table td.p-datepicker-other-month > span {
           color: rgba(255, 255, 255, 0.3) !important;
         }
