@@ -1303,6 +1303,14 @@ input[disabled] {
   font-weight: 600;
 }
 
+/* Row hover */
+.license-table .p-datatable-tbody > tr {
+  transition: background 0.15s;
+}
+.license-table .p-datatable-tbody > tr:hover > td {
+  background: rgba(74, 108, 247, 0.06) !important;
+}
+
 /* Action button */
 .license-action-btn {
   align-items: center;

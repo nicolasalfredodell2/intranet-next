@@ -8,6 +8,28 @@ import { Column } from "primereact/column";
 import { Dropdown } from "primereact/dropdown";
 import { loadLicenses } from "@/lib/services/license.service";
 
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  return (
+    <span
+      style={{ display: "inline-flex" }}
+      onMouseEnter={(e) => {
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setPos({ top: r.top, left: r.left + r.width / 2 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && (
+        <div style={{ position: "fixed", top: pos.top - 10, left: pos.left, transform: "translateX(-50%) translateY(-100%)", background: "#1e293b", color: "#fff", padding: "5px 11px", borderRadius: "7px", fontSize: "0.71rem", fontWeight: 500, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 9999, boxShadow: "0 4px 14px rgba(0,0,0,0.18)", letterSpacing: "0.01em" }}>
+          {label}
+          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", borderWidth: "5px", borderStyle: "solid", borderColor: "#1e293b transparent transparent transparent" }} />
+        </div>
+      )}
+    </span>
+  );
+}
+
 interface Filters {
   articulo: string;
   descripcion: string;
@@ -210,7 +232,20 @@ export default function LicensePage() {
       <div className="animated fadeIn">
 
         {/* Main card */}
-        <div className="card license-main-card">
+        <div className="card profile-card license-main-card">
+
+          {/* Header */}
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-calendar-minus" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Licencias</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Historial de licencias y ausencias</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
           <div className="card-body">
             {loading ? (
               <SkeletonRows />
@@ -307,15 +342,16 @@ export default function LicensePage() {
                     header=""
                     style={{ width: "7%", textAlign: "center" }}
                     body={(r) => (
-                      <button
-                        type="button"
-                        className="license-action-btn"
-                        onClick={() => openDetail(r)}
-                        title="Ver detalle"
-                        aria-label="Ver detalle"
-                      >
-                        <i className="pi pi-eye" />
-                      </button>
+                      <Tooltip label="Ver detalle">
+                        <button
+                          type="button"
+                          className="license-action-btn"
+                          onClick={() => openDetail(r)}
+                          aria-label="Ver detalle"
+                        >
+                          <i className="pi pi-eye" />
+                        </button>
+                      </Tooltip>
                     )}
                   />
                 </DataTable>
