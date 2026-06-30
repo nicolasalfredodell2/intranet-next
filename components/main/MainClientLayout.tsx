@@ -79,7 +79,7 @@ export default function MainClientLayout({ children }: { children: React.ReactNo
                 style={{ borderRadius: "10px", fontWeight: 500 }}
                 onClick={() => setShowLogoutModal(false)}
               >
-                Cancelar
+                Volver
               </button>
             </div>
           </div>
