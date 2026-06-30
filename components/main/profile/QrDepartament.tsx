@@ -178,7 +178,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
       </div>
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>QR de área</p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Generá la firma con QR para tu área o departamento</small>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Generá la firma con QR para tu área</small>
       </div>
     </div>
   );
@@ -276,7 +276,6 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
                 </select>
                 <input
                   className="profile-input qr-name-input"
-                  placeholder="Nombre…"
                   value={form.departament}
                   onChange={(e) => setForm((p) => ({ ...p, departament: e.target.value }))}
                   onBlur={() => setTouched((p) => ({ ...p, departament: true }))}
@@ -296,7 +295,6 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
               <div className="qr-input-suffix-wrap">
                 <input
                   className="profile-input"
-                  placeholder="nombre.area"
                   value={form.email}
                   onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
                   onBlur={() => setTouched((p) => ({ ...p, email: true }))}
@@ -343,7 +341,6 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
             <hr style={{ borderColor: "rgba(0,0,0,0.05)", margin: "16px 0 0" }} />
             <p className="profile-section-sub">
               Guardar en grupo
-              <span style={{ fontSize: "0.68rem", fontWeight: 400, color: "#94a3b8", marginLeft: "8px" }}>(opcional para descargar)</span>
             </p>
 
             <div style={{ maxWidth: "360px" }}>
