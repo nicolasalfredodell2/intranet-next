@@ -175,11 +175,90 @@ function EventTooltip({ info }: { info: HoverInfo }) {
   );
 }
 
+/* ── Detail Card (panel debajo del calendario) ── */
+
+function DetailCard({ details }: { details: CalendarDetail[] | null }) {
+  const visible = !!details?.length;
+
+  return (
+    <div
+      style={{
+        overflow: "hidden",
+        maxHeight: visible ? "300px" : "0",
+        opacity: visible ? 1 : 0,
+        transition: "max-height 0.25s ease, opacity 0.2s ease",
+        marginTop: visible ? "8px" : "0",
+      }}
+    >
+      <div
+        style={{
+          background: "#1e2533",
+          borderRadius: "12px",
+          padding: "12px 14px",
+          color: "#f1f5f9",
+        }}
+      >
+        <div
+          style={{
+            fontWeight: 700,
+            fontSize: "0.68rem",
+            letterSpacing: "0.1em",
+            color: "#64748b",
+            textTransform: "uppercase",
+            marginBottom: "10px",
+          }}
+        >
+          {formatDateLabel(details?.[0]?.date ?? "")}
+        </div>
+
+        {details?.map((group, gi) => (
+          <div key={gi} style={{ marginBottom: gi < (details?.length ?? 0) - 1 ? 10 : 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "5px" }}>
+              <span
+                style={{
+                  width: 9,
+                  height: 9,
+                  borderRadius: "50%",
+                  background: group.data[0]?.color ?? "#9EB0CE",
+                  flexShrink: 0,
+                  boxShadow: `0 0 6px ${group.data[0]?.color ?? "#9EB0CE"}88`,
+                }}
+              />
+              <span style={{ fontWeight: 700, fontSize: "0.73rem", color: "#e2e8f0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {group.title}
+              </span>
+            </div>
+            {group.data.map((entry, ei) => (
+              <div
+                key={ei}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  paddingLeft: "16px",
+                  paddingTop: "2px",
+                  paddingBottom: "2px",
+                  color: "#94a3b8",
+                  fontSize: "0.78rem",
+                }}
+              >
+                <i className="pi pi-minus" style={{ fontSize: "0.5rem", color: "#475569" }} />
+                {entry.description}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── Component ── */
 
 export default function CalendarWidget({ onDetails }: Props) {
   const [eventMap, setEventMap] = useState<EventMap>({});
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
+  const [activeDetails, setActiveDetails] = useState<CalendarDetail[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -199,6 +278,7 @@ export default function CalendarWidget({ onDetails }: Props) {
 
   const handleMonthChange = useCallback((_e: CalendarMonthChangeEvent) => {
     setHoverInfo(null);
+    setActiveDetails(null);
     onDetails?.(null);
   }, [onDetails]);
 
@@ -211,7 +291,7 @@ export default function CalendarWidget({ onDetails }: Props) {
     const events = eventMap[key];
 
     if (!events?.length) {
-      return <span onMouseEnter={() => setHoverInfo(null)}>{e.day}</span>;
+      return <span onMouseEnter={() => { setHoverInfo(null); setActiveDetails(null); }}>{e.day}</span>;
     }
 
     const hasBirthday = events.some((ev) => ev.type === "birthday");
@@ -238,10 +318,12 @@ export default function CalendarWidget({ onDetails }: Props) {
         style={{ background, color: "#fff", borderRadius: "50%", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
         onMouseEnter={(ev) => {
           setHoverInfo({ details, x: ev.clientX, y: ev.clientY });
+          setActiveDetails(details);
           onDetails?.(details);
         }}
         onMouseLeave={() => {
           setHoverInfo(null);
+          setActiveDetails(null);
           onDetails?.(null);
         }}
       >
@@ -261,6 +343,7 @@ export default function CalendarWidget({ onDetails }: Props) {
       />
 
       {hoverInfo && <EventTooltip info={hoverInfo} />}
+      <DetailCard details={activeDetails} />
 
       <style jsx global>{`
         .calendar-widget-wrapper .p-calendar {
