@@ -7,6 +7,28 @@ import ModalBosses from "./ModalBosses";
 import QrDepartament from "./QrDepartament";
 import { getDataUser, modificateProfileUser, saveImageProfile } from "@/lib/services/perfil.service";
 
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  return (
+    <span
+      style={{ display: "block" }}
+      onMouseEnter={(e) => {
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setPos({ top: r.top, left: r.left + r.width / 2 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && (
+        <div style={{ position: "fixed", top: pos.top - 10, left: pos.left, transform: "translateX(-50%) translateY(-100%)", background: "#1e293b", color: "#fff", padding: "5px 11px", borderRadius: "7px", fontSize: "0.71rem", fontWeight: 500, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 9999, boxShadow: "0 4px 14px rgba(0,0,0,0.18)", letterSpacing: "0.01em" }}>
+          {label}
+          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", borderWidth: "5px", borderStyle: "solid", borderColor: "#1e293b transparent transparent transparent" }} />
+        </div>
+      )}
+    </span>
+  );
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 const LOGO_BASE64 =
@@ -297,28 +319,30 @@ export default function ProfilePage() {
                     {/* Contact chips */}
                     <div className="text-left" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                       {user?.email && (
-                        <div
-                          className="qr-info-item w-100"
-                          style={{ borderLeftColor: "#4a6cf7", cursor: "pointer", borderRadius: "10px" }}
-                          onClick={() => handleCopy(user.email, "email")}
-                          title="Copiar correo"
-                        >
-                          <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-envelope" /></span>
-                          <span className="qr-info-text flex-grow-1" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>
-                          <i className={copiedField === "email" ? "pi pi-check" : "pi pi-copy"} style={{ fontSize: "0.85rem", color: copiedField === "email" ? "#28a745" : "#aaa", flexShrink: 0, transition: "color 0.2s" }} />
-                        </div>
+                        <Tooltip label="Copiar correo">
+                          <div
+                            className="qr-info-item w-100"
+                            style={{ borderLeftColor: "#4a6cf7", cursor: "pointer", borderRadius: "10px" }}
+                            onClick={() => handleCopy(user.email, "email")}
+                          >
+                            <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-envelope" /></span>
+                            <span className="qr-info-text flex-grow-1" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>
+                            <i className={copiedField === "email" ? "pi pi-check" : "pi pi-copy"} style={{ fontSize: "0.85rem", color: copiedField === "email" ? "#28a745" : "#aaa", flexShrink: 0, transition: "color 0.2s" }} />
+                          </div>
+                        </Tooltip>
                       )}
                       {user?.internal && (
-                        <div
-                          className="qr-info-item w-100"
-                          style={{ borderLeftColor: "#4a6cf7", cursor: "pointer", borderRadius: "10px" }}
-                          onClick={() => handleCopy(user.internal, "internal")}
-                          title="Copiar interno"
-                        >
-                          <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-phone" /></span>
-                          <span className="qr-info-text flex-grow-1">{user.internal}</span>
-                          <i className={copiedField === "internal" ? "pi pi-check" : "pi pi-copy"} style={{ fontSize: "0.85rem", color: copiedField === "internal" ? "#28a745" : "#aaa", flexShrink: 0, transition: "color 0.2s" }} />
-                        </div>
+                        <Tooltip label="Copiar interno">
+                          <div
+                            className="qr-info-item w-100"
+                            style={{ borderLeftColor: "#4a6cf7", cursor: "pointer", borderRadius: "10px" }}
+                            onClick={() => handleCopy(user.internal, "internal")}
+                          >
+                            <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-phone" /></span>
+                            <span className="qr-info-text flex-grow-1">{user.internal}</span>
+                            <i className={copiedField === "internal" ? "pi pi-check" : "pi pi-copy"} style={{ fontSize: "0.85rem", color: copiedField === "internal" ? "#28a745" : "#aaa", flexShrink: 0, transition: "color 0.2s" }} />
+                          </div>
+                        </Tooltip>
                       )}
                     </div>
                   </div>
