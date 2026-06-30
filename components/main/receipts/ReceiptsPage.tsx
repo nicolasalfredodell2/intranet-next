@@ -306,7 +306,7 @@ export default function ReceiptsPage() {
                             className="fadeIn animated"
                             onMouseEnter={() => setHoveredRow(`${(receipt as any).year}-${idx}`)}
                             onMouseLeave={() => setHoveredRow(null)}
-                            style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === `${(receipt as any).year}-${idx}` ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                            style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === `${(receipt as any).year}-${idx}` || pdfReceipt?.idn === receiptData.idn ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
                           >
                             <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
                               <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
