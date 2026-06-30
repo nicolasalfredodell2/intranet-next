@@ -35,7 +35,7 @@ interface Filters {
   desc: string;
 }
 
-const DESC_OPTIONS = ["Normal", "SAC", "Complementaria"];
+const DESC_OPTIONS = ["Complementaria", "Normal", "SAC"];
 
 const RRHH_CUILS = ["20306493478", "20363027653"];
 
