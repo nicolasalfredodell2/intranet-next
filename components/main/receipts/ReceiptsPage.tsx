@@ -396,7 +396,7 @@ export default function ReceiptsPage() {
                         <td colSpan={4} style={{ padding: "40px", textAlign: "center" }}>
                           <i className="pi pi-wallet" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
                           <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
-                            {filters.anio ? `No hay recibos para el año ${filters.anio}.` : "No hay recibos disponibles."}
+                            No hay recibos registrados {filters.anio || filters.desc || filters.mes ? `con los filtros aplicados` : ''}.
                           </p>
                         </td>
                       </tr>
