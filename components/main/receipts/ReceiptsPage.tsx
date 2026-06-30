@@ -5,6 +5,7 @@ import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { Dropdown } from "primereact/dropdown";
+import { Paginator } from "primereact/paginator";
 import { getReceipts, getReceiptPDF, sendToFirm } from "@/lib/services/receipts.service";
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -71,8 +72,12 @@ export default function ReceiptsPage() {
 
   const [confirmReceipt, setConfirmReceipt] = useState<any>(null);
   const [loadingSendFirm, setLoadingSendFirm] = useState(false);
+  const [paginatorFirst, setPaginatorFirst] = useState(0);
+  const [pageRows, setPageRows] = useState(10);
 
   useEffect(() => { chargeReceipts(); }, []);
+
+  useEffect(() => { setPaginatorFirst(0); }, [filters]);
 
   function handleCuilChange(value: string) {
     setCuilSearch(value);
@@ -157,11 +162,16 @@ export default function ReceiptsPage() {
   }
   const filteredReceipts = receipts.filter((r: any) => !filters.anio || String((r as any).year) === filters.anio);
 
-  const hasAnyVisibleRow = filteredReceipts.some((receipt: any) =>
-    (receipt as any[]).some((rd: any) =>
-      rd.label && (!filters.mes || String(rd.interval) === filters.mes) && matchesDesc(rd.label)
-    )
+  const allVisibleRows = filteredReceipts.flatMap((receipt: any) =>
+    (receipt as any[])
+      .map((rd: any, idx: number) => ({ receipt, receiptData: rd, idx }))
+      .filter(({ receiptData }) =>
+        receiptData.label &&
+        (!filters.mes || String(receiptData.interval) === filters.mes) &&
+        matchesDesc(receiptData.label)
+      )
   );
+  const pagedRows = allVisibleRows.slice(paginatorFirst, paginatorFirst + pageRows);
 
   const dialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -329,80 +339,88 @@ export default function ReceiptsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredReceipts.map((receipt: any) =>
-                      (receipt as any[]).map((receiptData: any, idx: number) =>
-                        receiptData.label && (!filters.mes || String(receiptData.interval) === filters.mes) && matchesDesc(receiptData.label) ? (
-                          <tr
-                            key={`${(receipt as any).year}-${idx}`}
-                            className="fadeIn animated"
-                            onMouseEnter={() => setHoveredRow(`${(receipt as any).year}-${idx}`)}
-                            onMouseLeave={() => setHoveredRow(null)}
-                            style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === `${(receipt as any).year}-${idx}` || pdfReceipt?.idn === receiptData.idn ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
-                          >
-                            <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
-                              <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
-                                {(receipt as any).year}
+                    {pagedRows.map(({ receipt, receiptData, idx }) => (
+                      <tr
+                        key={`${(receipt as any).year}-${idx}`}
+                        className="fadeIn animated"
+                        onMouseEnter={() => setHoveredRow(`${(receipt as any).year}-${idx}`)}
+                        onMouseLeave={() => setHoveredRow(null)}
+                        style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === `${(receipt as any).year}-${idx}` || pdfReceipt?.idn === receiptData.idn ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                      >
+                        <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                          <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
+                            {(receipt as any).year}
+                          </span>
+                        </td>
+                        <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                          <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: "20px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 600 }}>
+                            {receiptData.interval}
+                          </span>
+                        </td>
+                        <td style={{ padding: "10px 8px", fontSize: "0.86rem", color: "#374151" }}>
+                          {receiptData.label}
+                        </td>
+                        <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
+                          <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
+                            {receiptData.status == null && (((receipt as any).year == 2022 && receiptData.interval >= 2) || (receipt as any).year > 2022) && (
+                              <button
+                                type="button"
+                                disabled={!!loadingAction}
+                                onClick={() => setConfirmReceipt(receiptData)}
+                                title="Solicitar firma"
+                                style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#64748b" }}
+                              >
+                                <i className="mdi mdi-feather" style={{ fontSize: "0.95rem" }} />
+                                Firmar
+                              </button>
+                            )}
+                            {receiptData.status != null && (
+                              <span
+                                style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.73rem", fontWeight: 600, background: receiptData.status == 0 ? "rgba(23,162,184,0.1)" : "rgba(5,150,105,0.1)", color: receiptData.status == 0 ? "#17a2b8" : "#059669" }}
+                                title={receiptData.status == 0 ? "En espera de firma" : "Firmado"}
+                              >
+                                <i className={`pi ${receiptData.status == 0 ? "pi-hourglass" : "pi-check-circle"}`} style={{ fontSize: "0.75rem" }} />
+                                {receiptData.status == 0 ? "En espera" : "Firmado"}
                               </span>
-                            </td>
-                            <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
-                              <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: "20px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 600 }}>
-                                {receiptData.interval}
-                              </span>
-                            </td>
-                            <td style={{ padding: "10px 8px", fontSize: "0.86rem", color: "#374151" }}>
-                              {receiptData.label}
-                            </td>
-                            <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
-                              <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
-                                {receiptData.status == null && (((receipt as any).year == 2022 && receiptData.interval >= 2) || (receipt as any).year > 2022) && (
-                                  <button
-                                    type="button"
-                                    disabled={!!loadingAction}
-                                    onClick={() => setConfirmReceipt(receiptData)}
-                                    title="Solicitar firma"
-                                    style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#64748b" }}
-                                  >
-                                    <i className="mdi mdi-feather" style={{ fontSize: "0.95rem" }} />
-                                    Firmar
-                                  </button>
-                                )}
-                                {receiptData.status != null && (
-                                  <span
-                                    style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.73rem", fontWeight: 600, background: receiptData.status == 0 ? "rgba(23,162,184,0.1)" : "rgba(5,150,105,0.1)", color: receiptData.status == 0 ? "#17a2b8" : "#059669" }}
-                                    title={receiptData.status == 0 ? "En espera de firma" : "Firmado"}
-                                  >
-                                    <i className={`pi ${receiptData.status == 0 ? "pi-hourglass" : "pi-check-circle"}`} style={{ fontSize: "0.75rem" }} />
-                                    {receiptData.status == 0 ? "En espera" : "Firmado"}
-                                  </span>
-                                )}
-                                <Tooltip label="Ver recibo">
-                                  <button
-                                    type="button"
-                                    disabled={!!loadingAction}
-                                    onClick={() => openPDF(receiptData)}
-                                    style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: loadingAction ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#4a6cf7" }}
-                                  >
-                                    <i className={loadingAction === receiptData.idn ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "1rem" }} />
-                                  </button>
-                                </Tooltip>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : null
-                      )
-                    )}
-                    {!hasAnyVisibleRow && (
+                            )}
+                            <Tooltip label="Ver recibo">
+                              <button
+                                type="button"
+                                disabled={!!loadingAction}
+                                onClick={() => openPDF(receiptData)}
+                                style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: loadingAction ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#4a6cf7" }}
+                              >
+                                <i className={loadingAction === receiptData.idn ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "1rem" }} />
+                              </button>
+                            </Tooltip>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {allVisibleRows.length === 0 && (
                       <tr>
                         <td colSpan={4} style={{ padding: "40px", textAlign: "center" }}>
                           <i className="pi pi-wallet" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
                           <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
-                            No hay recibos registrados {filters.anio || filters.desc || filters.mes ? `con los filtros aplicados` : ''}.
+                            No hay recibos registrados{filters.anio || filters.desc || filters.mes ? " con los filtros aplicados" : ""}.
                           </p>
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
+                <Paginator
+                  first={paginatorFirst}
+                  rows={pageRows}
+                  totalRecords={allVisibleRows.length}
+                  rowsPerPageOptions={[10, 15, 20]}
+                  onPageChange={(e) => { setPaginatorFirst(e.first); setPageRows(e.rows); }}
+                  rightContent={
+                    <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                      {allVisibleRows.length} {allVisibleRows.length === 1 ? "recibo" : "recibos"}
+                    </span>
+                  }
+                />
               </div>
             )}
           </div>
