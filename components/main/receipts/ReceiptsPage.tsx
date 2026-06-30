@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
+import { Dropdown } from "primereact/dropdown";
 import { getReceipts, getReceiptPDF, sendToFirm } from "@/lib/services/receipts.service";
+
+interface Filters {
+  anio: string;
+  mes: string;
+}
 
 const RRHH_CUILS = ["20306493478", "20363027653"];
 
@@ -31,7 +37,7 @@ export default function ReceiptsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
   const [cuilSearch, setCuilSearch] = useState("");
-  const [yearFilter, setYearFilter] = useState("");
+  const [filters, setFilters] = useState<Filters>({ anio: "", mes: "" });
   const [errMessage, setErrMessage] = useState<string | null>(null);
   const [isBossRRHH] = useState(() => RRHH_CUILS.includes(localStorage.getItem("user") ?? ""));
 
@@ -60,7 +66,7 @@ export default function ReceiptsPage() {
       });
       setReceipts(original);
       const years = [...new Set(original.map((r: any) => String(r.year)))].sort((a, b) => Number(b) - Number(a));
-      if (years.length > 0) setYearFilter(years[0]);
+      if (years.length > 0) setFilters((p) => ({ ...p, anio: years[0] }));
     } catch (err: any) {
       setErrMessage(err.message);
     } finally {
@@ -98,7 +104,11 @@ export default function ReceiptsPage() {
   }
 
   const yearOptions = [...new Set(receipts.map((r: any) => String((r as any).year)))].sort((a, b) => Number(b) - Number(a));
-  const filteredReceipts = receipts.filter((r: any) => !yearFilter || String((r as any).year) === yearFilter);
+  const monthOptions = [...new Set(
+    receipts.flatMap((r: any) => (r as any[]).filter((rd: any) => rd?.label).map((rd: any) => String(rd.interval)))
+  )].sort((a, b) => Number(a) - Number(b));
+  const hasFilters = !!(filters.anio || filters.mes);
+  const filteredReceipts = receipts.filter((r: any) => !filters.anio || String((r as any).year) === filters.anio);
 
   const dialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -160,42 +170,68 @@ export default function ReceiptsPage() {
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
 
-            {/* Filters */}
-            <div className="d-flex flex-wrap mb-3" style={{ gap: "12px", alignItems: "flex-end" }}>
-              {isBossRRHH && (
-                <div style={{ flex: "1 1 220px", maxWidth: 340 }}>
-                  <label className="profile-field-label">Buscar por CUIL</label>
-                  <div className="bosses-search-wrap">
-                    <i className="pi pi-search bosses-search-icon" />
-                    <input
-                      className="profile-input"
-                      style={{ paddingLeft: "36px", paddingRight: cuilSearch ? "40px" : "13px" }}
-                      type="number"
-                      placeholder="Ingresá el CUIL…"
-                      value={cuilSearch}
-                      onChange={(e) => handleCuilChange(e.target.value)}
-                    />
-                    {cuilSearch && (
-                      <button type="button" className="bosses-search-clear" onClick={() => handleCuilChange("")}>
-                        <i className="pi pi-times" style={{ fontSize: "0.72rem" }} />
-                      </button>
-                    )}
-                  </div>
+            {/* CUIL search (admin only) */}
+            {isBossRRHH && (
+              <div className="mb-3" style={{ maxWidth: 340 }}>
+                <label className="profile-field-label">Buscar por CUIL</label>
+                <div className="bosses-search-wrap">
+                  <i className="pi pi-search bosses-search-icon" />
+                  <input
+                    className="profile-input"
+                    style={{ paddingLeft: "36px", paddingRight: cuilSearch ? "40px" : "13px" }}
+                    type="number"
+                    placeholder="Ingresá el CUIL…"
+                    value={cuilSearch}
+                    onChange={(e) => handleCuilChange(e.target.value)}
+                  />
+                  {cuilSearch && (
+                    <button type="button" className="bosses-search-clear" onClick={() => handleCuilChange("")}>
+                      <i className="pi pi-times" style={{ fontSize: "0.72rem" }} />
+                    </button>
+                  )}
                 </div>
-              )}
-              <div style={{ flex: "0 0 160px" }}>
-                <label className="profile-field-label">Año</label>
-                <select
-                  className="profile-input"
-                  value={yearFilter}
-                  onChange={(e) => setYearFilter(e.target.value)}
-                  disabled={yearOptions.length === 0}
-                >
-                  {yearOptions.map((y) => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
               </div>
+            )}
+
+            {/* Filter bar */}
+            <div className="license-filter-bar mb-3">
+              <div className="license-filter-bar-inputs">
+                <div className={`license-filter-input-wrap${filters.anio ? " license-filter-input-wrap--active" : ""}`}>
+                  <i className="pi pi-calendar license-filter-icon" />
+                  <Dropdown
+                    value={filters.anio || null}
+                    options={yearOptions}
+                    onChange={(e) => setFilters((p) => ({ ...p, anio: e.value ?? "" }))}
+                    placeholder="Año"
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel"
+                    showClear={!!filters.anio}
+                    emptyMessage="Sin opciones"
+                  />
+                </div>
+                <div className={`license-filter-input-wrap${filters.mes ? " license-filter-input-wrap--active" : ""}`}>
+                  <i className="pi pi-calendar-minus license-filter-icon" />
+                  <Dropdown
+                    value={filters.mes || null}
+                    options={monthOptions}
+                    onChange={(e) => setFilters((p) => ({ ...p, mes: e.value ?? "" }))}
+                    placeholder="Mes"
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel"
+                    showClear={!!filters.mes}
+                    emptyMessage="Sin opciones"
+                  />
+                </div>
+              </div>
+              {hasFilters && (
+                <button
+                  type="button"
+                  className="license-filter-clear"
+                  onClick={() => setFilters({ anio: "", mes: "" })}
+                >
+                  <i className="pi pi-times" /> Limpiar
+                </button>
+              )}
             </div>
 
             {/* Loading skeleton */}
@@ -228,7 +264,7 @@ export default function ReceiptsPage() {
                   <tbody>
                     {filteredReceipts.map((receipt: any) =>
                       (receipt as any[]).map((receiptData: any, idx: number) =>
-                        receiptData.label ? (
+                        receiptData.label && (!filters.mes || String(receiptData.interval) === filters.mes) ? (
                           <tr key={`${(receipt as any).year}-${idx}`} className="fadeIn animated" style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
                             <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
                               <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
@@ -293,7 +329,7 @@ export default function ReceiptsPage() {
                     </div>
                     <p className="font-weight-bold mb-1" style={{ fontSize: "0.95rem", color: "#1e293b" }}>Sin recibos</p>
                     <p style={{ color: "#94a3b8", fontSize: "0.85rem", margin: 0 }}>
-                      {yearFilter ? `No hay recibos para el año ${yearFilter}.` : "No hay recibos disponibles."}
+                      {filters.anio ? `No hay recibos para el año ${filters.anio}.` : "No hay recibos disponibles."}
                     </p>
                   </div>
                 )}
