@@ -241,7 +241,7 @@ export default function LicensePage() {
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Licencias</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Historial de licencias y ausencias</small>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Historial de licencias</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
@@ -367,8 +367,10 @@ export default function LicensePage() {
             <div className="license-dialog-header-icon">
               <i className="pi pi-calendar-minus" />
             </div>
-            <div>
-              <div className="license-dialog-title">{licensesForDetail[0]?.descripcion}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                <span className="license-dialog-title">{licensesForDetail[0]?.descripcion}</span>
+              </div>
               <span className="license-dialog-year-badge">{licensesForDetail[0]?.anio_ref}</span>
             </div>
           </div>
