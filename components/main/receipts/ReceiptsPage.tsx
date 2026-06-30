@@ -82,6 +82,7 @@ export default function ReceiptsPage() {
 
   async function openPDF(receiptData: any) {
     if (loadingAction) return;
+    if (pdfReceipt?.idn === receiptData.idn) return;
     setLoadingAction(receiptData.idn);
     try {
       const buffer = await getReceiptPDF(receiptData.idn, cuilSearch);
