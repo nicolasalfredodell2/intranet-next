@@ -25,6 +25,7 @@ export default function NavbarLateral() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isAdminInformatic, setIsAdminInformatic] = useState(false);
   const [isAdminRRHH, setIsAdminRRHH] = useState(false);
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const { isAdminInformatic, isAdminRRHH } = getRolesFromStorage();
@@ -58,11 +59,14 @@ export default function NavbarLateral() {
     }
   }
 
-  function handleGroupMenuClick(e: React.MouseEvent) {
+  function toggleMenu(key: string, e: React.MouseEvent) {
     e.preventDefault();
-    if (!isSidebarCollapsed) return;
-    document.body.classList.remove("mini-sidebar", "show-sidebar");
-    setIsSidebarCollapsed(false);
+    if (isSidebarCollapsed) {
+      document.body.classList.remove("mini-sidebar", "show-sidebar");
+      setIsSidebarCollapsed(false);
+      return;
+    }
+    setOpenMenus((p) => ({ ...p, [key]: !p[key] }));
   }
 
   return (
@@ -156,11 +160,11 @@ export default function NavbarLateral() {
                       </li>
 
                       <li className="fadeIn animated admin-item">
-                        <a className="has-arrow waves-effect waves-dark" href="#" onClick={handleGroupMenuClick}>
+                        <a className="has-arrow waves-effect waves-dark" href="#" aria-expanded={openMenus["calendario"] ? "true" : "false"} onClick={(e) => toggleMenu("calendario", e)}>
                           <i className="pi pi-calendar" />
                           <span className="hide-menu">Calendario</span>
                         </a>
-                        <ul aria-expanded="false" className="collapse">
+                        <ul className={`collapse${openMenus["calendario"] ? " show" : ""}`}>
                           <li>
                             <Link className="nav-toggler" href="/main/calendar" onClick={onNavClick}>
                               Calendario
@@ -193,11 +197,11 @@ export default function NavbarLateral() {
                   )}
 
                   <li className="fadeIn animated admin-item">
-                    <a className="has-arrow waves-effect waves-dark" href="#" onClick={handleGroupMenuClick}>
+                    <a className="has-arrow waves-effect waves-dark" href="#" aria-expanded={openMenus["informes"] ? "true" : "false"} onClick={(e) => toggleMenu("informes", e)}>
                       <i className="pi pi-chart-bar" />
                       <span className="hide-menu">Informes</span>
                     </a>
-                    <ul aria-expanded="false" className="collapse">
+                    <ul className={`collapse${openMenus["informes"] ? " show" : ""}`}>
                       <li><Link className="nav-toggler" href="/main/informs/compensations" onClick={onNavClick}>Compensaciones</Link></li>
                       <li><Link className="nav-toggler" href="/main/informs/expenses-income-surplus" onClick={onNavClick}>Llegadas tardes</Link></li>
                       <li><Link className="nav-toggler" href="/main/informs/exit-orders" onClick={onNavClick}>Órdenes de salidas</Link></li>
@@ -208,11 +212,11 @@ export default function NavbarLateral() {
                   </li>
 
                   <li className="fadeIn animated admin-item">
-                    <a className="has-arrow waves-effect waves-dark" href="#" onClick={handleGroupMenuClick}>
+                    <a className="has-arrow waves-effect waves-dark" href="#" aria-expanded={openMenus["legajo"] ? "true" : "false"} onClick={(e) => toggleMenu("legajo", e)}>
                       <i className="pi pi-folder" />
                       <span className="hide-menu">Legajo</span>
                     </a>
-                    <ul aria-expanded="false" className="collapse">
+                    <ul className={`collapse${openMenus["legajo"] ? " show" : ""}`}>
                       <li><Link className="nav-toggler" href="/main/files-admin-items" onClick={onNavClick}>Categorías y subcategorias</Link></li>
                       <li><Link className="nav-toggler" href="/main/files-admin-upload" onClick={onNavClick}>Archivos</Link></li>
                     </ul>
@@ -221,11 +225,11 @@ export default function NavbarLateral() {
                   {isAdminInformatic && (
                     <>
                       <li className="fadeIn animated admin-item">
-                        <a className="has-arrow waves-effect waves-dark" href="#" onClick={handleGroupMenuClick}>
+                        <a className="has-arrow waves-effect waves-dark" href="#" aria-expanded={openMenus["notas"] ? "true" : "false"} onClick={(e) => toggleMenu("notas", e)}>
                           <i className="pi pi-file-edit" />
                           <span className="hide-menu">Notas</span>
                         </a>
-                        <ul aria-expanded="false" className="collapse">
+                        <ul className={`collapse${openMenus["notas"] ? " show" : ""}`}>
                           <li><Link className="nav-toggler" href="/main/notes-config" onClick={onNavClick}>Configuración de notas</Link></li>
                           <li><Link className="nav-toggler" href="/main/notes-list" onClick={onNavClick}>Lista notas</Link></li>
                           <li><Link className="nav-toggler" href="/main/notes" onClick={onNavClick}>Subir nota</Link></li>
