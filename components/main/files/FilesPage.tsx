@@ -67,12 +67,12 @@ export default function FilesPage() {
       <div className="fadeIn animated">
         <div className="row page-titles">
           <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Archivos digitales</h3>
+            <h3 className="text-themecolor">Legajo</h3>
           </div>
           <div className="col-md-7 align-self-center">
             <ol className="breadcrumb">
               <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Archivos digitales</li>
+              <li className="breadcrumb-item">Legajo</li>
             </ol>
           </div>
         </div>
