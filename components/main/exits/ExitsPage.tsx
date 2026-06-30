@@ -161,6 +161,8 @@ export default function ExitsPage() {
   const [loadingExits,     setLoadingExits]     = useState(false);
   const [filtersForExists, setFiltersForExists] = useState({ lastname_name: "", status: "", type: "" });
   const [hoveredRow,       setHoveredRow]       = useState<number | null>(null);
+  const [myFirst,          setMyFirst]          = useState(0);
+  const [myRows,           setMyRows]           = useState(10);
 
   const [idSelectedExitForViewPDF,   setIdSelectedExitForViewPDF]   = useState<number | null>(null);
   const [isLoadingActionOpenPdfExit, setIsLoadingActionOpenPdfExit] = useState(false);
@@ -399,6 +401,8 @@ export default function ExitsPage() {
     loadExitsAdminData(next);
   }
 
+  useEffect(() => { setMyFirst(0); }, [filtersForExists]);
+
   // ── Client-side filter ────────────────────────────────────────────────────────
   const filteredItems = items.filter((item) => {
     if (filtersForExists.type          && !item.type.toLowerCase().includes(filtersForExists.type.toLowerCase()))               return false;
@@ -406,6 +410,8 @@ export default function ExitsPage() {
     if (filtersForExists.status        && !item.status.toLowerCase().includes(filtersForExists.status.toLowerCase()))           return false;
     return true;
   });
+
+  const pagedFilteredItems = filteredItems.slice(myFirst, myFirst + myRows);
 
   const hasMyFilters    = !!(filtersForExists.type || filtersForExists.lastname_name || filtersForExists.status);
   const hasAdminFilters = !!(adminFilters.status || adminFilters.type || adminFilters.user_lastname);
@@ -593,7 +599,7 @@ export default function ExitsPage() {
                         </td>
                       </tr>
                     )}
-                    {filteredItems.map((item) => {
+                    {pagedFilteredItems.map((item) => {
                       const sc = STATUS_COLORS[item.class] ?? { bg: "rgba(100,116,139,0.1)", color: "#64748b" };
                       return (
                         <tr
@@ -653,6 +659,18 @@ export default function ExitsPage() {
                     })}
                   </tbody>
                 </table>
+                <Paginator
+                  first={myFirst}
+                  rows={myRows}
+                  totalRecords={filteredItems.length}
+                  rowsPerPageOptions={[10, 15, 20]}
+                  onPageChange={(e) => { setMyFirst(e.first); setMyRows(e.rows); }}
+                  rightContent={
+                    <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                      {filteredItems.length} {filteredItems.length === 1 ? "salida" : "salidas"}
+                    </span>
+                  }
+                />
               </div>
             )}
 
@@ -846,8 +864,13 @@ export default function ExitsPage() {
                     rows={adminFilters.limit}
                     totalRecords={totalExitsAdmin}
                     pageLinkSize={3}
-                    rowsPerPageOptions={[10]}
+                    rowsPerPageOptions={[10, 15, 20]}
                     onPageChange={pageChange}
+                    rightContent={
+                      <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                        {totalExitsAdmin} {totalExitsAdmin === 1 ? "salida" : "salidas"}
+                      </span>
+                    }
                   />
                 </div>
               </>
