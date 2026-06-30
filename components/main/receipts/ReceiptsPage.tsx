@@ -104,7 +104,10 @@ export default function ReceiptsPage() {
 
   async function openPDF(receiptData: any) {
     if (loadingAction) return;
-    if (pdfReceipt?.idn === receiptData.idn) return;
+    if (pdfReceipt?.idn === receiptData.idn) {
+      toast.current?.show({ severity: "info", summary: "Ya estás viendo este recibo", life: 2500 });
+      return;
+    }
     setLoadingAction(receiptData.idn);
     try {
       const buffer = await getReceiptPDF(receiptData.idn, cuilSearch);
