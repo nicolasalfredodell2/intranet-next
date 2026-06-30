@@ -163,16 +163,26 @@ export default function Navbar() {
 
           {/* Brand */}
           <div className="navbar-header pointer text-center">
-            <Link className="navbar-brand" href="/institucional">
+            <Link className="navbar-brand" href="/institucional" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
               <img
                 src="/img/trib-cuentas-escudo.png"
                 alt="Tribunal de Cuentas de Río Negro"
-                width="30"
-                height="30"
+                width="27"
+                height="27"
               />
-              <span className="d-none d-xl-inline ml-2">
-                <strong>INTRANET</strong>
-              </span>
+              <div className="d-none d-xl-flex flex-column" style={{ lineHeight: 1, textAlign: "left" }}>
+                <span style={{
+                  fontWeight: 800,
+                  fontSize: "0.92rem",
+                  letterSpacing: "0.1em",
+                  color: "#1a1a2e",
+                }}>
+                  INTRANET
+                </span>
+                <span style={{ fontSize: "0.58rem", color: "#adb5bd", letterSpacing: "0.03em", fontWeight: 500, marginTop: "2px" }}>
+                  Tribunal de Cuentas de la provincia de Río Negro
+                </span>
+              </div>
             </Link>
           </div>
 
