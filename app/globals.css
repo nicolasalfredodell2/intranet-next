@@ -1275,6 +1275,7 @@ input[disabled] {
 /* Table headers */
 .license-table .p-datatable-thead > tr > th {
   font-size: 0.80rem !important;
+  font-weight: 700 !important;
   letter-spacing: 0.06em !important;
   padding: 8px 12px !important;
 }
