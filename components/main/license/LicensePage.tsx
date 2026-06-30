@@ -339,6 +339,7 @@ export default function LicensePage() {
         }
         visible={showDetail}
         draggable={false}
+        dismissableMask
         modal
         style={{ width: "min(95vw, 780px)" }}
         onHide={() => setShowDetail(false)}
