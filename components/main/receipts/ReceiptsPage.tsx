@@ -10,7 +10,10 @@ import { getReceipts, getReceiptPDF, sendToFirm } from "@/lib/services/receipts.
 interface Filters {
   anio: string;
   mes: string;
+  desc: string;
 }
+
+const DESC_OPTIONS = ["Normal", "SAC", "Complementaria"];
 
 const RRHH_CUILS = ["20306493478", "20363027653"];
 
@@ -37,7 +40,7 @@ export default function ReceiptsPage() {
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
   const [cuilSearch, setCuilSearch] = useState("");
-  const [filters, setFilters] = useState<Filters>({ anio: "", mes: "" });
+  const [filters, setFilters] = useState<Filters>({ anio: "", mes: "", desc: "" });
   const [errMessage, setErrMessage] = useState<string | null>(null);
   const [isBossRRHH] = useState(() => RRHH_CUILS.includes(localStorage.getItem("user") ?? ""));
 
@@ -66,7 +69,7 @@ export default function ReceiptsPage() {
       });
       setReceipts(original);
       const years = [...new Set(original.map((r: any) => String(r.year)))].sort((a, b) => Number(b) - Number(a));
-      if (years.length > 0) setFilters((p) => ({ ...p, anio: years[0] }));
+      if (years.length > 0) setFilters({ anio: years[0], mes: "", desc: "" });
     } catch (err: any) {
       setErrMessage(err.message);
     } finally {
@@ -107,7 +110,14 @@ export default function ReceiptsPage() {
   const monthOptions = [...new Set(
     receipts.flatMap((r: any) => (r as any[]).filter((rd: any) => rd?.label).map((rd: any) => String(rd.interval)))
   )].sort((a, b) => Number(a) - Number(b));
-  const hasFilters = !!(filters.anio || filters.mes);
+  const hasFilters = !!(filters.anio || filters.mes || filters.desc);
+
+  function matchesDesc(label: string) {
+    if (!filters.desc) return true;
+    const d = filters.desc.toLowerCase();
+    const l = (label ?? "").toLowerCase();
+    return d === "sac" ? l.includes("sac") || l.includes("s.a.c") : l.includes(d);
+  }
   const filteredReceipts = receipts.filter((r: any) => !filters.anio || String((r as any).year) === filters.anio);
 
   const dialogHeader = (
@@ -222,12 +232,25 @@ export default function ReceiptsPage() {
                     emptyMessage="Sin opciones"
                   />
                 </div>
+                <div className={`license-filter-input-wrap${filters.desc ? " license-filter-input-wrap--active" : ""}`}>
+                  <i className="pi pi-align-left license-filter-icon" />
+                  <Dropdown
+                    value={filters.desc || null}
+                    options={DESC_OPTIONS}
+                    onChange={(e) => setFilters((p) => ({ ...p, desc: e.value ?? "" }))}
+                    placeholder="Descripción"
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel"
+                    showClear={!!filters.desc}
+                    emptyMessage="Sin opciones"
+                  />
+                </div>
               </div>
               {hasFilters && (
                 <button
                   type="button"
                   className="license-filter-clear"
-                  onClick={() => setFilters({ anio: "", mes: "" })}
+                  onClick={() => setFilters({ anio: "", mes: "", desc: "" })}
                 >
                   <i className="pi pi-times" /> Limpiar
                 </button>
@@ -264,7 +287,7 @@ export default function ReceiptsPage() {
                   <tbody>
                     {filteredReceipts.map((receipt: any) =>
                       (receipt as any[]).map((receiptData: any, idx: number) =>
-                        receiptData.label && (!filters.mes || String(receiptData.interval) === filters.mes) ? (
+                        receiptData.label && (!filters.mes || String(receiptData.interval) === filters.mes) && matchesDesc(receiptData.label) ? (
                           <tr key={`${(receipt as any).year}-${idx}`} className="fadeIn animated" style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
                             <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
                               <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
