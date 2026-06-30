@@ -299,7 +299,7 @@ export default function LicensePage() {
                   emptyMessage={
                     <div className="license-empty">
                       <i className="pi pi-inbox" />
-                      <p>No hay licencias registradas</p>
+                      <p>No hay licencias registradas {filters.anio_ref || filters.articulo || filters.descripcion || filters.norma_aprobatoria ? `con los filtros aplicados` : ''}.</p>
                     </div>
                   }
                 >
