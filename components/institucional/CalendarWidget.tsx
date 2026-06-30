@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Calendar, CalendarDateTemplateEvent, CalendarMonthChangeEvent } from "primereact/calendar";
 import { addLocale } from "primereact/api";
-import { getAllDates } from "@/lib/services/calendar.service";
+import { getAllDates, getBirthdays } from "@/lib/services/calendar.service";
 
 addLocale("es", {
   firstDayOfWeek: 1,
@@ -16,47 +16,168 @@ addLocale("es", {
   clear: "Limpiar",
 });
 
-export default function CalendarWidget() {
-  const [dates, setDates] = useState<any[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+/* ── Types ── */
+
+interface EventEntry {
+  description: string;
+  color: string;
+}
+
+interface DayEvent {
+  type: "birthday" | "holiday";
+  color: string;
+  entries: EventEntry[];
+}
+
+type EventMap = Record<string, DayEvent[]>;
+
+export interface CalendarDetail {
+  title: string;
+  date: string;
+  data: EventEntry[];
+}
+
+interface Props {
+  onDetails?: (details: CalendarDetail[] | null) => void;
+}
+
+/* ── Pure helpers ── */
+
+function dateKey(year: number, month: number, day: number): string {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function upsertEvent(map: EventMap, key: string, type: "birthday" | "holiday", color: string, entry: EventEntry) {
+  if (!map[key]) map[key] = [];
+  const slot = map[key].find((e) => e.type === type);
+  if (slot) {
+    slot.entries.push(entry);
+  } else {
+    map[key].push({ type, color, entries: [entry] });
+  }
+}
+
+/**
+ * Replica la lógica de transformDataBirthdays del componente Angular.
+ * Itera year-1, year, year+1 para cubrir cumpleaños que caen en meses limítrofes.
+ */
+function transformBirthdays(birthdayDates: any[], map: EventMap): void {
+  const base = new Date().getFullYear();
+
+  [base - 1, base, base + 1].forEach((year) => {
+    birthdayDates.forEach((person: any) => {
+      if (!person.datebirth) return;
+
+      const lastTwo = person.datebirth.slice(-2);
+      const withYear = `${year}${person.datebirth.substring(4)}`;
+      const d = new Date(withYear);
+      if (isNaN(d.getTime())) return;
+
+      let month = d.getMonth();
+      // Ajuste de borde: si el día es "01" (UTC offset) sumar 2 en lugar de 1
+      month = lastTwo !== "01" ? month + 1 : month + 2;
+      if (month < 1 || month > 12) return;
+
+      const key = dateKey(year, month, d.getDate());
+      upsertEvent(map, key, "birthday", "#9EB0CE", {
+        description: person.lastname_name,
+        color: "#9EB0CE",
+      });
+    });
+  });
+}
+
+/**
+ * Replica la lógica de transformDatesImportant del componente Angular.
+ */
+function transformImportantDates(importantDates: any[], map: EventMap): void {
+  importantDates.forEach((item: any) => {
+    if (!item.date) return;
+
+    const lastTwo = item.date.slice(-2);
+    const d = new Date(item.date);
+    if (isNaN(d.getTime())) return;
+
+    let month = d.getMonth();
+    month = lastTwo !== "01" ? month + 1 : month + 2;
+    if (month < 1 || month > 12) return;
+
+    const color = item.colour ?? item.category?.colour ?? "#4CAF50";
+    const key = dateKey(d.getFullYear(), month, d.getDate());
+    upsertEvent(map, key, "holiday", color, { description: item.event, color });
+  });
+}
+
+/* ── Component ── */
+
+export default function CalendarWidget({ onDetails }: Props) {
+  const [eventMap, setEventMap] = useState<EventMap>({});
 
   useEffect(() => {
-    getAllDates().then(setDates).catch(() => {});
+    let cancelled = false;
+
+    Promise.all([getAllDates(), getBirthdays()])
+      .then(([importantDates, birthdayDates]) => {
+        if (cancelled) return;
+        const map: EventMap = {};
+        transformBirthdays(birthdayDates, map);
+        transformImportantDates(importantDates, map);
+        setEventMap(map);
+      })
+      .catch(() => {});
+
+    return () => { cancelled = true; };
   }, []);
 
-  const getDayEvents = (day: number, month: number, year: number) =>
-    dates.filter((d: any) => {
-      const dt = new Date(d.date);
-      return dt.getFullYear() === year && dt.getMonth() === month && dt.getDate() === day;
-    });
+  const handleMonthChange = useCallback((_e: CalendarMonthChangeEvent) => {
+    onDetails?.(null);
+  }, [onDetails]);
 
-  const dateTemplate = (e: CalendarDateTemplateEvent) => {
-    const events = getDayEvents(e.day, e.month, e.year);
+  const dateTemplate = useCallback((e: CalendarDateTemplateEvent) => {
+    if (e.otherMonth) {
+      return <span style={{ opacity: 0.3 }}>{e.day}</span>;
+    }
+
+    const key = dateKey(e.year, e.month + 1, e.day);
+    const events = eventMap[key];
+
+    if (!events?.length) {
+      return (
+        <span onMouseEnter={() => onDetails?.(null)}>
+          {e.day}
+        </span>
+      );
+    }
+
+    const hasBirthday = events.some((ev) => ev.type === "birthday");
+    const hasHoliday = events.some((ev) => ev.type === "holiday");
+    const holidayColor = events.find((ev) => ev.type === "holiday")?.color ?? "#4CAF50";
+
+    let background: string;
+    if (hasBirthday && hasHoliday) {
+      background = `linear-gradient(135deg, ${holidayColor} 50%, #9EB0CE 51%)`;
+    } else if (hasBirthday) {
+      background = "#9EB0CE";
+    } else {
+      background = holidayColor;
+    }
+
+    const details: CalendarDetail[] = events.map((ev) => ({
+      title: ev.type === "birthday" ? "Cumpleaños" : "Día del profesional",
+      date: key,
+      data: ev.entries,
+    }));
+
     return (
-      <span style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <span
+        style={{ background, color: "#fff", borderRadius: "50%", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+        onMouseEnter={() => onDetails?.(details)}
+        onMouseLeave={() => onDetails?.(null)}
+      >
         {e.day}
-        {events.length > 0 && (
-          <span style={{
-            display: "block",
-            width: "4px",
-            height: "4px",
-            background: "#7dd3fc",
-            borderRadius: "50%",
-            marginTop: "1px",
-          }} />
-        )}
       </span>
     );
-  };
-
-  const onMonthChange = (e: CalendarMonthChangeEvent) => {
-    // month is 1-based from PrimeReact
-    const filtered = dates.filter((d: any) => {
-      const dt = new Date(d.date);
-      return dt.getMonth() + 1 === e.month && dt.getFullYear() === e.year;
-    });
-    void filtered;
-  };
+  }, [eventMap, onDetails]);
 
   return (
     <div className="animate__animated animate__fadeIn calendar-widget-wrapper mb-3">
@@ -64,9 +185,7 @@ export default function CalendarWidget() {
         inline
         showWeek={false}
         locale="es"
-        value={selectedDate}
-        onChange={(e) => setSelectedDate(e.value as Date)}
-        onMonthChange={onMonthChange}
+        onMonthChange={handleMonthChange}
         dateTemplate={dateTemplate}
       />
 
@@ -92,9 +211,6 @@ export default function CalendarWidget() {
           pointer-events: none !important;
           cursor: default !important;
           color: #000 !important;
-        }
-
-        .calendar-widget-wrapper .p-datepicker-month.p-link {
           text-transform: uppercase !important;
         }
 
@@ -109,26 +225,12 @@ export default function CalendarWidget() {
           height: auto !important;
         }
 
-        .calendar-widget-wrapper .p-datepicker table td > span {
-          color: #fff !important;
-        }
-
-        .calendar-widget-wrapper .p-datepicker table td.p-datepicker-today > span {
-          background-color: #fff !important;
-          color: #4B5667 !important;
-          font-weight: bold !important;
-          border-radius: 50% !important;
-        }
-
         .calendar-widget-wrapper .p-datepicker-inline {
           width: 100% !important;
         }
 
         .calendar-widget-wrapper .p-datepicker-prev-icon,
-        .calendar-widget-wrapper .p-datepicker-next-icon {
-          color: #657187 !important;
-        }
-
+        .calendar-widget-wrapper .p-datepicker-next-icon,
         .calendar-widget-wrapper .p-datepicker-prev,
         .calendar-widget-wrapper .p-datepicker-next {
           color: #657187 !important;
@@ -151,6 +253,8 @@ export default function CalendarWidget() {
         .calendar-widget-wrapper .p-datepicker table {
           width: 100% !important;
           table-layout: fixed !important;
+          border-collapse: separate !important;
+          border-spacing: 2px !important;
         }
 
         .calendar-widget-wrapper .p-datepicker table td,
@@ -159,11 +263,10 @@ export default function CalendarWidget() {
           text-align: center !important;
         }
 
-        /* Day headers (Do, Lu, Ma…) */
+        /* Day headers */
         .calendar-widget-wrapper .p-datepicker table th > span {
           color: rgba(255, 255, 255, 0.6) !important;
           font-size: clamp(10px, 2.5vw, 14px) !important;
-          overflow: hidden;
         }
 
         /* Day cells — circular, fluid */
@@ -172,26 +275,32 @@ export default function CalendarWidget() {
           max-width: 40px !important;
           height: auto !important;
           aspect-ratio: 1 / 1 !important;
-
           display: flex !important;
           justify-content: center !important;
           align-items: center !important;
           margin: 0 auto !important;
           border-radius: 50% !important;
-
           font-size: clamp(11px, 3vw, 15px) !important;
           white-space: nowrap !important;
+          color: #fff !important;
         }
 
-        /* Selected day */
+        /* Today */
+        .calendar-widget-wrapper .p-datepicker table td.p-datepicker-today > span {
+          background-color: #fff !important;
+          color: #4B5667 !important;
+          font-weight: bold !important;
+        }
+
+        /* Selected */
         .calendar-widget-wrapper .p-datepicker table td > span.p-highlight {
           background-color: #4285F4 !important;
           color: #fff !important;
         }
 
-        /* Disabled / other-month days */
+        /* Other-month days */
         .calendar-widget-wrapper .p-datepicker table td.p-datepicker-other-month > span {
-          color: rgba(255,255,255,0.3) !important;
+          color: rgba(255, 255, 255, 0.3) !important;
         }
       `}</style>
     </div>
