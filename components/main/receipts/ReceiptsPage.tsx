@@ -38,7 +38,7 @@ export default function ReceiptsPage() {
 
   const [receipts, setReceipts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingAction, setLoadingAction] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [cuilSearch, setCuilSearch] = useState("");
   const [filters, setFilters] = useState<Filters>({ anio: "", mes: "", desc: "" });
   const [errMessage, setErrMessage] = useState<string | null>(null);
@@ -79,7 +79,7 @@ export default function ReceiptsPage() {
 
   async function openPDF(receiptData: any) {
     if (loadingAction) return;
-    setLoadingAction(true);
+    setLoadingAction(receiptData.idn);
     try {
       const buffer = await getReceiptPDF(receiptData.idn, cuilSearch);
       const blob = new Blob([buffer], { type: "application/pdf" });
@@ -87,7 +87,7 @@ export default function ReceiptsPage() {
     } catch {
       toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: "No existe el archivo de esta liquidación." });
     } finally {
-      setLoadingAction(false);
+      setLoadingAction(null);
     }
   }
 
@@ -307,7 +307,7 @@ export default function ReceiptsPage() {
                                 {receiptData.status == null && (((receipt as any).year == 2022 && receiptData.interval >= 2) || (receipt as any).year > 2022) && (
                                   <button
                                     type="button"
-                                    disabled={loadingAction}
+                                    disabled={!!loadingAction}
                                     onClick={() => setConfirmReceipt(receiptData)}
                                     title="Solicitar firma"
                                     style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#64748b" }}
@@ -327,13 +327,12 @@ export default function ReceiptsPage() {
                                 )}
                                 <button
                                   type="button"
-                                  disabled={loadingAction}
+                                  disabled={!!loadingAction}
                                   onClick={() => openPDF(receiptData)}
                                   title="Ver recibo"
                                   style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: loadingAction ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#4a6cf7" }}
                                 >
-                                  <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "0.82rem" }} />
-                                  Ver
+                                  <i className={loadingAction === receiptData.idn ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "1rem" }} />
                                 </button>
                               </div>
                             </td>
