@@ -157,6 +157,12 @@ export default function ReceiptsPage() {
   }
   const filteredReceipts = receipts.filter((r: any) => !filters.anio || String((r as any).year) === filters.anio);
 
+  const hasAnyVisibleRow = filteredReceipts.some((receipt: any) =>
+    (receipt as any[]).some((rd: any) =>
+      rd.label && (!filters.mes || String(rd.interval) === filters.mes) && matchesDesc(rd.label)
+    )
+  );
+
   const dialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
       <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff4e6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -385,21 +391,18 @@ export default function ReceiptsPage() {
                         ) : null
                       )
                     )}
+                    {!hasAnyVisibleRow && (
+                      <tr>
+                        <td colSpan={4} style={{ padding: "40px", textAlign: "center" }}>
+                          <i className="pi pi-wallet" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                          <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
+                            {filters.anio ? `No hay recibos para el año ${filters.anio}.` : "No hay recibos disponibles."}
+                          </p>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
-
-                {/* Empty state */}
-                {filteredReceipts.length === 0 && (
-                  <div className="text-center py-5 fadeIn animated">
-                    <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-                      <i className="pi pi-wallet" style={{ fontSize: "1.5rem", color: "#94a3b8" }} />
-                    </div>
-                    <p className="font-weight-bold mb-1" style={{ fontSize: "0.95rem", color: "#1e293b" }}>Sin recibos</p>
-                    <p style={{ color: "#94a3b8", fontSize: "0.85rem", margin: 0 }}>
-                      {filters.anio ? `No hay recibos para el año ${filters.anio}.` : "No hay recibos disponibles."}
-                    </p>
-                  </div>
-                )}
               </div>
             )}
           </div>
