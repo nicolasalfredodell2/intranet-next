@@ -674,28 +674,36 @@ export default function ExitsPage() {
               </div>
             )}
 
-            {/* ── Admin section ── */}
-            {isAdmin && (
-              <>
-                <hr style={{ borderColor: "rgba(0,0,0,0.05)", margin: "24px 0 20px" }} />
+          </div>
+        </div>
+      </div>
 
-                <div className="mb-3 d-flex align-items-center justify-content-between">
-                  <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-                    <div style={{ width: 28, height: 28, borderRadius: "8px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <i className="pi pi-users" style={{ color: "#3b82f6", fontSize: "0.8rem" }} />
-                    </div>
-                    <h6 className="mb-0 font-weight-bold" style={{ fontSize: "0.88rem", color: "#1e293b" }}>Salidas de terceros</h6>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn btn-primary d-flex align-items-center"
-                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px" }}
-                    onClick={() => setIsOpenModalCreateExitAdmin(true)}
-                  >
-                    <i className="pi pi-plus" style={{ fontSize: "0.75rem" }} />
-                    Crear salida
-                  </button>
-                </div>
+      {/* ── Admin card ── */}
+      {isAdmin && (
+        <div className="fadeIn animated mt-4">
+          <div className="card profile-card">
+
+            <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className="pi pi-users" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+              </div>
+              <div className="flex-grow-1">
+                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Salidas de terceros</h5>
+                <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Órdenes de salida solicitadas por administración</small>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px" }}
+                onClick={() => setIsOpenModalCreateExitAdmin(true)}
+              >
+                <i className="pi pi-plus" style={{ fontSize: "0.75rem" }} />
+                Crear salida
+              </button>
+            </div>
+            <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+            <div className="card-body" style={{ padding: "16px 20px 20px" }}>
 
                 {/* Admin filter bar */}
                 <div className="license-filter-bar mb-3">
@@ -873,12 +881,11 @@ export default function ExitsPage() {
                     }
                   />
                 </div>
-              </>
-            )}
 
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ── Boss selection dialog ── */}
       <Dialog
