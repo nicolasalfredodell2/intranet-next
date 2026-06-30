@@ -123,8 +123,14 @@ export default function LicensePage() {
         }
       });
 
-      setLicensesCompact(temp.reverse());
+      const compact = temp.reverse();
+      setLicensesCompact(compact);
       setLicensesTotal(licenses);
+
+      const maxYear = compact.reduce((max, l) => Math.max(max, Number(l.anio_ref) || 0), 0);
+      if (maxYear > 0) {
+        setFilters((prev) => ({ ...prev, anio_ref: String(maxYear) }));
+      }
     } catch (err: any) {
       toast.current?.show({
         severity: "error",
