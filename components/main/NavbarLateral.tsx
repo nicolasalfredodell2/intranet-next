@@ -255,9 +255,7 @@ export default function NavbarLateral() {
               <li className="sidebar-logout-item">
                 <a
                   href="#"
-                  data-toggle="modal"
-                  data-target="#modal-sesion"
-                  onClick={onNavClick}
+                  onClick={(e) => { e.preventDefault(); onNavClick(); window.dispatchEvent(new CustomEvent("open-logout")); }}
                 >
                   <i className="pi pi-power-off" />
                   <span className="hide-menu">Cerrar sesión</span>

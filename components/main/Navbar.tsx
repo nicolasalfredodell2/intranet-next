@@ -362,9 +362,7 @@ export default function Navbar() {
                         <button
                           type="button"
                           className="navbar-user-dropdown-item navbar-user-dropdown-item--danger w-100"
-                          data-toggle="modal"
-                          data-target="#modal-sesion"
-                          onClick={() => setShowUserMenu(false)}
+                          onClick={() => { setShowUserMenu(false); window.dispatchEvent(new CustomEvent("open-logout")); }}
                         >
                           <i className="mdi mdi-logout" style={{ fontSize: "1rem" }} />
                           Cerrar sesión
