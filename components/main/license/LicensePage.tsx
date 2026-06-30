@@ -354,7 +354,6 @@ export default function LicensePage() {
             header="FECHA INICIO"
             body={(r) => (
               <span className="license-date-cell">
-                <i className="pi pi-calendar" />
                 {r.fecha_inicio}
               </span>
             )}
@@ -364,7 +363,6 @@ export default function LicensePage() {
             header="FECHA FIN"
             body={(r) => (
               <span className="license-date-cell">
-                <i className="pi pi-calendar" />
                 {r.fecha_finaliz}
               </span>
             )}
