@@ -1548,3 +1548,84 @@ input[disabled] {
     border-radius: 12px !important;
   }
 }
+
+/* ═══════════════════════════════════════════
+   ModalBosses
+   ═══════════════════════════════════════════ */
+
+.bosses-search-wrap {
+  position: relative;
+  margin-bottom: 14px;
+}
+
+.bosses-search-wrap .bosses-search-icon {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  left: 12px;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.bosses-search-wrap .bosses-search-clear {
+  align-items: center;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  padding: 0 12px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transition: color 0.15s;
+}
+
+.bosses-search-wrap .bosses-search-clear:hover {
+  color: #64748b;
+}
+
+.bosses-modal-item {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+  padding: 9px 12px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.bosses-modal-item:hover {
+  background: #f8fafc;
+}
+
+.bosses-modal-item--selected {
+  background: rgba(74, 108, 247, 0.07);
+  border-color: rgba(74, 108, 247, 0.18);
+}
+
+.bosses-modal-item--selected:hover {
+  background: rgba(74, 108, 247, 0.11);
+}
+
+.bosses-remove-chip-btn {
+  align-items: center;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.62rem;
+  margin-left: 2px;
+  padding: 0;
+  transition: color 0.15s;
+}
+
+.bosses-remove-chip-btn:hover {
+  color: #dc3545;
+}
