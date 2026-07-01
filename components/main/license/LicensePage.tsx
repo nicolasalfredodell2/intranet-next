@@ -97,6 +97,7 @@ export default function LicensePage() {
   const [licensesCompact, setLicensesCompact] = useState<any[]>([]);
   const [licensesTotal, setLicensesTotal] = useState<any[]>([]);
   const [licensesForDetail, setLicensesForDetail] = useState<any[]>([]);
+  const [selectedLicense, setSelectedLicense] = useState<any>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [filters, setFilters] = useState<Filters>({
     articulo: "",
@@ -170,6 +171,7 @@ export default function LicensePage() {
   }
 
   function openDetail(license: any) {
+    setSelectedLicense(license);
     setLicensesForDetail(
       licensesTotal
         .filter((l: any) => l.articulo === license.articulo && l.anio_ref === license.anio_ref)
@@ -361,9 +363,9 @@ export default function LicensePage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                 <span className="license-dialog-title">{licensesForDetail[0]?.descripcion}</span>
-                {licensesForDetail[0]?.norma_aprobatoria && (
+                {selectedLicense?.norma_aprobatoria && (
                   <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "2px 9px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
-                    {licensesForDetail[0].norma_aprobatoria}
+                    {selectedLicense.norma_aprobatoria}
                   </span>
                 )}
                 <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: "20px", padding: "2px 9px", fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap" }}>
