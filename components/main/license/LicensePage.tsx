@@ -171,12 +171,12 @@ export default function LicensePage() {
   }
 
   function openDetail(license: any) {
-    setSelectedLicense(license);
-    setLicensesForDetail(
-      licensesTotal
-        .filter((l: any) => l.articulo === license.articulo && l.anio_ref === license.anio_ref)
-        .reverse()
-    );
+    const details = licensesTotal
+      .filter((l: any) => l.articulo === license.articulo && l.anio_ref === license.anio_ref)
+      .reverse();
+    const norma = license.norma_aprobatoria ?? details.find((l: any) => l.norma_aprobatoria)?.norma_aprobatoria ?? null;
+    setSelectedLicense({ ...license, norma_aprobatoria: norma });
+    setLicensesForDetail(details);
     setShowDetail(true);
   }
 
@@ -363,9 +363,6 @@ export default function LicensePage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                 <span className="license-dialog-title">{licensesForDetail[0]?.descripcion}</span>
-                {
-                  JSON.stringify(selectedLicense)
-                }
                 {selectedLicense?.norma_aprobatoria && (
                   <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "2px 9px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
                     {selectedLicense.norma_aprobatoria}
