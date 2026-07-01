@@ -556,6 +556,8 @@ export default function ExitsPage() {
   const myTypeOptions   = [...new Set(items.map((i) => i.type))].filter(Boolean).sort();
   const myBossOptions   = [...new Set(items.map((i) => i.lastname_name))].filter(Boolean).sort();
   const myStatusOptions = [...new Set(items.map((i) => i.status))].filter(Boolean).sort();
+  const myExitDates     = [...new Set(items.map((i) => String(i.departure_hour ?? "").slice(0, 10)))].filter(Boolean);
+  const myExitDateObjects = myExitDates.map((d) => new Date(`${d}T00:00:00`));
 
   const filteredItems = items.filter((item) => {
     if (filtersForExists.type          && item.type !== filtersForExists.type)                     return false;
@@ -763,6 +765,19 @@ export default function ExitsPage() {
                     placeholder="Fecha"
                     locale="es"
                     showButtonBar
+                    enabledDates={myExitDateObjects}
+                    dateTemplate={(date) => {
+                      const key = `${date.year}-${String(date.month + 1).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+                      const hasExit = myExitDates.includes(key);
+                      return (
+                        <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", color: hasExit ? "#0ea5e9" : undefined, fontWeight: hasExit ? 700 : undefined }}>
+                          {date.day}
+                          {hasExit && (
+                            <span style={{ position: "absolute", bottom: 2, width: 4, height: 4, borderRadius: "50%", background: "#0ea5e9" }} />
+                          )}
+                        </span>
+                      );
+                    }}
                     className="license-filter-dropdown"
                     panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
                   />
