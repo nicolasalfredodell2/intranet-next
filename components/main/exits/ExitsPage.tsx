@@ -522,15 +522,26 @@ export default function ExitsPage() {
               ))}
             </div>
 
-            <hr style={{ borderColor: "rgba(0,0,0,0.05)", margin: "0 0 20px" }} />
+          </div>
+        </div>
+      </div>
 
-            {/* ── Mis salidas header ── */}
-            <div className="mb-3 d-flex align-items-center" style={{ gap: "8px" }}>
-              <div style={{ width: 28, height: 28, borderRadius: "8px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <i className="pi pi-list" style={{ color: "#059669", fontSize: "0.8rem" }} />
-              </div>
-              <h6 className="mb-0 font-weight-bold" style={{ fontSize: "0.88rem", color: "#1e293b" }}>Mis salidas</h6>
+      {/* ── Mis salidas card ── */}
+      <div className="fadeIn animated mt-4">
+        <div className="card profile-card">
+
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-list" style={{ color: "#059669", fontSize: "1rem" }} />
             </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Mis salidas</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Tus órdenes de salida</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
 
             {/* Filter bar — mis salidas */}
             <div className="license-filter-bar mb-3">
