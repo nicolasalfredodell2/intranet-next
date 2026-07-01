@@ -470,7 +470,23 @@ export default function ExitsPage() {
     <>
       <Toast ref={toast} position="bottom-center" />
 
+      {/* ── Page header card ── */}
       <div className="fadeIn animated">
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-sign-out" style={{ color: "#059669", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Salidas</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Gestión de órdenes de salida</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Creación de salida card ── */}
+      <div className="fadeIn animated mt-4">
         <div className="card profile-card">
 
           {/* Card header */}
