@@ -1062,6 +1062,13 @@ export default function ExitsPage() {
             emptyMessage="Sin opciones"
           />
         </div>
+        <div
+          className="animated fadeIn"
+          style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "8px", marginTop: "10px", fontSize: "0.8rem", color: "#94a3b8", fontWeight: 500 }}
+        >
+          <i className="pi pi-info-circle" style={{ flexShrink: 0 }} />
+          Podés elegir entre tus jefes directos o los jefes de éstos. El Director de RRHH figura siempre disponible por defecto.
+        </div>
         {cuilTouched && !formCuil && (
           <small className="text-danger fadeIn animated" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>
         )}
