@@ -380,7 +380,7 @@ export default function LicensePage() {
           />
           <Column
             field="dias_computados"
-            header="DÍAS"
+            header="DÍAS UTILIZADOS"
             body={(r) => <DayBadge days={r.dias_computados} />}
           />
           <Column
