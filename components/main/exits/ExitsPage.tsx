@@ -40,6 +40,62 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
+// ── Type info tooltip ───────────────────────────────────────────────────────────
+function TypeInfoTooltip({
+  info,
+  children,
+}: {
+  info: { title: string; icon: string; color: string; bg: string; items: string[] };
+  children: React.ReactNode;
+}) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  return (
+    <span
+      style={{ display: "inline-flex" }}
+      onMouseEnter={(e) => {
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setPos({ top: r.top, left: r.left + r.width / 2 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && (
+        <div
+          style={{
+            position: "fixed",
+            top: pos.top - 10,
+            left: pos.left,
+            transform: "translateX(-50%) translateY(-100%)",
+            width: 280,
+            background: "#fff",
+            borderRadius: "10px",
+            border: `1.5px solid ${info.color}33`,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            padding: "12px 14px",
+            zIndex: 9999,
+            pointerEvents: "none",
+            textAlign: "left",
+          }}
+        >
+          <div className="d-flex align-items-center mb-2" style={{ gap: "8px" }}>
+            <i className={`pi ${info.icon}`} style={{ color: info.color, fontSize: "0.9rem" }} />
+            <span style={{ fontWeight: 700, fontSize: "0.84rem", color: info.color }}>{info.title}</span>
+          </div>
+          <ul style={{ margin: 0, paddingLeft: "16px", listStyle: "none" }}>
+            {info.items.map((item, i) => (
+              <li key={i} style={{ fontSize: "0.78rem", color: "#475569", marginBottom: "5px", display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                <i className="pi pi-check-circle" style={{ color: info.color, fontSize: "0.68rem", marginTop: "2px", flexShrink: 0 }} />
+                {item}
+              </li>
+            ))}
+          </ul>
+          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", borderWidth: "6px", borderStyle: "solid", borderColor: "#fff transparent transparent transparent", filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.06))" }} />
+        </div>
+      )}
+    </span>
+  );
+}
+
 // ── Skeleton ───────────────────────────────────────────────────────────────────
 function SkeletonRows() {
   return (
@@ -82,6 +138,45 @@ const EXIT_TYPE_OPTIONS = [
   { value: "Maternity_Breastfeeding",  label: "Lactancia - Maternidad" },
   { value: "Others_Justify",           label: "Otras justificaciones" },
 ];
+
+const EXIT_TYPE_INFO: Record<string, { title: string; icon: string; color: string; bg: string; items: string[] }> = {
+  Individuals: {
+    title: "Salida Particular",
+    icon: "pi-user",
+    color: "#0ea5e9",
+    bg: "#f0f9ff",
+    items: [
+      "Trámites personales o familiares durante el horario laboral.",
+      "Citas médicas propias no cubiertas por otra licencia.",
+      "Gestiones bancarias, notariales o administrativas personales.",
+      "Situaciones imprevistas de índole personal que requieran ausentarse brevemente.",
+    ],
+  },
+  Officials: {
+    title: "Salida Oficial",
+    icon: "pi-building",
+    color: "#7c3aed",
+    bg: "#f5f3ff",
+    items: [
+      "Comisiones de servicio o representación institucional.",
+      "Asistencia a reuniones, capacitaciones o eventos convocados por la institución.",
+      "Diligencias oficiales fuera del lugar de trabajo en nombre del organismo.",
+      "Traslados ordenados por autoridad competente dentro del horario laboral.",
+    ],
+  },
+  Guild_Meeting_Attendance: {
+    title: "Asamblea Gremial",
+    icon: "pi-users",
+    color: "#059669",
+    bg: "#f0fdf4",
+    items: [
+      "Asambleas convocadas por el sindicato o gremio al que pertenece el agente.",
+      "Reuniones de comisiones directivas o delegados gremiales.",
+      "Actos o movilizaciones gremiales reconocidas institucionalmente.",
+      "Actividades de representación sindical previstas en el convenio colectivo.",
+    ],
+  },
+};
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   warning: { bg: "rgba(255,193,7,0.12)",    color: "#b45309" },
@@ -503,17 +598,14 @@ export default function ExitsPage() {
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-            <div className="d-flex align-items-stretch" style={{ gap: "16px" }}>
-
-              {/* Botones */}
-              <div className="d-flex flex-column" style={{ gap: "8px", flexShrink: 0 }}>
-                {([
-                  { value: "Individuals",              label: "Particular",  icon: "pi-user" },
-                  { value: "Officials",                label: "Oficial",     icon: "pi-building" },
-                  { value: "Guild_Meeting_Attendance", label: "Asamblea",    icon: "pi-users" },
-                ] as const).map((t) => (
+            <div className="d-flex justify-content-center flex-wrap" style={{ gap: "10px" }}>
+              {([
+                { value: "Individuals",              label: "Particular",  icon: "pi-user" },
+                { value: "Officials",                label: "Oficial",     icon: "pi-building" },
+                { value: "Guild_Meeting_Attendance", label: "Asamblea",    icon: "pi-users" },
+              ] as const).map((t) => (
+                <TypeInfoTooltip key={t.value} info={EXIT_TYPE_INFO[t.value]}>
                   <button
-                    key={t.value}
                     type="button"
                     onClick={() => changeTypeOfExit(t.value)}
                     onMouseEnter={() => setHoveredType(t.value)}
@@ -532,80 +624,14 @@ export default function ExitsPage() {
                       alignItems: "center",
                       gap: "7px",
                       minWidth: "140px",
+                      justifyContent: "center",
                     }}
                   >
                     <i className={`pi ${t.icon}`} style={{ fontSize: "0.82rem" }} />
                     {t.label}
                   </button>
-                ))}
-              </div>
-
-              {/* Panel de descripción */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {hoveredType && (() => {
-                  const INFO: Record<string, { title: string; icon: string; color: string; bg: string; items: string[] }> = {
-                    Individuals: {
-                      title: "Salida Particular",
-                      icon: "pi-user",
-                      color: "#0ea5e9",
-                      bg: "#f0f9ff",
-                      items: [
-                        "Trámites personales o familiares durante el horario laboral.",
-                        "Citas médicas propias no cubiertas por otra licencia.",
-                        "Gestiones bancarias, notariales o administrativas personales.",
-                        "Situaciones imprevistas de índole personal que requieran ausentarse brevemente.",
-                      ],
-                    },
-                    Officials: {
-                      title: "Salida Oficial",
-                      icon: "pi-building",
-                      color: "#7c3aed",
-                      bg: "#f5f3ff",
-                      items: [
-                        "Comisiones de servicio o representación institucional.",
-                        "Asistencia a reuniones, capacitaciones o eventos convocados por la institución.",
-                        "Diligencias oficiales fuera del lugar de trabajo en nombre del organismo.",
-                        "Traslados ordenados por autoridad competente dentro del horario laboral.",
-                      ],
-                    },
-                    Guild_Meeting_Attendance: {
-                      title: "Asamblea Gremial",
-                      icon: "pi-users",
-                      color: "#059669",
-                      bg: "#f0fdf4",
-                      items: [
-                        "Asambleas convocadas por el sindicato o gremio al que pertenece el agente.",
-                        "Reuniones de comisiones directivas o delegados gremiales.",
-                        "Actos o movilizaciones gremiales reconocidas institucionalmente.",
-                        "Actividades de representación sindical previstas en el convenio colectivo.",
-                      ],
-                    },
-                  };
-                  const info = INFO[hoveredType];
-                  return (
-                    <div className="fadeIn animated" style={{ height: "100%", background: info.bg, borderRadius: "10px", border: `1.5px solid ${info.color}22`, padding: "14px 16px" }}>
-                      <div className="d-flex align-items-center mb-2" style={{ gap: "8px" }}>
-                        <i className={`pi ${info.icon}`} style={{ color: info.color, fontSize: "0.9rem" }} />
-                        <span style={{ fontWeight: 700, fontSize: "0.84rem", color: info.color }}>{info.title}</span>
-                      </div>
-                      <ul style={{ margin: 0, paddingLeft: "16px", listStyle: "none" }}>
-                        {info.items.map((item, i) => (
-                          <li key={i} style={{ fontSize: "0.8rem", color: "#475569", marginBottom: "5px", display: "flex", alignItems: "flex-start", gap: "6px" }}>
-                            <i className="pi pi-check-circle" style={{ color: info.color, fontSize: "0.72rem", marginTop: "2px", flexShrink: 0 }} />
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                })()}
-                {!hoveredType && (
-                  <div style={{ height: "100%", background: "#f8fafc", borderRadius: "10px", border: "1.5px dashed #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 16px" }}>
-                    <span style={{ fontSize: "0.8rem", color: "#94a3b8", fontStyle: "italic" }}>Pasá el mouse sobre un tipo de salida para ver más información.</span>
-                  </div>
-                )}
-              </div>
-
+                </TypeInfoTooltip>
+              ))}
             </div>
           </div>
         </div>
