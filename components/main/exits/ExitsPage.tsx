@@ -247,10 +247,40 @@ function isAdminUser(): boolean {
 function formatDate(str: string | null | undefined): string {
   if (!str) return "--";
   try {
-    return new Date(str).toLocaleString("es-AR", {
-      year: "numeric", month: "long", day: "numeric",
-      hour: "2-digit", minute: "2-digit", second: "2-digit",
-    });
+    const date = new Date(str);
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    const rawHours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+    const ampm = rawHours >= 12 ? "PM" : "AM";
+    const hh = String(rawHours % 12 || 12).padStart(2, "0");
+    return `${dd}/${mm}/${yyyy} ${hh}:${minutes}:${seconds} ${ampm}`;
+  } catch { return str; }
+}
+
+function formatDateOnly(str: string | null | undefined): string {
+  if (!str) return "--";
+  try {
+    const date = new Date(str);
+    const dd = String(date.getDate()).padStart(2, "0");
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  } catch { return str; }
+}
+
+function formatTimeOnly(str: string | null | undefined): string {
+  if (!str) return "--";
+  try {
+    const date = new Date(str);
+    const rawHours = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const seconds = String(date.getSeconds()).padStart(2, "0");
+    const ampm = rawHours >= 12 ? "PM" : "AM";
+    const hh = String(rawHours % 12 || 12).padStart(2, "0");
+    return `${hh}:${minutes}:${seconds} ${ampm}`;
   } catch { return str; }
 }
 
@@ -801,8 +831,8 @@ export default function ExitsPage() {
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr>
-                      {["TIPO", "SOLICITADO A", "ESTADO", "HORA SALIDA", "HORA LLEGADA", ""].map((h, i) => (
-                        <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 5 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                      {["TIPO", "SOLICITADO A", "ESTADO", "FECHA", "HORA SALIDA", "HORA LLEGADA", ""].map((h, i) => (
+                        <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 6 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
                           {h}
                         </th>
                       ))}
@@ -811,7 +841,7 @@ export default function ExitsPage() {
                   <tbody>
                     {filteredItems.length === 0 && (
                       <tr>
-                        <td colSpan={6} style={{ padding: "40px", textAlign: "center" }}>
+                        <td colSpan={7} style={{ padding: "40px", textAlign: "center" }}>
                           <i className="pi pi-sign-out" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
                           <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
                             No hay salidas registradas{hasMyFilters ? " con los filtros aplicados" : ""}.
@@ -843,10 +873,13 @@ export default function ExitsPage() {
                             </span>
                           </td>
                           <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                            {formatDate(item.departure_hour)}
+                            {formatDateOnly(item.departure_hour)}
                           </td>
                           <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                            {formatDate(item.arrival_hour)}
+                            {formatTimeOnly(item.departure_hour)}
+                          </td>
+                          <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                            {formatTimeOnly(item.arrival_hour)}
                           </td>
                           <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
                             <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
