@@ -3,9 +3,29 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import { ProgressBar } from "primereact/progressbar";
+import { Calendar } from "primereact/calendar";
+import { addLocale } from "primereact/api";
 import ModalBosses from "./ModalBosses";
 import QrDepartament from "./QrDepartament";
 import { getDataUser, modificateProfileUser, saveImageProfile } from "@/lib/services/perfil.service";
+
+addLocale("es", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  clear: "Limpiar",
+});
+
+function toDateInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
@@ -445,16 +465,23 @@ export default function ProfilePage() {
                     <div className="row">
                       <div className="col-12 col-md-6 mb-3">
                         <label className={`profile-field-label${touched.datebirth && errors.datebirth ? " text-danger" : ""}`}>Fecha de nacimiento</label>
-                        <input
-                          type="date"
-                          max="2003-01-01"
-                          min="1950-01-01"
-                          className="profile-input"
-                          value={form.datebirth}
-                          onChange={(e) => setForm((p) => ({ ...p, datebirth: e.target.value }))}
-                          onBlur={() => setTouched((p) => ({ ...p, datebirth: true }))}
-                          disabled={loading}
-                        />
+                        <div className="license-filter-input-wrap profile-birthdate-wrap">
+                          <i className="pi pi-calendar license-filter-icon" />
+                          <Calendar
+                            value={form.datebirth ? new Date(`${form.datebirth}T00:00:00`) : null}
+                            onChange={(e) => setForm((p) => ({ ...p, datebirth: e.value ? toDateInputValue(e.value as Date) : "" }))}
+                            onBlur={() => setTouched((p) => ({ ...p, datebirth: true }))}
+                            dateFormat="dd/mm/yy"
+                            locale="es"
+                            showButtonBar
+                            minDate={new Date("1950-01-01T00:00:00")}
+                            maxDate={new Date("2003-01-01T00:00:00")}
+                            disabled={loading}
+                            placeholder="Seleccioná una fecha"
+                            className="license-filter-dropdown"
+                            panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                          />
+                        </div>
                         {touched.datebirth && errors.datebirth && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>{errors.datebirth}</small>}
                       </div>
                       <div className="col-12 col-md-6 mb-3">
