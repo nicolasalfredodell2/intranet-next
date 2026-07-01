@@ -501,7 +501,7 @@ export default function ProfilePage() {
                         <input className="profile-input" value={form.location} disabled autoComplete="off" />
                       </div>
                       <div className="col-12 col-md-6 mb-3">
-                        <label className="profile-field-label">Legajo {READ_ONLY_BADGE}</label>
+                        <label className="profile-field-label">Nº Legajo {READ_ONLY_BADGE}</label>
                         <input className="profile-input" value={form.internal} disabled autoComplete="off" />
                       </div>
                     </div>
