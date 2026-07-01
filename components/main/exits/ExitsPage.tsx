@@ -476,25 +476,16 @@ export default function ExitsPage() {
           {/* Card header */}
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
             <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-sign-out" style={{ color: "#059669", fontSize: "1rem" }} />
+              <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Salidas</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Gestión de órdenes de salida</small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Creación de salida</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Seleccioná el tipo de salida</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-
-            {/* ── Tipo de salida ── */}
-            <div className="mb-3 d-flex align-items-center" style={{ gap: "8px" }}>
-              <div style={{ width: 28, height: 28, borderRadius: "8px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "0.8rem" }} />
-              </div>
-              <h6 className="mb-0 font-weight-bold" style={{ fontSize: "0.88rem", color: "#1e293b" }}>Creación de salida</h6>
-            </div>
-            <p className="mb-2" style={{ fontSize: "0.82rem", color: "#64748b", fontWeight: 500 }}>Seleccioná el tipo de salida</p>
             <div className="d-flex" style={{ gap: "10px", flexWrap: "wrap", marginBottom: "20px" }}>
               {([
                 { value: "Individuals",              label: "Particular" },
