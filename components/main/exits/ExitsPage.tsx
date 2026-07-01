@@ -161,6 +161,7 @@ export default function ExitsPage() {
   const [loadingExits,     setLoadingExits]     = useState(false);
   const [filtersForExists, setFiltersForExists] = useState({ lastname_name: "", status: "", type: "" });
   const [hoveredRow,       setHoveredRow]       = useState<number | null>(null);
+  const [hoveredType,      setHoveredType]      = useState<string | null>(null);
   const [myFirst,          setMyFirst]          = useState(0);
   const [myRows,           setMyRows]           = useState(10);
 
@@ -502,33 +503,110 @@ export default function ExitsPage() {
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-            <div className="d-flex" style={{ gap: "10px", flexWrap: "wrap", marginBottom: "20px" }}>
-              {([
-                { value: "Individuals",              label: "Particular" },
-                { value: "Officials",                label: "Oficial" },
-                { value: "Guild_Meeting_Attendance", label: "Asamblea" },
-              ] as const).map((t) => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => changeTypeOfExit(t.value)}
-                  style={{
-                    padding: "8px 22px",
-                    borderRadius: "9px",
-                    border: "none",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    fontSize: "0.84rem",
-                    background: formType === t.value ? "#0ea5e9" : "#e2e8f0",
-                    color: formType === t.value ? "#fff" : "#475569",
-                    transition: "background 0.15s, color 0.15s",
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
+            <div className="d-flex align-items-stretch" style={{ gap: "16px" }}>
 
+              {/* Botones */}
+              <div className="d-flex flex-column" style={{ gap: "8px", flexShrink: 0 }}>
+                {([
+                  { value: "Individuals",              label: "Particular",  icon: "pi-user" },
+                  { value: "Officials",                label: "Oficial",     icon: "pi-building" },
+                  { value: "Guild_Meeting_Attendance", label: "Asamblea",    icon: "pi-users" },
+                ] as const).map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => changeTypeOfExit(t.value)}
+                    onMouseEnter={() => setHoveredType(t.value)}
+                    onMouseLeave={() => setHoveredType(null)}
+                    style={{
+                      padding: "9px 22px",
+                      borderRadius: "9px",
+                      border: hoveredType === t.value ? "1.5px solid #0ea5e9" : "1.5px solid transparent",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      fontSize: "0.84rem",
+                      background: formType === t.value ? "#0ea5e9" : hoveredType === t.value ? "#f0f9ff" : "#e2e8f0",
+                      color: formType === t.value ? "#fff" : hoveredType === t.value ? "#0ea5e9" : "#475569",
+                      transition: "background 0.15s, color 0.15s, border-color 0.15s",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "7px",
+                      minWidth: "140px",
+                    }}
+                  >
+                    <i className={`pi ${t.icon}`} style={{ fontSize: "0.82rem" }} />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Panel de descripción */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {hoveredType && (() => {
+                  const INFO: Record<string, { title: string; icon: string; color: string; bg: string; items: string[] }> = {
+                    Individuals: {
+                      title: "Salida Particular",
+                      icon: "pi-user",
+                      color: "#0ea5e9",
+                      bg: "#f0f9ff",
+                      items: [
+                        "Trámites personales o familiares durante el horario laboral.",
+                        "Citas médicas propias no cubiertas por otra licencia.",
+                        "Gestiones bancarias, notariales o administrativas personales.",
+                        "Situaciones imprevistas de índole personal que requieran ausentarse brevemente.",
+                      ],
+                    },
+                    Officials: {
+                      title: "Salida Oficial",
+                      icon: "pi-building",
+                      color: "#7c3aed",
+                      bg: "#f5f3ff",
+                      items: [
+                        "Comisiones de servicio o representación institucional.",
+                        "Asistencia a reuniones, capacitaciones o eventos convocados por la institución.",
+                        "Diligencias oficiales fuera del lugar de trabajo en nombre del organismo.",
+                        "Traslados ordenados por autoridad competente dentro del horario laboral.",
+                      ],
+                    },
+                    Guild_Meeting_Attendance: {
+                      title: "Asamblea Gremial",
+                      icon: "pi-users",
+                      color: "#059669",
+                      bg: "#f0fdf4",
+                      items: [
+                        "Asambleas convocadas por el sindicato o gremio al que pertenece el agente.",
+                        "Reuniones de comisiones directivas o delegados gremiales.",
+                        "Actos o movilizaciones gremiales reconocidas institucionalmente.",
+                        "Actividades de representación sindical previstas en el convenio colectivo.",
+                      ],
+                    },
+                  };
+                  const info = INFO[hoveredType];
+                  return (
+                    <div className="fadeIn animated" style={{ height: "100%", background: info.bg, borderRadius: "10px", border: `1.5px solid ${info.color}22`, padding: "14px 16px" }}>
+                      <div className="d-flex align-items-center mb-2" style={{ gap: "8px" }}>
+                        <i className={`pi ${info.icon}`} style={{ color: info.color, fontSize: "0.9rem" }} />
+                        <span style={{ fontWeight: 700, fontSize: "0.84rem", color: info.color }}>{info.title}</span>
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: "16px", listStyle: "none" }}>
+                        {info.items.map((item, i) => (
+                          <li key={i} style={{ fontSize: "0.8rem", color: "#475569", marginBottom: "5px", display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                            <i className="pi pi-check-circle" style={{ color: info.color, fontSize: "0.72rem", marginTop: "2px", flexShrink: 0 }} />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
+                {!hoveredType && (
+                  <div style={{ height: "100%", background: "#f8fafc", borderRadius: "10px", border: "1.5px dashed #e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", padding: "14px 16px" }}>
+                    <span style={{ fontSize: "0.8rem", color: "#94a3b8", fontStyle: "italic" }}>Pasá el mouse sobre un tipo de salida para ver más información.</span>
+                  </div>
+                )}
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
