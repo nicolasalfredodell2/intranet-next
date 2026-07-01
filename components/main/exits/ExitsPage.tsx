@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
 import { Paginator } from "primereact/paginator";
 import { ProgressBar } from "primereact/progressbar";
 import { getAllBosses } from "@/lib/services/boss.service";
@@ -1036,7 +1037,7 @@ export default function ExitsPage() {
               <button
                 onClick={() => setFormType("")}
                 type="button"
-                className="btn btn-light text-muted"
+                className="btn btn-light text-muted ml-auto"
                 style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
               >
                 Cerrar
@@ -1046,19 +1047,21 @@ export default function ExitsPage() {
           </div>
         }
       >
-        <p style={{ fontSize: "0.88rem", color: "#374151", marginBottom: "12px" }}>
-          Seleccioná el jefe al que reportar tu salida.
-        </p>
-        <select
-          className="form-control form-control-sm custom-select"
-          value={formCuil}
-          onChange={(e) => setFormCuil(e.target.value)}
-        >
-          <option value=""></option>
-          {bosses.map((boss) => (
-            <option key={boss.cuil} value={boss.cuil}>{boss.lastname_name}</option>
-          ))}
-        </select>
+        <div className={`license-filter-input-wrap${formCuil ? " license-filter-input-wrap--active" : ""}`}>
+          <i className="pi pi-user license-filter-icon" />
+          <Dropdown
+            value={formCuil || null}
+            options={bosses}
+            optionLabel="lastname_name"
+            optionValue="cuil"
+            onChange={(e) => setFormCuil(e.value ?? "")}
+            placeholder="Seleccioná un jefe"
+            className="license-filter-dropdown"
+            panelClassName="license-filter-dropdown-panel"
+            showClear={!!formCuil}
+            emptyMessage="Sin opciones"
+          />
+        </div>
         {cuilTouched && !formCuil && (
           <small className="text-danger fadeIn animated" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>
         )}
