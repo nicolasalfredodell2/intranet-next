@@ -180,7 +180,6 @@ export default function ReceiptsPage() {
       </div>
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Solicitar firma</p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Se notificará a RRHH para firmar el recibo</small>
       </div>
     </div>
   );
@@ -363,16 +362,16 @@ export default function ReceiptsPage() {
                         <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
                           <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
                             {receiptData.status == null && (((receipt as any).year == 2022 && receiptData.interval >= 2) || (receipt as any).year > 2022) && (
-                              <button
-                                type="button"
-                                disabled={!!loadingAction}
-                                onClick={() => setConfirmReceipt(receiptData)}
-                                title="Solicitar firma"
-                                style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#64748b" }}
-                              >
-                                <i className="mdi mdi-feather" style={{ fontSize: "0.95rem" }} />
-                                Firmar
-                              </button>
+                              <Tooltip label="Solicitar firma">
+                                <button
+                                  type="button"
+                                  disabled={!!loadingAction}
+                                  onClick={() => setConfirmReceipt(receiptData)}
+                                  style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#64748b" }}
+                                >
+                                  <i className="mdi mdi-feather" style={{ fontSize: "0.95rem" }} />
+                                </button>
+                              </Tooltip>
                             )}
                             {receiptData.status != null && (
                               <span
@@ -480,7 +479,7 @@ export default function ReceiptsPage() {
         footer={firmFooter}
       >
         <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
-          Se enviará el recibo <strong>{confirmReceipt?.label}</strong> para ser firmado por RRHH.
+          Se enviará el recibo <strong>{confirmReceipt?.label}</strong> para ser firmado por el director de RRHH.
         </p>
       </Dialog>
     </>
