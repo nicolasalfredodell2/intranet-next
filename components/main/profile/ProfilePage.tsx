@@ -302,7 +302,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* Name + cargo */}
+                    {/* Name + función */}
                     {(user?.first_name || user?.last_name) && (
                       <div className="mb-3">
                         <p className="mb-1 font-weight-bold" style={{ fontSize: "1.05rem", color: "#1e293b", lineHeight: 1.3 }}>
@@ -480,7 +480,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="row">
                       <div className="col-12 col-md-6 mb-3">
-                        <label className={`profile-field-label${touched.occupation && errors.occupation ? " text-danger" : ""}`}>Cargo</label>
+                        <label className={`profile-field-label${touched.occupation && errors.occupation ? " text-danger" : ""}`}>Función</label>
                         <input
                           className="profile-input"
                           value={form.occupation}

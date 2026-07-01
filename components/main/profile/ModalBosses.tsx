@@ -256,7 +256,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
                     {internal.lastname_name}
                   </p>
                   <small style={{ fontSize: "0.73rem", color: "#94a3b8" }}>
-                    {internal.occupation_signature ?? "Sin cargo"}
+                    {internal.occupation_signature ?? "Sin función"}
                   </small>
                 </div>
                 {/* Check */}
