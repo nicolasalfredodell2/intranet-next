@@ -359,8 +359,16 @@ export default function LicensePage() {
               <i className="pi pi-calendar-minus" />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                 <span className="license-dialog-title">{licensesForDetail[0]?.descripcion}</span>
+                {licensesForDetail[0]?.norma_aprobatoria && (
+                  <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "2px 9px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+                    {licensesForDetail[0].norma_aprobatoria}
+                  </span>
+                )}
+                <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: "20px", padding: "2px 9px", fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+                  {licensesForDetail.reduce((s, l) => s + (l.dias_computados ?? 0), 0)} días
+                </span>
               </div>
               <span className="license-dialog-year-badge">{licensesForDetail[0]?.anio_ref}</span>
             </div>
