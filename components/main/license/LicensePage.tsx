@@ -194,7 +194,7 @@ export default function LicensePage() {
     .filter((l) => l.anio_ref === latestYear)
     .reduce((sum, l) => sum + (l.cant ?? 0), 0);
 
-  const articuloOptions = [...new Set(licensesCompact.map((l) => String(l.articulo)))].sort();
+  const articuloOptions = [...new Set(licensesCompact.map((l) => String(l.articulo)))].sort((a, b) => Number(a) - Number(b));
   const descripcionOptions = [...new Set(licensesCompact.map((l) => l.descripcion).filter(Boolean))].sort() as string[];
   const normaOptions = [...new Set(licensesCompact.map((l) => l.norma_aprobatoria).filter(Boolean))].sort() as string[];
   const anioOptions = [...new Set(licensesCompact.map((l) => String(l.anio_ref)))].sort((a, b) => Number(b) - Number(a));
