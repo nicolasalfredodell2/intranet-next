@@ -314,8 +314,10 @@ export default function ExitsPage() {
           b.cuil !== userCuil
       );
       setBosses(list);
+      return list;
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudieron cargar los jefes", detail: err.message });
+      return [];
     }
   }
 
@@ -389,11 +391,12 @@ export default function ExitsPage() {
     setShowModalBosses(true);
   }
 
-  function handleBossesAssigned(newBosses: any[]) {
+  async function handleBossesAssigned(newBosses: any[]) {
     const wrapped = newBosses.map((b) => ({ ...b, people: b }));
     setAssignedUser((prev: any) => ({ ...prev, bosses: wrapped }));
     setShowModalBosses(false);
-    loadBossesData();
+    const list = await loadBossesData();
+    setFormCuil((prev) => (prev && !list.some((b: any) => b.cuil === prev) ? "" : prev));
   }
 
   // ── Filters ───────────────────────────────────────────────────────────────────
@@ -530,10 +533,14 @@ export default function ExitsPage() {
   useEffect(() => { setMyFirst(0); }, [filtersForExists]);
 
   // ── Client-side filter ────────────────────────────────────────────────────────
+  const myTypeOptions   = [...new Set(items.map((i) => i.type))].filter(Boolean).sort();
+  const myBossOptions   = [...new Set(items.map((i) => i.lastname_name))].filter(Boolean).sort();
+  const myStatusOptions = [...new Set(items.map((i) => i.status))].filter(Boolean).sort();
+
   const filteredItems = items.filter((item) => {
-    if (filtersForExists.type          && !item.type.toLowerCase().includes(filtersForExists.type.toLowerCase()))               return false;
-    if (filtersForExists.lastname_name && !item.lastname_name?.toLowerCase().includes(filtersForExists.lastname_name.toLowerCase())) return false;
-    if (filtersForExists.status        && !item.status.toLowerCase().includes(filtersForExists.status.toLowerCase()))           return false;
+    if (filtersForExists.type          && item.type !== filtersForExists.type)                     return false;
+    if (filtersForExists.lastname_name && item.lastname_name !== filtersForExists.lastname_name)    return false;
+    if (filtersForExists.status        && item.status !== filtersForExists.status)                 return false;
     return true;
   });
 
@@ -689,29 +696,41 @@ export default function ExitsPage() {
               <div className="license-filter-bar-inputs">
                 <div className={`license-filter-input-wrap${filtersForExists.type ? " license-filter-input-wrap--active" : ""}`}>
                   <i className="pi pi-tag license-filter-icon" />
-                  <input
+                  <Dropdown
+                    value={filtersForExists.type || null}
+                    options={myTypeOptions}
+                    onChange={(e) => setFiltersForExists((p) => ({ ...p, type: e.value ?? "" }))}
                     placeholder="Tipo"
-                    style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none" }}
-                    value={filtersForExists.type}
-                    onChange={(e) => setFiltersForExists((p) => ({ ...p, type: e.target.value }))}
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel"
+                    showClear={!!filtersForExists.type}
+                    emptyMessage="Sin opciones"
                   />
                 </div>
                 <div className={`license-filter-input-wrap${filtersForExists.lastname_name ? " license-filter-input-wrap--active" : ""}`}>
                   <i className="pi pi-user license-filter-icon" />
-                  <input
-                    placeholder="Jefe"
-                    style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none" }}
-                    value={filtersForExists.lastname_name}
-                    onChange={(e) => setFiltersForExists((p) => ({ ...p, lastname_name: e.target.value }))}
+                  <Dropdown
+                    value={filtersForExists.lastname_name || null}
+                    options={myBossOptions}
+                    onChange={(e) => setFiltersForExists((p) => ({ ...p, lastname_name: e.value ?? "" }))}
+                    placeholder="Solicitado a"
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel"
+                    showClear={!!filtersForExists.lastname_name}
+                    emptyMessage="Sin opciones"
                   />
                 </div>
                 <div className={`license-filter-input-wrap${filtersForExists.status ? " license-filter-input-wrap--active" : ""}`}>
                   <i className="pi pi-info-circle license-filter-icon" />
-                  <input
+                  <Dropdown
+                    value={filtersForExists.status || null}
+                    options={myStatusOptions}
+                    onChange={(e) => setFiltersForExists((p) => ({ ...p, status: e.value ?? "" }))}
                     placeholder="Estado"
-                    style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none" }}
-                    value={filtersForExists.status}
-                    onChange={(e) => setFiltersForExists((p) => ({ ...p, status: e.target.value }))}
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel"
+                    showClear={!!filtersForExists.status}
+                    emptyMessage="Sin opciones"
                   />
                 </div>
               </div>
