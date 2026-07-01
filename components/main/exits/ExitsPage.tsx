@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
+import { Calendar } from "primereact/calendar";
+import { addLocale } from "primereact/api";
 import { Paginator } from "primereact/paginator";
 import { ProgressBar } from "primereact/progressbar";
 import { getAllBosses } from "@/lib/services/boss.service";
@@ -19,6 +21,17 @@ import {
 } from "@/lib/services/exits.service";
 import CreateExitAdminModal from "./CreateExitAdminModal";
 import ModalBosses from "../profile/ModalBosses";
+
+addLocale("es", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  clear: "Limpiar",
+});
 
 // ── Tooltip ────────────────────────────────────────────────────────────────────
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -241,6 +254,13 @@ function formatDate(str: string | null | undefined): string {
   } catch { return str; }
 }
 
+function toDateInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 type AdminFilters = { limit: number; page: number; status: string; type: string; user_lastname: string };
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -259,7 +279,7 @@ export default function ExitsPage() {
 
   const [items,            setItems]            = useState<any[]>([]);
   const [loadingExits,     setLoadingExits]     = useState(false);
-  const [filtersForExists, setFiltersForExists] = useState({ lastname_name: "", status: "", type: "" });
+  const [filtersForExists, setFiltersForExists] = useState({ lastname_name: "", status: "", type: "", date: "" });
   const [hoveredRow,       setHoveredRow]       = useState<number | null>(null);
   const [hoveredType,      setHoveredType]      = useState<string | null>(null);
   const [myFirst,          setMyFirst]          = useState(0);
@@ -541,12 +561,13 @@ export default function ExitsPage() {
     if (filtersForExists.type          && item.type !== filtersForExists.type)                     return false;
     if (filtersForExists.lastname_name && item.lastname_name !== filtersForExists.lastname_name)    return false;
     if (filtersForExists.status        && item.status !== filtersForExists.status)                 return false;
+    if (filtersForExists.date          && !String(item.departure_hour ?? "").startsWith(filtersForExists.date)) return false;
     return true;
   });
 
   const pagedFilteredItems = filteredItems.slice(myFirst, myFirst + myRows);
 
-  const hasMyFilters    = !!(filtersForExists.type || filtersForExists.lastname_name || filtersForExists.status);
+  const hasMyFilters    = !!(filtersForExists.type || filtersForExists.lastname_name || filtersForExists.status || filtersForExists.date);
   const hasAdminFilters = !!(adminFilters.status || adminFilters.type || adminFilters.user_lastname);
 
   // ── Dialog headers ────────────────────────────────────────────────────────────
@@ -733,12 +754,25 @@ export default function ExitsPage() {
                     emptyMessage="Sin opciones"
                   />
                 </div>
+                <div className={`license-filter-input-wrap${filtersForExists.date ? " license-filter-input-wrap--active" : ""}`}>
+                  <i className="pi pi-calendar license-filter-icon" />
+                  <Calendar
+                    value={filtersForExists.date ? new Date(`${filtersForExists.date}T00:00:00`) : null}
+                    onChange={(e) => setFiltersForExists((p) => ({ ...p, date: e.value ? toDateInputValue(e.value as Date) : "" }))}
+                    dateFormat="dd/mm/yy"
+                    placeholder="Fecha"
+                    locale="es"
+                    showButtonBar
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                  />
+                </div>
               </div>
               {hasMyFilters && (
                 <button
                   type="button"
                   className="license-filter-clear"
-                  onClick={() => setFiltersForExists({ lastname_name: "", status: "", type: "" })}
+                  onClick={() => setFiltersForExists({ lastname_name: "", status: "", type: "", date: "" })}
                 >
                   <i className="pi pi-times" /> Limpiar
                 </button>

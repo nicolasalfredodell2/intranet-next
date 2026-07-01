@@ -1220,6 +1220,74 @@ input[disabled] {
   color: #4a6cf7;
 }
 
+.license-filter-dropdown.p-calendar .p-inputtext {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #374151;
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif !important;
+  font-size: 0.8rem !important;
+  padding: 0 !important;
+  width: 100%;
+}
+
+.license-filter-dropdown.p-calendar .p-inputtext::placeholder {
+  color: #cbd5e1 !important;
+}
+
+/* Calendario compacto */
+.license-filter-calendar-panel.p-datepicker {
+  padding: 0.35rem !important;
+}
+
+.license-filter-calendar-panel .p-datepicker-header {
+  padding: 0.3rem !important;
+}
+
+.license-filter-calendar-panel .p-datepicker-header .p-datepicker-title {
+  font-size: 0.8rem !important;
+  line-height: 1.5rem !important;
+}
+
+.license-filter-calendar-panel .p-datepicker-header .p-datepicker-prev,
+.license-filter-calendar-panel .p-datepicker-header .p-datepicker-next {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+.license-filter-calendar-panel table {
+  font-size: 0.76rem !important;
+  margin: 0.3rem 0 !important;
+}
+
+.license-filter-calendar-panel table th {
+  padding: 0.2rem !important;
+}
+
+.license-filter-calendar-panel table th > span {
+  width: 1.8rem !important;
+  height: 1.8rem !important;
+}
+
+.license-filter-calendar-panel table td {
+  padding: 0.15rem !important;
+}
+
+.license-filter-calendar-panel table td > span {
+  width: 1.8rem !important;
+  height: 1.8rem !important;
+  font-size: 0.76rem !important;
+}
+
+.license-filter-calendar-panel .p-datepicker-buttonbar {
+  padding: 0.5rem 0 !important;
+}
+
+.license-filter-calendar-panel .p-datepicker-buttonbar .p-button {
+  font-size: 0.74rem !important;
+  padding: 0.3rem 0.6rem !important;
+}
+
 /* Panel del dropdown */
 .license-filter-dropdown-panel {
   border: 1px solid #e2e8f0 !important;
