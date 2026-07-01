@@ -31,7 +31,6 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
 }
 
 interface Filters {
-  articulo: string;
   descripcion: string;
   norma_aprobatoria: string;
   anio_ref: string;
@@ -59,23 +58,6 @@ function DayBadge({ days }: { days: number }) {
   );
 }
 
-function ArticleChip({ value }: { value: string }) {
-  return (
-    <span
-      style={{
-        background: "rgba(74,108,247,0.09)",
-        color: "#4a6cf7",
-        borderRadius: "8px",
-        padding: "3px 10px",
-        fontSize: "0.78rem",
-        fontWeight: 700,
-        letterSpacing: "0.02em",
-      }}
-    >
-      {value}
-    </span>
-  );
-}
 
 function SkeletonRows() {
   return (
@@ -100,7 +82,6 @@ export default function LicensePage() {
   const [selectedLicense, setSelectedLicense] = useState<any>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [filters, setFilters] = useState<Filters>({
-    articulo: "",
     descripcion: "",
     norma_aprobatoria: "",
     anio_ref: "",
@@ -184,7 +165,6 @@ export default function LicensePage() {
 
   const filtered = licensesCompact.filter(
     (l) =>
-      (!filters.articulo || String(l.articulo).toLowerCase().includes(filters.articulo.toLowerCase())) &&
       (!filters.descripcion || l.descripcion?.toLowerCase().includes(filters.descripcion.toLowerCase())) &&
       (!filters.norma_aprobatoria ||
         l.norma_aprobatoria?.toLowerCase().includes(filters.norma_aprobatoria.toLowerCase())) &&
@@ -196,14 +176,12 @@ export default function LicensePage() {
     .filter((l) => l.anio_ref === latestYear)
     .reduce((sum, l) => sum + (l.cant ?? 0), 0);
 
-  const articuloOptions = [...new Set(licensesCompact.map((l) => String(l.articulo)))].sort((a, b) => Number(a) - Number(b));
   const descripcionOptions = [...new Set(licensesCompact.map((l) => l.descripcion).filter(Boolean))].sort() as string[];
   const normaOptions = [...new Set(licensesCompact.map((l) => l.norma_aprobatoria).filter(Boolean))].sort() as string[];
   const anioOptions = [...new Set(licensesCompact.map((l) => String(l.anio_ref)))].sort((a, b) => Number(b) - Number(a));
 
   const filterFields: { field: keyof Filters; placeholder: string; icon: string; type: "select" | "input"; options?: string[] }[] = [
     { field: "anio_ref", placeholder: "Año", icon: "pi-calendar", type: "select", options: anioOptions },
-    { field: "articulo", placeholder: "Artículo", icon: "pi-hashtag", type: "select", options: articuloOptions },
     { field: "descripcion", placeholder: "Descripción", icon: "pi-align-left", type: "select", options: descripcionOptions },
     { field: "norma_aprobatoria", placeholder: "Norma", icon: "pi-book", type: "select", options: normaOptions },
   ];
@@ -268,7 +246,7 @@ export default function LicensePage() {
                       type="button"
                       className="license-filter-clear"
                       onClick={() =>
-                        setFilters({ articulo: "", descripcion: "", norma_aprobatoria: "", anio_ref: "" })
+                        setFilters({ descripcion: "", norma_aprobatoria: "", anio_ref: "" })
                       }
                     >
                       <i className="pi pi-times" /> Limpiar
@@ -292,7 +270,7 @@ export default function LicensePage() {
                   emptyMessage={
                     <div className="license-empty">
                       <i className="pi pi-inbox" />
-                      <p>No hay licencias registradas {filters.anio_ref || filters.articulo || filters.descripcion || filters.norma_aprobatoria ? `con los filtros aplicados` : ''}.</p>
+                      <p>No hay licencias registradas {filters.anio_ref || filters.descripcion || filters.norma_aprobatoria ? `con los filtros aplicados` : ''}.</p>
                     </div>
                   }
                 >
@@ -301,13 +279,6 @@ export default function LicensePage() {
                     header="AÑO"
                     style={{ width: "9%", textAlign: "left" }}
                     body={(r) => <span className="license-cell-year">{r.anio_ref}</span>}
-                    sortable
-                  />
-                  <Column
-                    field="articulo"
-                    header="ARTÍCULO"
-                    style={{ width: "10%" }}
-                    body={(r) => <ArticleChip value={r.articulo} />}
                     sortable
                   />
                   <Column
@@ -326,7 +297,7 @@ export default function LicensePage() {
                   />
                   <Column
                     field="cant"
-                    header="DÍAS TOTALES"
+                    header="DÍAS UTILIZADOS"
                     style={{ width: "14%", textAlign: "left" }}
                     body={(r) => <DayBadge days={r.cant} />}
                     sortable
@@ -369,7 +340,7 @@ export default function LicensePage() {
                   </span>
                 )}
                 <span style={{ background: "#f1f5f9", color: "#475569", borderRadius: "20px", padding: "2px 9px", fontSize: "0.72rem", fontWeight: 600, whiteSpace: "nowrap" }}>
-                  {licensesForDetail.reduce((s, l) => s + (l.dias_computados ?? 0), 0)} días totales
+                  {licensesForDetail.reduce((s, l) => s + (l.dias_computados ?? 0), 0)} días utilizados
                 </span>
               </div>
               <span className="license-dialog-year-badge">{licensesForDetail[0]?.anio_ref}</span>
