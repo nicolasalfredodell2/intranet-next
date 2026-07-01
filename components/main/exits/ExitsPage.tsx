@@ -7,6 +7,7 @@ import { Dropdown } from "primereact/dropdown";
 import { Paginator } from "primereact/paginator";
 import { ProgressBar } from "primereact/progressbar";
 import { getAllBosses } from "@/lib/services/boss.service";
+import { getDataUser } from "@/lib/services/perfil.service";
 import {
   loadExitOrders,
   createExitOrderRequest,
@@ -17,6 +18,7 @@ import {
   deleteExitOrderAdmin,
 } from "@/lib/services/exits.service";
 import CreateExitAdminModal from "./CreateExitAdminModal";
+import ModalBosses from "../profile/ModalBosses";
 
 // ── Tooltip ────────────────────────────────────────────────────────────────────
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -252,6 +254,8 @@ export default function ExitsPage() {
   const [formCuil,            setFormCuil]            = useState("");
   const [cuilTouched,         setCuilTouched]         = useState(false);
   const [loadingActionCreate, setLoadingActionCreate] = useState(false);
+  const [assignedUser,        setAssignedUser]        = useState<any>(null);
+  const [showModalBosses,     setShowModalBosses]     = useState(false);
 
   const [items,            setItems]            = useState<any[]>([]);
   const [loadingExits,     setLoadingExits]     = useState(false);
@@ -365,6 +369,31 @@ export default function ExitsPage() {
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudo crear la orden", detail: err.message });
     } finally { setLoadingActionCreate(false); }
+  }
+
+  async function openModalBosses() {
+    if (!assignedUser) {
+      try {
+        const resp = await getDataUser();
+        const normalizedBosses = (resp.bosses ?? []).map((b: any) => ({
+          cuil: b.people?.cuil ?? b.cuil,
+          lastname_name: b.people?.lastname_name ?? b.lastname_name,
+          people: b.people ?? b,
+        }));
+        setAssignedUser({ ...resp, bosses: normalizedBosses });
+      } catch {
+        toast.current?.show({ severity: "error", summary: "No se pudo cargar tu información de jefes" });
+        return;
+      }
+    }
+    setShowModalBosses(true);
+  }
+
+  function handleBossesAssigned(newBosses: any[]) {
+    const wrapped = newBosses.map((b) => ({ ...b, people: b }));
+    setAssignedUser((prev: any) => ({ ...prev, bosses: wrapped }));
+    setShowModalBosses(false);
+    loadBossesData();
   }
 
   // ── Filters ───────────────────────────────────────────────────────────────────
@@ -1069,6 +1098,24 @@ export default function ExitsPage() {
           <i className="pi pi-info-circle" style={{ flexShrink: 0 }} />
           Podés elegir entre tus jefes directos o los jefes de éstos. El Director de RRHH figura siempre disponible por defecto.
         </div>
+        <div
+          className="animated fadeIn"
+          style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px", marginTop: "10px", fontSize: "0.8rem", color: "#94a3b8", fontWeight: 500 }}
+        >
+          <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+            <i className="pi pi-info-circle" style={{ flexShrink: 0 }} />
+            Si no aparece tu jefe o debes cambiar de jefe, debés modificarlo.
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm d-flex align-items-center"
+            style={{ gap: "5px", flexShrink: 0, fontSize: "0.78rem", borderRadius: "8px", fontWeight: 600, padding: "4px 10px" }}
+            onClick={openModalBosses}
+          >
+            <i className="pi pi-pencil" style={{ fontSize: "0.7rem" }} />
+            Modificar
+          </button>
+        </div>
         {cuilTouched && !formCuil && (
           <small className="text-danger fadeIn animated" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>
         )}
@@ -1240,6 +1287,14 @@ export default function ExitsPage() {
         onCreated={(exitOrder) => {
           setItemsAdmin((p) => [mapItem({ ...exitOrder, _rawType: exitOrder.type, _rawStatus: exitOrder.status }), ...p]);
         }}
+      />
+
+      {/* ── ModalBosses ── */}
+      <ModalBosses
+        show={showModalBosses}
+        user={assignedUser}
+        onHide={() => setShowModalBosses(false)}
+        onBossesAssigned={handleBossesAssigned}
       />
     </>
   );
