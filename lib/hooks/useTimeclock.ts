@@ -34,6 +34,7 @@ export interface TimeclockRecordView {
   typeId: number;
   title: string;
   isEntry: boolean;
+  host: string | null;
   hostLabel: string;
 }
 
@@ -152,6 +153,7 @@ function toRecordView(record: TimeclockRecord): TimeclockRecordView {
     typeId,
     title: TYPE_LABELS[typeId] ?? (isEntry ? "Entrada" : "Salida"),
     isEntry,
+    host: typeof record.host === "string" ? record.host : null,
     hostLabel: hostLabel(record.host),
   };
 }

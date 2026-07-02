@@ -6,6 +6,7 @@ import { Toast } from "primereact/toast";
 import { getDataUser } from "@/lib/services/perfil.service";
 import { connectRemote } from "@/lib/services/remote.service";
 import { loadDailyPart } from "@/lib/services/daily-part.service";
+import { useTimeclock } from "@/lib/hooks/useTimeclock";
 
 function decodeJWT(token: string): any {
   try {
@@ -31,10 +32,11 @@ export default function Navbar() {
   const [userData, setUserData] = useState<{ first_name?: string; last_name?: string; email?: string; avatar?: string } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [horario, setHorario] = useState<{ in: string; out: string } | null>(null);
-  const [fichadas, setFichadas] = useState<string[]>([]);
   const [isLate, setIsLate] = useState<boolean>(false);
   const [hourInDiffMins, setHourInDiffMins] = useState<number>(0);
   const [showHLMenu, setShowHLMenu] = useState(false);
+  const { groups: timeclockGroups, search: searchTimeclock } = useTimeclock();
+  const fichadas = timeclockGroups[0]?.records ?? [];
 
   function fetchFichadas() {
     loadDailyPart({ user_authenticated: true })
@@ -42,10 +44,6 @@ export default function Navbar() {
         const row = Object.values(resp[0])[0] as any;
         if (row?.working?.hour_in && row?.working?.hour_out) {
           setHorario({ in: row.working.hour_in, out: row.working.hour_out });
-        }
-        if (row?.check) {
-          const items = (row.check as string).split(",").map((t: string) => t.trim()).filter(Boolean);
-          setFichadas(items);
         }
         setIsLate(row?.is_late === 1);
         setHourInDiffMins(row?.hour_in_diff ?? 0);
@@ -59,7 +57,8 @@ export default function Navbar() {
       .then((data) => setUserData(data))
       .catch(() => {});
     fetchFichadas();
-    const interval = setInterval(fetchFichadas, 3 * 60 * 1000);
+    searchTimeclock();
+    const interval = setInterval(() => { fetchFichadas(); searchTimeclock(); }, 3 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -278,16 +277,24 @@ export default function Navbar() {
                                     fontWeight: isFirst || isLastItem ? 600 : 400,
                                     background: isFirst ? firstBg : isLastItem && !isFirst ? "#f5f7ff" : "transparent",
                                   }}>
-                                    <i className="pi pi-clock" style={{ fontSize: "0.75rem", opacity: 0.6 }} />
-                                    {f}
-                                    {isFirst && hourInDiffMins > 0 && (
-                                      <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: isLate ? "#ffe5e5" : "#e5ffe9", color: firstColor, borderRadius: "20px", padding: "1px 6px", fontWeight: 700 }}>
-                                        {diffLabel}
+                                    <i
+                                      className={`pi ${f.host === "RF_OUT" ? "pi-arrow-up" : f.host === "RF_IN" ? "pi-arrow-down" : "pi-clock"}`}
+                                      style={{ fontSize: "0.75rem", opacity: 0.6 }}
+                                    />
+                                    {f.time}
+                                    <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "5px" }}>
+                                      <span style={{ fontSize: "0.62rem", color: "#94a3b8", fontWeight: 500, whiteSpace: "nowrap" }}>
+                                        {f.hostLabel}
                                       </span>
-                                    )}
-                                    {!isFirst && isLastItem && (
-                                      <span style={{ marginLeft: "auto", fontSize: "0.68rem", background: "#eef1ff", color: "#4a6cf7", borderRadius: "20px", padding: "1px 6px" }}>última</span>
-                                    )}
+                                      {isFirst && hourInDiffMins > 0 && (
+                                        <span style={{ fontSize: "0.68rem", background: isLate ? "#ffe5e5" : "#e5ffe9", color: firstColor, borderRadius: "20px", padding: "1px 6px", fontWeight: 700, whiteSpace: "nowrap" }}>
+                                          {diffLabel}
+                                        </span>
+                                      )}
+                                      {!isFirst && isLastItem && (
+                                        <span style={{ fontSize: "0.68rem", background: "#eef1ff", color: "#4a6cf7", borderRadius: "20px", padding: "1px 6px", whiteSpace: "nowrap" }}>última</span>
+                                      )}
+                                    </div>
                                   </div>
                                 );
                               })}
