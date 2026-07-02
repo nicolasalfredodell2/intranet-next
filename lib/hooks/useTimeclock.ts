@@ -182,7 +182,7 @@ function groupByDate(records: TimeclockRecordView[]): TimeclockGroup[] {
   return groups;
 }
 
-function timeToMinutes(time: string): number | null {
+export function timeToMinutes(time: string): number | null {
   const match = time.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
   if (!match) return null;
   const [, h, m] = match;

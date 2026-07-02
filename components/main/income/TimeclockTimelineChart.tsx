@@ -1,8 +1,8 @@
 "use client";
 
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, type TooltipItem } from "chart.js";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, type TooltipItem, type Plugin } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { summarizeDay, TimeclockGroup, TimeclockDaySummary } from "@/lib/hooks/useTimeclock";
+import { summarizeDay, timeToMinutes, TimeclockGroup, TimeclockDaySummary } from "@/lib/hooks/useTimeclock";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
 
@@ -10,6 +10,11 @@ const COLOR_COMPLETE = "#4a6cf7";
 const COLOR_COMPLETE_BG = "rgba(74,108,247,0.75)";
 const COLOR_INCOMPLETE = "#94a3b8";
 const COLOR_INCOMPLETE_BG = "rgba(148,163,184,0.18)";
+const COLOR_TEMP_EXIT = "#f59e0b";
+const COLOR_TEMP_RETURN = "#8b5cf6";
+
+const TEMP_EXIT_TYPE = 2;
+const TEMP_RETURN_TYPE = 3;
 
 const STUB_MINUTES = 25;
 const DEFAULT_MIN_MINUTES = 7 * 60;
@@ -57,12 +62,61 @@ function toBarSpan(summary: TimeclockDaySummary): BarSpan {
   return { range: null, status: "empty" };
 }
 
+interface TempMarker {
+  minutes: number;
+  time: string;
+  typeId: 2 | 3;
+}
+
+function extractTempMarkers(group: TimeclockGroup): TempMarker[] {
+  return group.records
+    .filter((r) => r.typeId === TEMP_EXIT_TYPE || r.typeId === TEMP_RETURN_TYPE)
+    .map((r) => ({ minutes: timeToMinutes(r.time), time: r.time, typeId: r.typeId as 2 | 3 }))
+    .filter((m): m is TempMarker => m.minutes != null);
+}
+
+function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, color: string) {
+  const r = 4.5;
+  ctx.beginPath();
+  ctx.moveTo(x, y - r);
+  ctx.lineTo(x + r, y);
+  ctx.lineTo(x, y + r);
+  ctx.lineTo(x - r, y);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 1.25;
+  ctx.strokeStyle = "#fff";
+  ctx.stroke();
+}
+
 export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGroup[] }) {
   if (groups.length === 0) return null;
 
   // Chronological order (oldest first) reads naturally top-to-bottom, opposite of the per-day cards below.
-  const summaries = [...groups].reverse().map(summarizeDay);
+  const orderedGroups = [...groups].reverse();
+  const summaries = orderedGroups.map(summarizeDay);
   const spans = summaries.map(toBarSpan);
+  const tempMarkersByDay = orderedGroups.map(extractTempMarkers);
+
+  const tempMarkersPlugin: Plugin<"bar"> = {
+    id: "tempMarkers",
+    afterDatasetsDraw(chart) {
+      const { ctx, scales } = chart;
+      const xScale = scales.x;
+      const yScale = scales.y;
+      if (!xScale || !yScale) return;
+      ctx.save();
+      tempMarkersByDay.forEach((markers, index) => {
+        const y = yScale.getPixelForValue(index);
+        markers.forEach((m) => {
+          const x = xScale.getPixelForValue(m.minutes);
+          drawDiamond(ctx, x, y, m.typeId === TEMP_EXIT_TYPE ? COLOR_TEMP_EXIT : COLOR_TEMP_RETURN);
+        });
+      });
+      ctx.restore();
+    },
+  };
 
   const allMinutes = summaries.flatMap((s) => [s.entryMinutes, s.exitMinutes]).filter((v): v is number => v != null);
   const dataMin = allMinutes.length ? Math.min(...allMinutes) : DEFAULT_MIN_MINUTES;
@@ -122,16 +176,20 @@ export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGr
           label: (item: TooltipItem<"bar">) => {
             const s = summaries[item.dataIndex];
             if (!s) return "";
+            const lines: string[] = [];
             if (s.isComplete && s.entryTime && s.exitTime && s.durationMinutes != null) {
-              return [`Entrada: ${s.entryTime}`, `Salida: ${s.exitTime}`, `Duración: ${formatDurationLabel(s.durationMinutes)}`];
+              lines.push(`Entrada: ${s.entryTime}`, `Salida: ${s.exitTime}`, `Duración: ${formatDurationLabel(s.durationMinutes)}`);
+            } else if (s.entryTime && !s.exitTime) {
+              lines.push(`Entrada: ${s.entryTime}`, "Sin salida registrada");
+            } else if (!s.entryTime && s.exitTime) {
+              lines.push("Sin entrada registrada", `Salida: ${s.exitTime}`);
+            } else {
+              lines.push("Sin fichadas ese día");
             }
-            if (s.entryTime && !s.exitTime) {
-              return [`Entrada: ${s.entryTime}`, "Sin salida registrada"];
-            }
-            if (!s.entryTime && s.exitTime) {
-              return ["Sin entrada registrada", `Salida: ${s.exitTime}`];
-            }
-            return ["Sin fichadas ese día"];
+            (tempMarkersByDay[item.dataIndex] ?? []).forEach((m) => {
+              lines.push(m.typeId === TEMP_EXIT_TYPE ? `Salida temporal: ${m.time}` : `Regreso: ${m.time}`);
+            });
+            return lines;
           },
         },
       },
@@ -152,7 +210,7 @@ export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGr
       <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
       <div className="card-body" style={{ padding: "16px 20px 20px" }}>
         <div style={{ height: Math.max(120, summaries.length * 42), width: "100%" }}>
-          <Bar data={chartData} options={chartOptions} />
+          <Bar data={chartData} options={chartOptions} plugins={[tempMarkersPlugin]} />
         </div>
         <div className="d-flex align-items-center mt-3" style={{ gap: "16px", flexWrap: "wrap" }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#64748b" }}>
@@ -162,6 +220,14 @@ export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGr
           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#64748b" }}>
             <span style={{ width: 12, height: 12, borderRadius: 3, border: `1.5px dashed ${COLOR_INCOMPLETE}`, display: "inline-block" }} />
             Jornada incompleta
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#64748b" }}>
+            <span style={{ width: 9, height: 9, background: COLOR_TEMP_EXIT, display: "inline-block", transform: "rotate(45deg)" }} />
+            Salida temporal
+          </span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#64748b" }}>
+            <span style={{ width: 9, height: 9, background: COLOR_TEMP_RETURN, display: "inline-block", transform: "rotate(45deg)" }} />
+            Regreso temporal
           </span>
         </div>
       </div>
