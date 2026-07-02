@@ -3,10 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Toast } from "primereact/toast";
+import { Dialog } from "primereact/dialog";
 import { getDataUser } from "@/lib/services/perfil.service";
 import { connectRemote } from "@/lib/services/remote.service";
 import { loadDailyPart } from "@/lib/services/daily-part.service";
 import { useTimeclock } from "@/lib/hooks/useTimeclock";
+
+const LATE_THRESHOLD_MINS = 11;
+const LATE_DIALOG_STORAGE_KEY = "late-arrival-dialog-shown-date";
+
+function todayStr(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function formatMinutesLabel(mins: number): string {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${m} minutos`;
+}
 
 function decodeJWT(token: string): any {
   try {
@@ -35,6 +50,7 @@ export default function Navbar() {
   const [isLate, setIsLate] = useState<boolean>(false);
   const [hourInDiffMins, setHourInDiffMins] = useState<number>(0);
   const [showHLMenu, setShowHLMenu] = useState(false);
+  const [showLateDialog, setShowLateDialog] = useState(false);
   const { groups: timeclockGroups, search: searchTimeclock } = useTimeclock();
   const fichadas = timeclockGroups[0]?.records ?? [];
 
@@ -45,8 +61,18 @@ export default function Navbar() {
         if (row?.working?.hour_in && row?.working?.hour_out) {
           setHorario({ in: row.working.hour_in, out: row.working.hour_out });
         }
-        setIsLate(row?.is_late === 1);
-        setHourInDiffMins(row?.hour_in_diff ?? 0);
+        const late = row?.is_late === 1;
+        const diffMins = row?.hour_in_diff ?? 0;
+        setIsLate(late);
+        setHourInDiffMins(diffMins);
+
+        if (late && diffMins >= LATE_THRESHOLD_MINS) {
+          const today = todayStr();
+          if (localStorage.getItem(LATE_DIALOG_STORAGE_KEY) !== today) {
+            localStorage.setItem(LATE_DIALOG_STORAGE_KEY, today);
+            setShowLateDialog(true);
+          }
+        }
       })
       .catch(() => {});
   }
@@ -441,6 +467,57 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
+      {/* Late arrival warning dialog */}
+      <Dialog
+        header={
+          <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff4e6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-exclamation-triangle" style={{ color: "#fd7e14", fontSize: "1rem" }} />
+            </div>
+            <div>
+              <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Llegada tardía</p>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Fichada de hoy</small>
+            </div>
+          </div>
+        }
+        visible={showLateDialog}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(440px, 92vw)" }}
+        onHide={() => setShowLateDialog(false)}
+        footer={
+          <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+            <Link
+              href="/main/absence-notices"
+              onClick={() => setShowLateDialog(false)}
+              className="btn btn-primary d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+            >
+              <i className="pi pi-external-link" style={{ fontSize: "0.78rem" }} />
+              Ir a Avisos
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowLateDialog(false)}
+              className="btn btn-light text-muted ml-auto"
+              style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+            >
+              Desestimar
+            </button>
+          </div>
+        }
+      >
+        <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
+          Llegaste <strong>{formatMinutesLabel(hourInDiffMins)}</strong> tarde. Recordá generar el aviso correspondiente a Recursos Humanos por tu llegada tarde.
+        </p>
+        <p style={{ fontSize: "0.82rem", color: "#94a3b8", margin: "10px 0 0" }}>
+          Si ya realizaste el aviso correspondiente, podés desestimar este mensaje.
+        </p>
+      </Dialog>
     </>
   );
 }
