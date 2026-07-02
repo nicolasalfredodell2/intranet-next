@@ -1,27 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { Calendar } from "primereact/calendar";
-import { addLocale } from "primereact/api";
 import { useTimeclock } from "@/lib/hooks/useTimeclock";
 import TimeclockTimelineChart from "./TimeclockTimelineChart";
 
-addLocale("es", {
-  firstDayOfWeek: 1,
-  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
-  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
-  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
-  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
-  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
-  today: "Hoy",
-  clear: "Limpiar",
-});
-
-function toDateInputValue(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+function subtractDays(dateStr: string, days: number): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  d.setDate(d.getDate() - days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
 }
 
 function formatGroupTitle(dateStr: string): string {
@@ -50,11 +39,9 @@ function SkeletonBlocks() {
 }
 
 export default function IncomePage() {
-  const { fromDate, setFromDate, toDate, setToDate, groups, loading, error, search, today } = useTimeclock();
+  const { groups, loading, error, search, today } = useTimeclock();
 
-  useEffect(() => { search(); }, []);
-
-  const totalRecords = groups.reduce((acc, g) => acc + g.records.length, 0);
+  useEffect(() => { search(subtractDays(today, 6), today); }, []);
 
   return (
     <div className="fadeIn animated">
@@ -67,80 +54,25 @@ export default function IncomePage() {
           </div>
           <div className="flex-grow-1">
             <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Fichadas Diarias</h5>
-            <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Consultá tus fichadas de entrada y salida</small>
+            <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Tus fichadas de entrada y salida de los últimos 7 días</small>
           </div>
         </div>
       </div>
 
-      {/* Filter card */}
-      <div className="card profile-card mt-4">
-        <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-          <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <i className="pi pi-search" style={{ color: "#3b82f6", fontSize: "1rem" }} />
-          </div>
-          <div className="flex-grow-1">
-            <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar fichadas</h5>
-            <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Rango máximo entre fechas de 7 días</small>
-          </div>
+      {error && (
+        <div className="fadeIn animated mt-4" style={{ padding: "10px 14px", borderRadius: "10px", background: "rgba(220,53,69,0.07)", border: "1px solid rgba(220,53,69,0.22)", color: "#dc3545", fontSize: "0.85rem", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px" }}>
+          <i className="pi pi-exclamation-circle" style={{ flexShrink: 0 }} />
+          {error}
         </div>
-        <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
-        <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-          <div className="d-flex flex-wrap align-items-end" style={{ gap: "12px" }}>
-            <div style={{ minWidth: 180 }}>
-              <label className="profile-field-label">Desde</label>
-              <div className="license-filter-input-wrap">
-                <i className="pi pi-calendar license-filter-icon" />
-                <Calendar
-                  value={fromDate ? new Date(`${fromDate}T00:00:00`) : null}
-                  onChange={(e) => setFromDate(e.value ? toDateInputValue(e.value as Date) : "")}
-                  dateFormat="dd/mm/yy"
-                  locale="es"
-                  showButtonBar
-                  maxDate={new Date(`${today}T00:00:00`)}
-                  placeholder="Desde"
-                  className="license-filter-dropdown"
-                  panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
-                />
-              </div>
-            </div>
-            <div style={{ minWidth: 180 }}>
-              <label className="profile-field-label">Hasta</label>
-              <div className="license-filter-input-wrap">
-                <i className="pi pi-calendar license-filter-icon" />
-                <Calendar
-                  value={toDate ? new Date(`${toDate}T00:00:00`) : null}
-                  onChange={(e) => setToDate(e.value ? toDateInputValue(e.value as Date) : "")}
-                  dateFormat="dd/mm/yy"
-                  locale="es"
-                  showButtonBar
-                  disabled={!fromDate}
-                  maxDate={new Date(`${today}T00:00:00`)}
-                  placeholder="Hasta"
-                  className="license-filter-dropdown"
-                  panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
-                />
-              </div>
-            </div>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => search()}
-              className="btn btn-primary d-flex align-items-center"
-              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem", height: 38 }}
-            >
-              <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-search"} style={{ fontSize: "0.78rem" }} />
-              {loading ? "Buscando..." : "Buscar"}
-            </button>
-          </div>
+      )}
 
-          {error && (
-            <div className="fadeIn animated mt-3" style={{ padding: "10px 14px", borderRadius: "10px", background: "rgba(220,53,69,0.07)", border: "1px solid rgba(220,53,69,0.22)", color: "#dc3545", fontSize: "0.85rem", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px" }}>
-              <i className="pi pi-exclamation-circle" style={{ flexShrink: 0 }} />
-              {error}
-            </div>
-          )}
+      {loading && (
+        <div className="card profile-card mt-4">
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            <SkeletonBlocks />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Workday timeline chart */}
       {!loading && <TimeclockTimelineChart groups={groups} />}
