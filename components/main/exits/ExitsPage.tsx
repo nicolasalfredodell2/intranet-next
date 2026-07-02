@@ -623,9 +623,27 @@ export default function ExitsPage() {
       <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
       </div>
-      <div>
+      <div className="flex-grow-1" style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar salida</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{itemSelected?.lastname_name ?? ""}</small>
+        {itemSelected?.departure_hour && (
+          <div className="d-flex align-items-center" style={{ gap: "6px", flexWrap: "wrap", marginTop: "6px" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "20px", padding: "3px 10px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+              <i className="pi pi-calendar" style={{ fontSize: "0.65rem" }} />
+              {formatDateOnly(itemSelected.departure_hour)}
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(220,53,69,0.08)", color: "#dc3545", borderRadius: "20px", padding: "3px 10px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+              <i className="pi pi-arrow-up" style={{ fontSize: "0.62rem" }} />
+              {formatTimeOnly(itemSelected.departure_hour)}
+            </span>
+            {itemSelected.arrival_hour && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(5,150,105,0.1)", color: "#059669", borderRadius: "20px", padding: "3px 10px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+                <i className="pi pi-arrow-down" style={{ fontSize: "0.62rem" }} />
+                {formatTimeOnly(itemSelected.arrival_hour)}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
