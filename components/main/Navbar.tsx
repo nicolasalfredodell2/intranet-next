@@ -275,7 +275,7 @@ export default function Navbar() {
                                     fontSize: "0.82rem",
                                     color: isFirst ? firstColor : isLastItem ? "#4a6cf7" : "#2f3d4a",
                                     fontWeight: isFirst || isLastItem ? 600 : 400,
-                                    background: isFirst ? firstBg : isLastItem && !isFirst ? "#f5f7ff" : "transparent",
+                                    background: f.host === "RF_OUT" ? "#fff5f5" : f.host === "RF_IN" ? "#f0fff4" : "transparent",
                                   }}>
                                     <i
                                       className={`pi ${f.host === "RF_OUT" ? "pi-arrow-up" : f.host === "RF_IN" ? "pi-arrow-down" : "pi-clock"}`}
@@ -290,9 +290,6 @@ export default function Navbar() {
                                         <span style={{ fontSize: "0.68rem", background: isLate ? "#ffe5e5" : "#e5ffe9", color: firstColor, borderRadius: "20px", padding: "1px 6px", fontWeight: 700, whiteSpace: "nowrap" }}>
                                           {diffLabel}
                                         </span>
-                                      )}
-                                      {!isFirst && isLastItem && (
-                                        <span style={{ fontSize: "0.68rem", background: "#eef1ff", color: "#4a6cf7", borderRadius: "20px", padding: "1px 6px", whiteSpace: "nowrap" }}>última</span>
                                       )}
                                     </div>
                                   </div>
