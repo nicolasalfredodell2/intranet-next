@@ -748,6 +748,16 @@ export default function ExitsPage() {
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Mis salidas</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Tus órdenes de salida</small>
             </div>
+            <button
+              type="button"
+              disabled={loadingExits}
+              onClick={loadExitsData}
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className={loadingExits ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+              Recargar
+            </button>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
@@ -956,6 +966,16 @@ export default function ExitsPage() {
               <span style={{ background: "rgba(234,179,8,0.14)", color: "#a16207", borderRadius: "20px", padding: "3px 10px", fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                 Administración
               </span>
+              <button
+                type="button"
+                disabled={loadingExitsAdmin}
+                onClick={() => loadExitsAdminData(adminFiltersRef.current)}
+                className="btn btn-light d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+              >
+                <i className={loadingExitsAdmin ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+                Recargar
+              </button>
               <button
                 type="button"
                 className="btn btn-primary d-flex align-items-center"
