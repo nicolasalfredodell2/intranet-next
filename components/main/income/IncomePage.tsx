@@ -43,9 +43,7 @@ export default function IncomePage() {
   const { groups, loading, error, search, today } = useTimeclock();
   const [workingHours, setWorkingHours] = useState<{ in: string; out: string } | null>(null);
 
-  useEffect(() => { search(subtractDays(today, 6), today); }, []);
-
-  useEffect(() => {
+  function loadWorkingHours() {
     loadDailyPart({ user_authenticated: true })
       .then((resp) => {
         const row = Object.values(resp[0])[0] as any;
@@ -54,7 +52,14 @@ export default function IncomePage() {
         }
       })
       .catch(() => {});
-  }, []);
+  }
+
+  function reload() {
+    search(subtractDays(today, 6), today);
+    loadWorkingHours();
+  }
+
+  useEffect(() => { reload(); }, []);
 
   return (
     <div className="fadeIn animated">
@@ -69,6 +74,16 @@ export default function IncomePage() {
             <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Fichadas Diarias</h5>
             <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Tus fichadas de entrada y salida de los últimos 7 días</small>
           </div>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={reload}
+            className="btn btn-light d-flex align-items-center"
+            style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+          >
+            <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+            Recargar
+          </button>
         </div>
       </div>
 

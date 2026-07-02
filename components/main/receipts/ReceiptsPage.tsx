@@ -268,6 +268,16 @@ export default function ReceiptsPage() {
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Recibos</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Historial de liquidaciones de haberes</small>
             </div>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => chargeReceipts()}
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+              Recargar
+            </button>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
