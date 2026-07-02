@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import { ProgressBar } from "primereact/progressbar";
-import { listAreas, createArea, modificateArea, deleteArea } from "@/lib/services/areas.service";
+import { listAreas, createArea, modificateArea, deleteArea, disableArea } from "@/lib/services/areas.service";
+import AreaInfoModal from "./AreaInfoModal";
 
 interface AreaForm { title: string; description: string; }
 
@@ -19,6 +20,10 @@ export default function AreasPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [areaToDelete, setAreaToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [showDisableModal, setShowDisableModal] = useState(false);
+  const [areaToDisable, setAreaToDisable] = useState<any>(null);
+  const [loadingDisable, setLoadingDisable] = useState(false);
+  const [areaForInfo, setAreaForInfo] = useState<any>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -85,6 +90,22 @@ export default function AreasPage() {
       toast.current?.show({ severity: "error", summary: "No se pudo eliminar el area" });
     } finally {
       setLoadingDelete(false);
+    }
+  }
+
+  async function confirmarDeshabilitacion() {
+    if (!areaToDisable) return;
+    setLoadingDisable(true);
+    try {
+      await disableArea(areaToDisable.id);
+      setAreas((prev) => prev.filter((a) => a.id !== areaToDisable.id));
+      toast.current?.show({ severity: "success", summary: "Area deshabilitada" });
+      setShowDisableModal(false);
+      setAreaToDisable(null);
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se pudo deshabilitar el area" });
+    } finally {
+      setLoadingDisable(false);
     }
   }
 
@@ -195,9 +216,15 @@ export default function AreasPage() {
                       <h5>{area.title}</h5>
                       <p className="text-muted">{area.description}</p>
                     </div>
-                    <div className="mt-auto pt-3 border-top d-flex justify-content-between">
+                    <div className="mt-auto pt-3 border-top d-flex flex-wrap justify-content-between" style={{ gap: "6px" }}>
+                      <button onClick={() => setAreaForInfo(area)} className="btn btn-sm btn-primary">
+                        <i className="mdi mdi-information-outline" /> Info
+                      </button>
                       <button onClick={() => llenarFormulario(area)} className="btn btn-sm btn-info">
                         <i className="mdi mdi-pencil-outline" /> Editar
+                      </button>
+                      <button onClick={() => { setAreaToDisable(area); setShowDisableModal(true); }} className="btn btn-sm btn-secondary">
+                        <i className="mdi mdi-eye-off-outline" /> Deshabilitar
                       </button>
                       <button onClick={() => { setAreaToDelete(area); setShowDeleteModal(true); }} className="btn btn-sm btn-danger">
                         <i className="mdi mdi-trash-can-outline" /> Borrar
@@ -246,6 +273,34 @@ export default function AreasPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Disable confirmation dialog */}
+      {showDisableModal && (
+        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 400 }}>
+            <div className="modal-content text-center p-4">
+              <i className="mdi mdi-alert-circle-outline text-info mb-3" style={{ fontSize: "3rem" }} />
+              <h4>¿Confirmar deshabilitación?</h4>
+              <p className="text-muted">Está a punto de deshabilitar el area <strong>&quot;{areaToDisable?.title}&quot;</strong>.</p>
+              <div className="row g-2 mt-4">
+                <div className="col-6">
+                  <button disabled={loadingDisable} className="btn btn-light w-100" onClick={() => { setShowDisableModal(false); setAreaToDisable(null); }}>Cancelar</button>
+                </div>
+                <div className="col-6">
+                  <button disabled={loadingDisable} className="btn btn-info w-100" onClick={confirmarDeshabilitacion}>
+                    {loadingDisable ? "Deshabilitando..." : "Sí, deshabilitar"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Area info dialog */}
+      {areaForInfo && (
+        <AreaInfoModal area={areaForInfo} onClose={() => setAreaForInfo(null)} />
       )}
     </>
   );

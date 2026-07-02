@@ -53,3 +53,33 @@ export async function deleteArea(id: string): Promise<any> {
   if (!res.ok) throw new Error("No se pudo eliminar el area");
   return res.json();
 }
+
+export async function disableArea(id: string): Promise<any> {
+  const res = await fetch(`${API}areas/${id}/disable`, { method: "PUT", headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudo deshabilitar el area");
+  return res.json();
+}
+
+export async function createAreaInfo(data: FormData, areaId: string): Promise<any> {
+  const res = await fetch(`${API}areas/${areaId}/info-areas`, { method: "POST", headers: authHeaders(), body: data });
+  if (!res.ok) throw new Error("No se pudo crear la información del area");
+  return res.json();
+}
+
+export async function modificateAreaInfo(data: FormData, areaId: string, infoId: string): Promise<any> {
+  const res = await fetch(`${API}areas/${areaId}/info-areas/${infoId}`, { method: "POST", headers: authHeaders(), body: data });
+  if (!res.ok) throw new Error("No se pudo modificar la información del area");
+  return res.json();
+}
+
+export async function deleteAreaInfoImage(areaId: string, infoId: string, imageId: string): Promise<any> {
+  const res = await fetch(`${API}areas/${areaId}/info-areas/${infoId}/image/${imageId}`, { method: "DELETE", headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudo eliminar la imagen");
+  return res.json();
+}
+
+export async function deleteAreaInfoVideo(areaId: string, infoId: string, videoId: string): Promise<any> {
+  const res = await fetch(`${API}areas/${areaId}/info-areas/${infoId}/video/${videoId}`, { method: "DELETE", headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudo eliminar el video");
+  return res.json();
+}
