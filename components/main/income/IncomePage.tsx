@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTimeclock } from "@/lib/hooks/useTimeclock";
+import { loadDailyPart } from "@/lib/services/daily-part.service";
 import TimeclockTimelineChart from "./TimeclockTimelineChart";
 
 function subtractDays(dateStr: string, days: number): string {
@@ -40,8 +41,20 @@ function SkeletonBlocks() {
 
 export default function IncomePage() {
   const { groups, loading, error, search, today } = useTimeclock();
+  const [workingHours, setWorkingHours] = useState<{ in: string; out: string } | null>(null);
 
   useEffect(() => { search(subtractDays(today, 6), today); }, []);
+
+  useEffect(() => {
+    loadDailyPart({ user_authenticated: true })
+      .then((resp) => {
+        const row = Object.values(resp[0])[0] as any;
+        if (row?.working?.hour_in && row?.working?.hour_out) {
+          setWorkingHours({ in: row.working.hour_in, out: row.working.hour_out });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="fadeIn animated">
@@ -75,7 +88,7 @@ export default function IncomePage() {
       )}
 
       {/* Workday timeline chart */}
-      {!loading && <TimeclockTimelineChart groups={groups} />}
+      {!loading && <TimeclockTimelineChart groups={groups} workingHours={workingHours} />}
 
       {/* One card per date */}
       {!loading && groups.map((group) => (

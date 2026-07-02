@@ -12,6 +12,8 @@ const COLOR_INCOMPLETE = "#94a3b8";
 const COLOR_INCOMPLETE_BG = "rgba(148,163,184,0.18)";
 const COLOR_TEMP_EXIT = "#f59e0b";
 const COLOR_TEMP_RETURN = "#8b5cf6";
+const COLOR_WORK_IN = "#059669";
+const COLOR_WORK_OUT = "#dc3545";
 
 const TEMP_EXIT_TYPE = 2;
 const TEMP_RETURN_TYPE = 3;
@@ -75,6 +77,28 @@ function extractTempMarkers(group: TimeclockGroup): TempMarker[] {
     .filter((m): m is TempMarker => m.minutes != null);
 }
 
+interface WorkingHours {
+  in: string;
+  out: string;
+}
+
+function drawScheduleLine(ctx: CanvasRenderingContext2D, x: number, top: number, bottom: number, color: string, label: string) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.moveTo(x, top);
+  ctx.lineTo(x, bottom);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.font = "700 9px sans-serif";
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.fillText(label, x, top + 10);
+  ctx.restore();
+}
+
 function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, color: string) {
   const r = 4.5;
   ctx.beginPath();
@@ -90,7 +114,7 @@ function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, color:
   ctx.stroke();
 }
 
-export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGroup[] }) {
+export default function TimeclockTimelineChart({ groups, workingHours }: { groups: TimeclockGroup[]; workingHours?: WorkingHours | null }) {
   if (groups.length === 0) return null;
 
   // Most recent date first, same order as groups (and the per-day cards below).
@@ -98,6 +122,9 @@ export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGr
   const summaries = orderedGroups.map(summarizeDay);
   const spans = summaries.map(toBarSpan);
   const tempMarkersByDay = orderedGroups.map(extractTempMarkers);
+
+  const hourInMinutes = workingHours ? timeToMinutes(workingHours.in) : null;
+  const hourOutMinutes = workingHours ? timeToMinutes(workingHours.out) : null;
 
   const tempMarkersPlugin: Plugin<"bar"> = {
     id: "tempMarkers",
@@ -118,7 +145,25 @@ export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGr
     },
   };
 
-  const allMinutes = summaries.flatMap((s) => [s.entryMinutes, s.exitMinutes]).filter((v): v is number => v != null);
+  const workingHoursPlugin: Plugin<"bar"> = {
+    id: "workingHours",
+    beforeDatasetsDraw(chart) {
+      const { ctx, chartArea, scales } = chart;
+      const xScale = scales.x;
+      if (!xScale || !chartArea) return;
+      if (hourInMinutes != null) {
+        drawScheduleLine(ctx, xScale.getPixelForValue(hourInMinutes), chartArea.top, chartArea.bottom, COLOR_WORK_IN, "Ingreso");
+      }
+      if (hourOutMinutes != null) {
+        drawScheduleLine(ctx, xScale.getPixelForValue(hourOutMinutes), chartArea.top, chartArea.bottom, COLOR_WORK_OUT, "Salida");
+      }
+    },
+  };
+
+  const allMinutes = summaries
+    .flatMap((s) => [s.entryMinutes, s.exitMinutes])
+    .concat([hourInMinutes, hourOutMinutes])
+    .filter((v): v is number => v != null);
   const dataMin = allMinutes.length ? Math.min(...allMinutes) : DEFAULT_MIN_MINUTES;
   const dataMax = allMinutes.length ? Math.max(...allMinutes) : DEFAULT_MAX_MINUTES;
   const xMin = Math.floor(Math.min(DEFAULT_MIN_MINUTES, dataMin - 30) / 60) * 60;
@@ -210,7 +255,7 @@ export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGr
       <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
       <div className="card-body" style={{ padding: "16px 20px 20px" }}>
         <div style={{ height: Math.max(120, summaries.length * 42), width: "100%" }}>
-          <Bar data={chartData} options={chartOptions} plugins={[tempMarkersPlugin]} />
+          <Bar data={chartData} options={chartOptions} plugins={[workingHoursPlugin, tempMarkersPlugin]} />
         </div>
         <div className="d-flex align-items-center mt-3" style={{ gap: "16px", flexWrap: "wrap" }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#64748b" }}>
@@ -229,6 +274,18 @@ export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGr
             <span style={{ width: 9, height: 9, background: COLOR_TEMP_RETURN, display: "inline-block", transform: "rotate(45deg)" }} />
             Regreso temporal
           </span>
+          {workingHours && (
+            <>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#64748b" }}>
+                <span style={{ width: 14, height: 0, borderTop: `1.5px dashed ${COLOR_WORK_IN}`, display: "inline-block" }} />
+                Ingreso laboral
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.75rem", color: "#64748b" }}>
+                <span style={{ width: 14, height: 0, borderTop: `1.5px dashed ${COLOR_WORK_OUT}`, display: "inline-block" }} />
+                Salida laboral
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>
