@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { getAreaInfo, createAreaInfo, modificateAreaInfo, deleteAreaInfoImage, deleteAreaInfoVideo } from "@/lib/services/areas.service";
 
@@ -57,14 +58,6 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
       } catch { /* ignore */ }
     };
   }, [editorReady]);
-
-  useEffect(() => {
-    function handleEscape(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [onClose]);
 
   function startInterval() {
     intervalRef.current = setInterval(() => {
@@ -155,8 +148,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
     }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit() {
     setTouched(true);
 
     let text = "";
@@ -197,212 +189,237 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
     }
   }
 
+  const dialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-info-circle" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Información del área</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{area.title}</small>
+      </div>
+    </div>
+  );
+
+  const dialogFooter = (
+    <div>
+      <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+        <button
+          type="button"
+          disabled={loadingAction}
+          onClick={handleSubmit}
+          className="btn btn-primary d-flex align-items-center"
+          style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+        >
+          <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+          {infoArea
+            ? (loadingAction ? "Guardando..." : "Guardar cambios")
+            : (loadingAction ? "Creando..." : "Crear")}
+        </button>
+        <button
+          type="button"
+          disabled={loadingAction}
+          onClick={onClose}
+          className="btn btn-light text-muted ml-auto"
+          style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+        >
+          Cancelar
+        </button>
+      </div>
+      {loadingAction && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+    </div>
+  );
+
   return (
     <>
       <Toast ref={toast} position="bottom-center" />
-      <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
-        <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 760 }}>
-          <div className="modal-content" style={{ maxHeight: "90vh" }}>
-            <div className="modal-header">
-              <h5 className="mb-0">
-                Información del área: <span className="text-primary">{area.title}</span>
-              </h5>
-              <button type="button" className="close" onClick={onClose} aria-label="Cerrar">
-                <span aria-hidden="true">&times;</span>
-              </button>
+      <Dialog
+        header={dialogHeader}
+        visible
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(760px, 94vw)" }}
+        onHide={onClose}
+        footer={loading ? undefined : dialogFooter}
+      >
+        {loading ? (
+          <div className="text-center py-5">
+            <i className="pi pi-spin pi-spinner mr-2" /> Cargando información del área...
+          </div>
+        ) : (
+          <div style={{ maxHeight: "65vh", overflowY: "auto" }}>
+            {!infoArea && (
+              <div
+                className="animated fadeIn"
+                style={{ background: "rgba(74,108,247,0.07)", border: "1px solid rgba(74,108,247,0.20)", borderRadius: "10px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px", fontSize: "0.84rem", color: "#4a6cf7", fontWeight: 500 }}
+              >
+                <i className="pi pi-info-circle" style={{ flexShrink: 0 }} />
+                Esta área no tiene información creada. Completá el formulario para crearla.
+              </div>
+            )}
+
+            <div className="row">
+              <div className="col-12 col-md-6 mb-3">
+                <label className="profile-field-label">Título *</label>
+                <input
+                  className="profile-input"
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                />
+                {touched && !form.title && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+              </div>
+              <div className="col-12 col-md-6 mb-3">
+                <label className="profile-field-label">Introducción *</label>
+                <input
+                  className="profile-input"
+                  type="text"
+                  value={form.introduction}
+                  onChange={(e) => setForm((p) => ({ ...p, introduction: e.target.value }))}
+                />
+                {touched && !form.introduction && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+              </div>
             </div>
 
-            {loading ? (
-              <div className="modal-body text-center py-5">
-                <i className="pi pi-spin pi-spinner mr-2" /> Cargando información del área...
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} noValidate>
-                <div className="modal-body" style={{ maxHeight: "65vh", overflowY: "auto" }}>
-                  {!infoArea && (
-                    <div className="alert alert-info d-flex align-items-start" style={{ gap: 8 }}>
-                      <i className="mdi mdi-information-outline" />
-                      <div>
-                        <strong>Esta área no tiene información creada.</strong><br />
-                        Por favor, complete el siguiente formulario para crearla.
-                      </div>
+            <div className="mb-3">
+              <label className="profile-field-label">Texto *</label>
+              <textarea id="mymce" />
+              {touched && !form.text && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+
+            <div className="row mt-2">
+              <div className="col-12 col-xl-6 mb-3">
+                <p className="profile-section-sub mb-2">Gestión de imágenes</p>
+                {existingImages.length > 0 && (
+                  <div className="mb-2">
+                    <small className="text-muted d-block mb-2">Imágenes subidas:</small>
+                    <div className="d-flex flex-wrap" style={{ gap: 8 }}>
+                      {existingImages.map((image) => (
+                        <div key={image.id} className="position-relative d-inline-block">
+                          <img
+                            className="rounded border"
+                            style={{ width: 90, height: 90, objectFit: "cover" }}
+                            src={image.url}
+                            alt="Imagen del área"
+                          />
+                          {!isDeletingMedia && (
+                            <button
+                              type="button"
+                              className="btn btn-danger btn-sm rounded-circle position-absolute"
+                              style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }}
+                              onClick={() => handleDeleteImage(image)}
+                              title="Eliminar imagen"
+                            >×</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div
+                  className={`dropzone-area${imageDragOver ? " drag-over" : ""}`}
+                  onDragOver={(e) => { e.preventDefault(); setImageDragOver(true); }}
+                  onDragLeave={() => setImageDragOver(false)}
+                  onDrop={(e) => { e.preventDefault(); setImageDragOver(false); handleImageFiles(e.dataTransfer.files); }}
+                  onClick={() => imageInputRef.current?.click()}
+                >
+                  <p className="text-center text-muted mb-2">Seleccione o arrastre imágenes</p>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                    style={{ display: "none" }}
+                    onChange={(e) => { if (e.target.files) handleImageFiles(e.target.files); }}
+                  />
+                  {imagesFiles.length > 0 && (
+                    <div className="d-flex flex-wrap mt-2" style={{ gap: 8 }}>
+                      {imagesFiles.map((f, i) => (
+                        <div key={i} className="position-relative d-inline-block">
+                          <img
+                            src={URL.createObjectURL(f)}
+                            alt={f.name}
+                            style={{ width: 70, height: 70, objectFit: "cover", borderRadius: 4 }}
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm rounded-circle position-absolute"
+                            style={{ top: 2, right: 2, width: 20, height: 20, padding: 0, fontSize: 9 }}
+                            onClick={(e) => { e.stopPropagation(); setImagesFiles((p) => p.filter((_, j) => j !== i)); }}
+                          >×</button>
+                        </div>
+                      ))}
                     </div>
                   )}
+                </div>
+              </div>
 
-                  <div className="form-group">
-                    <label><small>Título *</small></label>
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      value={form.title}
-                      onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                    />
-                    {touched && !form.title && <small className="text-danger animated fadeIn d-block">* Campo obligatorio</small>}
-                  </div>
-
-                  <div className="form-group">
-                    <label><small>Introducción *</small></label>
-                    <input
-                      type="text"
-                      className="form-control form-control-sm"
-                      value={form.introduction}
-                      onChange={(e) => setForm((p) => ({ ...p, introduction: e.target.value }))}
-                    />
-                    {touched && !form.introduction && <small className="text-danger animated fadeIn d-block">* Campo obligatorio</small>}
-                  </div>
-
-                  <div className="form-group">
-                    <label><small>Texto *</small></label>
-                    <textarea id="mymce" />
-                    {touched && !form.text && <small className="text-danger animated fadeIn d-block">* Campo obligatorio</small>}
-                  </div>
-
-                  <div className="row mt-4">
-                    <div className="col-12 col-xl-6 mb-4">
-                      <h6>Gestión de Imágenes</h6>
-                      {existingImages.length > 0 && (
-                        <div className="mb-2">
-                          <small className="text-muted d-block mb-2">Imágenes subidas:</small>
-                          <div className="d-flex flex-wrap" style={{ gap: 8 }}>
-                            {existingImages.map((image) => (
-                              <div key={image.id} className="position-relative d-inline-block">
-                                <img
-                                  className="rounded border"
-                                  style={{ width: 90, height: 90, objectFit: "cover" }}
-                                  src={image.url}
-                                  alt="Imagen del área"
-                                />
-                                {!isDeletingMedia && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-danger btn-sm rounded-circle position-absolute"
-                                    style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }}
-                                    onClick={() => handleDeleteImage(image)}
-                                    title="Eliminar imagen"
-                                  >×</button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
+              <div className="col-12 col-xl-6 mb-3">
+                <p className="profile-section-sub mb-2">Gestión de videos</p>
+                {existingVideos.length > 0 && (
+                  <div className="mb-2">
+                    <small className="text-muted d-block mb-2">Videos subidos:</small>
+                    <div className="d-flex flex-wrap" style={{ gap: 8 }}>
+                      {existingVideos.map((video) => (
+                        <div key={video.id} className="position-relative d-inline-block">
+                          <video className="rounded border" style={{ width: 140, height: 90, objectFit: "cover" }} controls>
+                            <source src={video.url} type="video/mp4" />
+                          </video>
+                          {!isDeletingMedia && (
+                            <button
+                              type="button"
+                              className="btn btn-danger btn-sm rounded-circle position-absolute"
+                              style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }}
+                              onClick={() => handleDeleteVideo(video)}
+                              title="Eliminar video"
+                            >×</button>
+                          )}
                         </div>
-                      )}
-                      <div
-                        className={`dropzone-area${imageDragOver ? " drag-over" : ""}`}
-                        onDragOver={(e) => { e.preventDefault(); setImageDragOver(true); }}
-                        onDragLeave={() => setImageDragOver(false)}
-                        onDrop={(e) => { e.preventDefault(); setImageDragOver(false); handleImageFiles(e.dataTransfer.files); }}
-                        onClick={() => imageInputRef.current?.click()}
-                      >
-                        <p className="text-center text-muted mb-2">Seleccione o arrastre imágenes</p>
-                        <input
-                          ref={imageInputRef}
-                          type="file"
-                          multiple
-                          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                          style={{ display: "none" }}
-                          onChange={(e) => { if (e.target.files) handleImageFiles(e.target.files); }}
-                        />
-                        {imagesFiles.length > 0 && (
-                          <div className="d-flex flex-wrap mt-2" style={{ gap: 8 }}>
-                            {imagesFiles.map((f, i) => (
-                              <div key={i} className="position-relative d-inline-block">
-                                <img
-                                  src={URL.createObjectURL(f)}
-                                  alt={f.name}
-                                  style={{ width: 70, height: 70, objectFit: "cover", borderRadius: 4 }}
-                                />
-                                <button
-                                  type="button"
-                                  className="btn btn-danger btn-sm rounded-circle position-absolute"
-                                  style={{ top: 2, right: 2, width: 20, height: 20, padding: 0, fontSize: 9 }}
-                                  onClick={(e) => { e.stopPropagation(); setImagesFiles((p) => p.filter((_, j) => j !== i)); }}
-                                >×</button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="col-12 col-xl-6 mb-4">
-                      <h6>Gestión de Videos</h6>
-                      {existingVideos.length > 0 && (
-                        <div className="mb-2">
-                          <small className="text-muted d-block mb-2">Videos subidos:</small>
-                          <div className="d-flex flex-wrap" style={{ gap: 8 }}>
-                            {existingVideos.map((video) => (
-                              <div key={video.id} className="position-relative d-inline-block">
-                                <video className="rounded border" style={{ width: 140, height: 90, objectFit: "cover" }} controls>
-                                  <source src={video.url} type="video/mp4" />
-                                </video>
-                                {!isDeletingMedia && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-danger btn-sm rounded-circle position-absolute"
-                                    style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }}
-                                    onClick={() => handleDeleteVideo(video)}
-                                    title="Eliminar video"
-                                  >×</button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <div
-                        className={`dropzone-area${videoDragOver ? " drag-over" : ""}`}
-                        onDragOver={(e) => { e.preventDefault(); setVideoDragOver(true); }}
-                        onDragLeave={() => setVideoDragOver(false)}
-                        onDrop={(e) => { e.preventDefault(); setVideoDragOver(false); handleVideoFiles(e.dataTransfer.files); }}
-                        onClick={() => videoInputRef.current?.click()}
-                      >
-                        <p className="text-center text-muted mb-2">Seleccione o arrastre videos</p>
-                        <input
-                          ref={videoInputRef}
-                          type="file"
-                          multiple
-                          accept="video/mp4,video/webm,video/ogg"
-                          style={{ display: "none" }}
-                          onChange={(e) => { if (e.target.files) handleVideoFiles(e.target.files); }}
-                        />
-                        {videosFiles.length > 0 && (
-                          <div className="mt-2">
-                            {videosFiles.map((f, i) => (
-                              <div key={i} className="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1">
-                                <small className="text-truncate" style={{ maxWidth: 200 }}>{f.name}</small>
-                                <button
-                                  type="button"
-                                  className="btn btn-link text-danger btn-sm p-0"
-                                  onClick={(e) => { e.stopPropagation(); setVideosFiles((p) => p.filter((_, j) => j !== i)); }}
-                                >
-                                  <i className="mdi mdi-close" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      ))}
                     </div>
                   </div>
-
-                  {loadingAction && <ProgressBar mode="indeterminate" style={{ height: "6px" }} />}
+                )}
+                <div
+                  className={`dropzone-area${videoDragOver ? " drag-over" : ""}`}
+                  onDragOver={(e) => { e.preventDefault(); setVideoDragOver(true); }}
+                  onDragLeave={() => setVideoDragOver(false)}
+                  onDrop={(e) => { e.preventDefault(); setVideoDragOver(false); handleVideoFiles(e.dataTransfer.files); }}
+                  onClick={() => videoInputRef.current?.click()}
+                >
+                  <p className="text-center text-muted mb-2">Seleccione o arrastre videos</p>
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    multiple
+                    accept="video/mp4,video/webm,video/ogg"
+                    style={{ display: "none" }}
+                    onChange={(e) => { if (e.target.files) handleVideoFiles(e.target.files); }}
+                  />
+                  {videosFiles.length > 0 && (
+                    <div className="mt-2">
+                      {videosFiles.map((f, i) => (
+                        <div key={i} className="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1">
+                          <small className="text-truncate" style={{ maxWidth: 200 }}>{f.name}</small>
+                          <button
+                            type="button"
+                            className="btn btn-link text-danger btn-sm p-0"
+                            onClick={(e) => { e.stopPropagation(); setVideosFiles((p) => p.filter((_, j) => j !== i)); }}
+                          >
+                            <i className="mdi mdi-close" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-light" disabled={loadingAction} onClick={onClose}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn btn-primary" disabled={loadingAction}>
-                    {infoArea
-                      ? (loadingAction ? "Guardando..." : "Guardar cambios")
-                      : (loadingAction ? "Creando..." : "Crear")}
-                  </button>
-                </div>
-              </form>
-            )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        )}
+      </Dialog>
     </>
   );
 }
