@@ -42,11 +42,19 @@ export async function loadExitPDF(id: string | number): Promise<ArrayBuffer> {
   return res.arrayBuffer();
 }
 
-export async function loadExitOrdersAdmin(pagination: { limit: number; page: number }, filters?: any): Promise<any> {
-  let url = `${API}admin/all-exit-orders?limit=${pagination.limit}&page=${pagination.page}`;
-  if (filters?.user_id) url += `&user_id=${filters.user_id}`;
-  if (filters?.month_exit_order) url += `&month_exit_order=${filters.month_exit_order}`;
-  const res = await fetch(url, { method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" }, body: JSON.stringify(pagination) });
+export async function loadExitOrdersAdmin(
+  pagination: { limit: number; page: number },
+  filters?: { status?: string; type?: string; user_lastname?: string }
+): Promise<any> {
+  const url = `${API}admin/all-exit-orders?limit=${pagination.limit}&page=${pagination.page}`;
+  const body = {
+    limit: pagination.limit,
+    page: pagination.page,
+    status: filters?.status ?? "",
+    type: filters?.type ?? "",
+    user_lastname: filters?.user_lastname ?? "",
+  };
+  const res = await fetch(url, { method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error("No se pudieron cargar las salidas");
   return res.json();
 }
