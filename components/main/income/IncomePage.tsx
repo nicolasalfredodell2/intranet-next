@@ -175,6 +175,7 @@ export default function IncomePage() {
                   </div>
                   <div className="flex-grow-1" style={{ minWidth: 0 }}>
                     <p className="mb-0" style={{ fontSize: "0.85rem", fontWeight: 600, color: "#1e293b" }}>{r.title}</p>
+                    <small style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{r.hostLabel}</small>
                   </div>
                   <span style={{ fontSize: "0.82rem", fontWeight: 700, color: r.isEntry ? "#059669" : "#dc3545", whiteSpace: "nowrap" }}>
                     {r.time}

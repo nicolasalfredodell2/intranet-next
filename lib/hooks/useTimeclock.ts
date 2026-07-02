@@ -34,6 +34,7 @@ export interface TimeclockRecordView {
   typeId: number;
   title: string;
   isEntry: boolean;
+  hostLabel: string;
 }
 
 export interface TimeclockGroup {
@@ -124,14 +125,21 @@ function belongsToCurrentUser(record: TimeclockRecord, profile: UserProfile | nu
 
 function formatDisplayTime(record: TimeclockRecord): string {
   const raw = record.hours ?? record.datetime ?? record.created_at ?? record.time;
-  if (!raw) return "--:--";
-  if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(String(raw))) {
-    const [h, m] = String(raw).split(":");
-    return `${h.padStart(2, "0")}:${m}`;
+  if (!raw) return "--:--:--";
+  const simpleMatch = String(raw).match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (simpleMatch) {
+    const [, h, m, s] = simpleMatch;
+    return `${h.padStart(2, "0")}:${m}:${s ?? "00"}`;
   }
   const date = new Date(String(raw));
   if (isNaN(date.getTime())) return String(raw);
-  return date.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return date.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+}
+
+function hostLabel(host: unknown): string {
+  if (host === "RF_IN") return "Reloj externo";
+  if (host === "RF_OUT") return "Reloj interno";
+  return "Origen desconocido";
 }
 
 function toRecordView(record: TimeclockRecord): TimeclockRecordView {
@@ -144,6 +152,7 @@ function toRecordView(record: TimeclockRecord): TimeclockRecordView {
     typeId,
     title: TYPE_LABELS[typeId] ?? (isEntry ? "Entrada" : "Salida"),
     isEntry,
+    hostLabel: hostLabel(record.host),
   };
 }
 
