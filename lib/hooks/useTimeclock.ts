@@ -155,7 +155,7 @@ function groupByDate(records: TimeclockRecordView[]): TimeclockGroup[] {
   }
   const groups: TimeclockGroup[] = Array.from(map.entries()).map(([date, recs]) => ({
     date,
-    records: recs.slice().sort((a, b) => b.time.localeCompare(a.time)),
+    records: recs.slice().sort((a, b) => a.time.localeCompare(b.time)),
   }));
   groups.sort((a, b) => b.date.localeCompare(a.date));
   return groups;

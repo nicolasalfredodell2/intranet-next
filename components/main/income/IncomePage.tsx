@@ -163,41 +163,53 @@ export default function IncomePage() {
             </div>
           )}
 
-          {!loading && groups.map((group) => (
-            <div key={group.date} className="fadeIn animated" style={{ marginBottom: "18px" }}>
-              <p style={{ margin: "0 0 8px", fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8" }}>
-                {formatGroupTitle(group.date)}
-              </p>
-              <div className="d-flex flex-column" style={{ gap: "6px" }}>
-                {group.records.map((r) => (
-                  <div
-                    key={r.id}
-                    className="d-flex align-items-center"
-                    style={{
-                      gap: "10px",
-                      padding: "9px 12px",
-                      borderRadius: "10px",
-                      background: r.isEntry ? "rgba(5,150,105,0.07)" : "rgba(220,53,69,0.06)",
-                      border: `1px solid ${r.isEntry ? "rgba(5,150,105,0.18)" : "rgba(220,53,69,0.15)"}`,
-                    }}
-                  >
-                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: r.isEntry ? "rgba(5,150,105,0.15)" : "rgba(220,53,69,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <i className={`pi ${r.isEntry ? "pi-arrow-down" : "pi-arrow-up"}`} style={{ color: r.isEntry ? "#059669" : "#dc3545", fontSize: "0.78rem" }} />
-                    </div>
-                    <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                      <p className="mb-0" style={{ fontSize: "0.85rem", fontWeight: 600, color: "#1e293b" }}>{r.title}</p>
-                    </div>
-                    <span style={{ fontSize: "0.82rem", fontWeight: 700, color: r.isEntry ? "#059669" : "#dc3545", whiteSpace: "nowrap" }}>
-                      {r.time}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-
         </div>
       </div>
+
+      {/* One card per date */}
+      {!loading && groups.map((group) => (
+        <div key={group.date} className="card profile-card mt-4 fadeIn animated">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-calendar" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>{formatGroupTitle(group.date)}</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
+                {group.records.length} {group.records.length === 1 ? "fichada" : "fichadas"}
+              </small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            <div className="d-flex flex-column" style={{ gap: "6px" }}>
+              {group.records.map((r) => (
+                <div
+                  key={r.id}
+                  className="d-flex align-items-center"
+                  style={{
+                    gap: "10px",
+                    padding: "9px 12px",
+                    borderRadius: "10px",
+                    background: r.isEntry ? "rgba(5,150,105,0.07)" : "rgba(220,53,69,0.06)",
+                    border: `1px solid ${r.isEntry ? "rgba(5,150,105,0.18)" : "rgba(220,53,69,0.15)"}`,
+                  }}
+                >
+                  <div style={{ width: 30, height: 30, borderRadius: "50%", background: r.isEntry ? "rgba(5,150,105,0.15)" : "rgba(220,53,69,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <i className={`pi ${r.isEntry ? "pi-arrow-down" : "pi-arrow-up"}`} style={{ color: r.isEntry ? "#059669" : "#dc3545", fontSize: "0.78rem" }} />
+                  </div>
+                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                    <p className="mb-0" style={{ fontSize: "0.85rem", fontWeight: 600, color: "#1e293b" }}>{r.title}</p>
+                  </div>
+                  <span style={{ fontSize: "0.82rem", fontWeight: 700, color: r.isEntry ? "#059669" : "#dc3545", whiteSpace: "nowrap" }}>
+                    {r.time}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
