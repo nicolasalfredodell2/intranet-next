@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
 import { useTimeclock } from "@/lib/hooks/useTimeclock";
+import TimeclockTimelineChart from "./TimeclockTimelineChart";
 
 addLocale("es", {
   firstDayOfWeek: 1,
@@ -140,6 +141,9 @@ export default function IncomePage() {
           )}
         </div>
       </div>
+
+      {/* Workday timeline chart */}
+      {!loading && <TimeclockTimelineChart groups={groups} />}
 
       {/* One card per date */}
       {!loading && groups.map((group) => (

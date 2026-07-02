@@ -43,6 +43,16 @@ export interface TimeclockGroup {
   records: TimeclockRecordView[];
 }
 
+export interface TimeclockDaySummary {
+  date: string;
+  entryTime: string | null;
+  exitTime: string | null;
+  entryMinutes: number | null;
+  exitMinutes: number | null;
+  durationMinutes: number | null;
+  isComplete: boolean;
+}
+
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
 }
@@ -170,6 +180,34 @@ function groupByDate(records: TimeclockRecordView[]): TimeclockGroup[] {
   }));
   groups.sort((a, b) => b.date.localeCompare(a.date));
   return groups;
+}
+
+function timeToMinutes(time: string): number | null {
+  const match = time.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!match) return null;
+  const [, h, m] = match;
+  return Number(h) * 60 + Number(m);
+}
+
+/** Earliest entry and latest exit for a day, used to draw the workday timeline chart. */
+export function summarizeDay(group: TimeclockGroup): TimeclockDaySummary {
+  const firstEntry = group.records.find((r) => r.isEntry) ?? null;
+  const exits = group.records.filter((r) => !r.isEntry);
+  const lastExit = exits.length > 0 ? exits[exits.length - 1] : null;
+
+  const entryMinutes = firstEntry ? timeToMinutes(firstEntry.time) : null;
+  const exitMinutes = lastExit ? timeToMinutes(lastExit.time) : null;
+  const isComplete = entryMinutes != null && exitMinutes != null && exitMinutes > entryMinutes;
+
+  return {
+    date: group.date,
+    entryTime: firstEntry?.time ?? null,
+    exitTime: lastExit?.time ?? null,
+    entryMinutes,
+    exitMinutes,
+    durationMinutes: isComplete ? (exitMinutes as number) - (entryMinutes as number) : null,
+    isComplete,
+  };
 }
 
 async function fetchAllRecordsForDate(date: string): Promise<TimeclockRecord[]> {
