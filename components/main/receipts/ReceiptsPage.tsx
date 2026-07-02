@@ -217,26 +217,25 @@ export default function ReceiptsPage() {
 
       <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
         <div className="fadeIn animated" style={{ flex: 1, minWidth: 0 }}>
-        <div className="card profile-card">
 
-          {/* Header */}
-          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-wallet" style={{ color: "#059669", fontSize: "1rem" }} />
+        {/* CUIL search (admin only) */}
+        {isBossRRHH && (
+          <div className="card profile-card profile-card--admin">
+            <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className="pi pi-shield" style={{ color: "#eab308", fontSize: "1rem" }} />
+              </div>
+              <div className="flex-grow-1">
+                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar por CUIL</h5>
+                <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Consultá los recibos de cualquier agente</small>
+              </div>
+              <span style={{ background: "rgba(234,179,8,0.14)", color: "#a16207", borderRadius: "20px", padding: "3px 10px", fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                Administración
+              </span>
             </div>
-            <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Recibos</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Historial de liquidaciones de haberes</small>
-            </div>
-          </div>
-          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
-
-          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-
-            {/* CUIL search (admin only) */}
-            {isBossRRHH && (
-              <div className="mb-3" style={{ maxWidth: 340 }}>
-                <label className="profile-field-label">Buscar por CUIL</label>
+            <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+            <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+              <div style={{ maxWidth: 340 }}>
                 <div className="bosses-search-wrap">
                   <i className="pi pi-search bosses-search-icon" />
                   <input
@@ -254,7 +253,25 @@ export default function ReceiptsPage() {
                   )}
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+        )}
+
+        <div className="card profile-card">
+
+          {/* Header */}
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-wallet" style={{ color: "#059669", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Recibos</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Historial de liquidaciones de haberes</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
 
             {/* Filter bar */}
             <div className="license-filter-bar mb-3">
