@@ -636,12 +636,10 @@ export default function ExitsPage() {
               <i className="pi pi-arrow-up" style={{ fontSize: "0.62rem" }} />
               {formatTimeOnly(itemSelected.departure_hour)}
             </span>
-            {itemSelected.arrival_hour && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(5,150,105,0.1)", color: "#059669", borderRadius: "20px", padding: "3px 10px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
-                <i className="pi pi-arrow-down" style={{ fontSize: "0.62rem" }} />
-                {formatTimeOnly(itemSelected.arrival_hour)}
-              </span>
-            )}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: "rgba(5,150,105,0.1)", color: "#059669", borderRadius: "20px", padding: "3px 10px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+              <i className="pi pi-arrow-down" style={{ fontSize: "0.62rem" }} />
+              {itemSelected.arrival_hour ? formatTimeOnly(itemSelected.arrival_hour) : "--"}
+            </span>
           </div>
         )}
       </div>
