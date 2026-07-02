@@ -1292,10 +1292,10 @@ export default function ExitsPage() {
                 disabled={loadingActionModificateItem}
                 onClick={closeModalModificateItem}
                 type="button"
-                className="btn btn-light text-muted"
+                className="btn btn-light text-muted ml-auto"
                 style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
               >
-                Cerrar
+                Volver
               </button>
             </div>
             {loadingActionModificateItem && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
@@ -1305,32 +1305,38 @@ export default function ExitsPage() {
         <div className="row">
           <div className="col-12 col-md-6 mb-3">
             <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Estado</label>
-            <select
-              className="form-control form-control-sm custom-select mt-1"
-              value={modifyForm.status}
-              onChange={(e) => setModifyForm((p) => ({ ...p, status: e.target.value }))}
-            >
-              <option value="Pending">Pendiente de aprobación</option>
-              <option value="Waiting">En espera</option>
-              <option value="Done">Finalizado</option>
-              <option value="Cancel">Cancelado</option>
-            </select>
+            <div className={`license-filter-input-wrap mt-1${modifyForm.status ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-info-circle license-filter-icon" />
+              <Dropdown
+                value={modifyForm.status || null}
+                options={ADMIN_STATUS_OPTIONS}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setModifyForm((p) => ({ ...p, status: e.value ?? "" }))}
+                placeholder="Estado"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+            </div>
             {modifyTouched && !modifyForm.status && (
               <small className="text-danger fadeIn animated">* Campo obligatorio</small>
             )}
           </div>
           <div className="col-12 col-md-6 mb-3">
             <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Tipo de salida</label>
-            <select
-              className="form-control form-control-sm custom-select mt-1"
-              value={modifyForm.type}
-              onChange={(e) => setModifyForm((p) => ({ ...p, type: e.target.value }))}
-            >
-              <option value=""></option>
-              {EXIT_TYPE_OPTIONS.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+            <div className={`license-filter-input-wrap mt-1${modifyForm.type ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-tag license-filter-icon" />
+              <Dropdown
+                value={modifyForm.type || null}
+                options={EXIT_TYPE_OPTIONS}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setModifyForm((p) => ({ ...p, type: e.value ?? "" }))}
+                placeholder="Tipo de salida"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+            </div>
             {modifyTouched && !modifyForm.type && (
               <small className="text-danger fadeIn animated">* Campo obligatorio</small>
             )}
