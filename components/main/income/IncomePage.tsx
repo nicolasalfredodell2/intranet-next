@@ -79,7 +79,7 @@ export default function IncomePage() {
           </div>
           <div className="flex-grow-1">
             <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar fichadas</h5>
-            <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Rango máximo de 7 días</small>
+            <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Rango máximo entre fechas de 7 días</small>
           </div>
         </div>
         <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
@@ -112,6 +112,7 @@ export default function IncomePage() {
                   dateFormat="dd/mm/yy"
                   locale="es"
                   showButtonBar
+                  disabled={!fromDate}
                   maxDate={new Date(`${today}T00:00:00`)}
                   placeholder="Hasta"
                   className="license-filter-dropdown"
@@ -137,32 +138,6 @@ export default function IncomePage() {
               {error}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Results card */}
-      <div className="card profile-card mt-4">
-        <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-          <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <i className="pi pi-list" style={{ color: "#059669", fontSize: "1rem" }} />
-          </div>
-          <div className="flex-grow-1">
-            <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Resultados</h5>
-            <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{totalRecords} {totalRecords === 1 ? "fichada" : "fichadas"}</small>
-          </div>
-        </div>
-        <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
-        <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-
-          {loading && <SkeletonBlocks />}
-
-          {!loading && !error && groups.length === 0 && (
-            <div className="fadeIn animated" style={{ padding: "40px", textAlign: "center" }}>
-              <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
-              <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>Sin fichadas para el período seleccionado.</p>
-            </div>
-          )}
-
         </div>
       </div>
 
