@@ -934,16 +934,19 @@ export default function ExitsPage() {
       {/* ── Admin card ── */}
       {isAdmin && (
         <div className="fadeIn animated mt-4">
-          <div className="card profile-card">
+          <div className="card profile-card profile-card--admin">
 
             <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <i className="pi pi-users" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className="pi pi-users" style={{ color: "#eab308", fontSize: "1rem" }} />
               </div>
               <div className="flex-grow-1">
                 <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Salidas de terceros</h5>
                 <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Órdenes de salida solicitadas por administración</small>
               </div>
+              <span style={{ background: "rgba(234,179,8,0.14)", color: "#a16207", borderRadius: "20px", padding: "3px 10px", fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                Administración
+              </span>
               <button
                 type="button"
                 className="btn btn-primary d-flex align-items-center"
