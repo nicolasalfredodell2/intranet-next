@@ -93,8 +93,8 @@ function drawDiamond(ctx: CanvasRenderingContext2D, x: number, y: number, color:
 export default function TimeclockTimelineChart({ groups }: { groups: TimeclockGroup[] }) {
   if (groups.length === 0) return null;
 
-  // Chronological order (oldest first) reads naturally top-to-bottom, opposite of the per-day cards below.
-  const orderedGroups = [...groups].reverse();
+  // Most recent date first, same order as groups (and the per-day cards below).
+  const orderedGroups = groups;
   const summaries = orderedGroups.map(summarizeDay);
   const spans = summaries.map(toBarSpan);
   const tempMarkersByDay = orderedGroups.map(extractTempMarkers);
