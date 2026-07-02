@@ -155,6 +155,13 @@ const EXIT_TYPE_OPTIONS = [
   { value: "Others_Justify",           label: "Otras justificaciones" },
 ];
 
+const ADMIN_STATUS_OPTIONS = [
+  { value: "Pending", label: "Pendiente de aprobación" },
+  { value: "Waiting",  label: "En espera" },
+  { value: "Done",     label: "Finalizado" },
+  { value: "Cancel",   label: "Cancelado" },
+];
+
 const EXIT_TYPE_INFO: Record<string, { title: string; icon: string; color: string; bg: string; items: string[] }> = {
   Individuals: {
     title: "Salida Particular",
@@ -967,7 +974,7 @@ export default function ExitsPage() {
                     <div className={`license-filter-input-wrap${adminFilters.user_lastname ? " license-filter-input-wrap--active" : ""}`}>
                       <i className="pi pi-search license-filter-icon" />
                       <input
-                        placeholder="Apellido"
+                        placeholder="Solicitado por"
                         style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none" }}
                         onChange={(e) => handleUserLastnameFilter(e.target.value)}
                         defaultValue=""
@@ -975,30 +982,33 @@ export default function ExitsPage() {
                     </div>
                     <div className={`license-filter-input-wrap${adminFilters.status ? " license-filter-input-wrap--active" : ""}`}>
                       <i className="pi pi-info-circle license-filter-icon" />
-                      <select
-                        style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none", appearance: "none", cursor: "pointer" }}
-                        value={adminFilters.status}
-                        onChange={(e) => setFilterAdmin("status", e.target.value)}
-                      >
-                        <option value="">Estado</option>
-                        <option value="Pending">Pendiente de aprobación</option>
-                        <option value="Waiting">En espera</option>
-                        <option value="Done">Finalizado</option>
-                        <option value="Cancel">Cancelado</option>
-                      </select>
+                      <Dropdown
+                        value={adminFilters.status || null}
+                        options={ADMIN_STATUS_OPTIONS}
+                        optionLabel="label"
+                        optionValue="value"
+                        onChange={(e) => setFilterAdmin("status", e.value ?? "")}
+                        placeholder="Estado"
+                        className="license-filter-dropdown"
+                        panelClassName="license-filter-dropdown-panel"
+                        showClear={!!adminFilters.status}
+                        emptyMessage="Sin opciones"
+                      />
                     </div>
                     <div className={`license-filter-input-wrap${adminFilters.type ? " license-filter-input-wrap--active" : ""}`}>
                       <i className="pi pi-tag license-filter-icon" />
-                      <select
-                        style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none", appearance: "none", cursor: "pointer" }}
-                        value={adminFilters.type}
-                        onChange={(e) => setFilterAdmin("type", e.target.value)}
-                      >
-                        <option value="">Tipo</option>
-                        {EXIT_TYPE_OPTIONS.map((t) => (
-                          <option key={t.value} value={t.value}>{t.label}</option>
-                        ))}
-                      </select>
+                      <Dropdown
+                        value={adminFilters.type || null}
+                        options={EXIT_TYPE_OPTIONS}
+                        optionLabel="label"
+                        optionValue="value"
+                        onChange={(e) => setFilterAdmin("type", e.value ?? "")}
+                        placeholder="Tipo"
+                        className="license-filter-dropdown"
+                        panelClassName="license-filter-dropdown-panel"
+                        showClear={!!adminFilters.type}
+                        emptyMessage="Sin opciones"
+                      />
                     </div>
                   </div>
                   {hasAdminFilters && (
