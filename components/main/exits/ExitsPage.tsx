@@ -994,7 +994,7 @@ export default function ExitsPage() {
                     <div className={`license-filter-input-wrap${adminFilters.user_lastname ? " license-filter-input-wrap--active" : ""}`}>
                       <i className="pi pi-search license-filter-icon" />
                       <input
-                        placeholder="Solicitado por"
+                        placeholder="Solicitada por"
                         style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none" }}
                         onChange={(e) => handleUserLastnameFilter(e.target.value)}
                         defaultValue=""
