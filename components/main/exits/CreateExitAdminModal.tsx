@@ -2,10 +2,34 @@
 
 import { useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
+import { Calendar } from "primereact/calendar";
+import { addLocale } from "primereact/api";
 import { Toast } from "primereact/toast";
 import { ProgressBar } from "primereact/progressbar";
 import { getAllBossesForLegajo } from "@/lib/services/boss.service";
 import { createExitOrderAdmin } from "@/lib/services/exits.service";
+
+addLocale("es", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  now: "Ahora",
+  clear: "Limpiar",
+});
+
+function toDateTimeInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mm = String(date.getMinutes()).padStart(2, "0");
+  return `${y}-${m}-${d}T${hh}:${mm}`;
+}
 
 const EXIT_TYPES = [
   { value: "Unexpected",               label: "Sin órden de salida" },
@@ -135,10 +159,10 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
           type="button"
           disabled={loadingCreate}
           onClick={handleHide}
-          className="btn btn-light text-muted"
+          className="btn btn-light text-muted ml-auto"
           style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
         >
-          Cerrar
+          Volver
         </button>
       </div>
       {loadingCreate && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
@@ -163,27 +187,39 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
 
           <div className="col-12 mb-3">
             <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Tipo de salida *</label>
-            <select
-              className="form-control form-control-sm custom-select mt-1"
-              value={form.type}
-              onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}
-            >
-              <option value=""></option>
-              {EXIT_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </select>
+            <div className={`license-filter-input-wrap mt-1${form.type ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-tag license-filter-icon" />
+              <Dropdown
+                value={form.type || null}
+                options={EXIT_TYPES}
+                optionLabel="label"
+                optionValue="value"
+                onChange={(e) => setForm((p) => ({ ...p, type: e.value ?? "" }))}
+                placeholder="Seleccioná un tipo"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+            </div>
             {touched && !form.type && <small className="text-danger fadeIn animated">* Campo obligatorio</small>}
           </div>
 
           <div className="col-12 col-md-6 mb-3">
             <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Día y hora de salida *</label>
-            <input
-              type="datetime-local"
-              className="form-control form-control-sm mt-1"
-              value={form.departure_hour}
-              onChange={(e) => setForm((p) => ({ ...p, departure_hour: e.target.value }))}
-            />
+            <div className="license-filter-input-wrap profile-birthdate-wrap mt-1">
+              <i className="pi pi-calendar license-filter-icon" />
+              <Calendar
+                value={form.departure_hour ? new Date(form.departure_hour) : null}
+                onChange={(e) => setForm((p) => ({ ...p, departure_hour: e.value ? toDateTimeInputValue(e.value as Date) : "" }))}
+                showTime
+                hourFormat="24"
+                dateFormat="dd/mm/yy"
+                locale="es"
+                showButtonBar
+                placeholder="Seleccioná fecha y hora"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+              />
+            </div>
             {touched && !form.departure_hour && <small className="text-danger fadeIn animated">* Campo obligatorio</small>}
           </div>
 
@@ -191,12 +227,21 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
             <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               Día y hora de llegada <span style={{ fontWeight: 400, textTransform: "none", fontSize: "0.76rem", color: "#94a3b8" }}>(opcional)</span>
             </label>
-            <input
-              type="datetime-local"
-              className="form-control form-control-sm mt-1"
-              value={form.arrival_hour}
-              onChange={(e) => setForm((p) => ({ ...p, arrival_hour: e.target.value }))}
-            />
+            <div className="license-filter-input-wrap profile-birthdate-wrap mt-1">
+              <i className="pi pi-calendar license-filter-icon" />
+              <Calendar
+                value={form.arrival_hour ? new Date(form.arrival_hour) : null}
+                onChange={(e) => setForm((p) => ({ ...p, arrival_hour: e.value ? toDateTimeInputValue(e.value as Date) : "" }))}
+                showTime
+                hourFormat="24"
+                dateFormat="dd/mm/yy"
+                locale="es"
+                showButtonBar
+                placeholder="Seleccioná fecha y hora"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+              />
+            </div>
           </div>
 
           <div className="col-12 col-md-6 mb-3">
@@ -231,15 +276,19 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
           {!loadingBosses && bosses.length > 0 && (
             <div className="col-12 mb-3 fadeIn animated">
               <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Jefe *</label>
-              <select
-                className="form-control form-control-sm custom-select mt-1"
-                value={form.cuilBoss}
-                onChange={(e) => setForm((p) => ({ ...p, cuilBoss: e.target.value }))}
-              >
-                {bosses.map((b) => (
-                  <option key={b.cuil} value={b.cuil}>{b.lastname_name}</option>
-                ))}
-              </select>
+              <div className={`license-filter-input-wrap mt-1${form.cuilBoss ? " license-filter-input-wrap--active" : ""}`}>
+                <i className="pi pi-user license-filter-icon" />
+                <Dropdown
+                  value={form.cuilBoss || null}
+                  options={bosses}
+                  optionLabel="lastname_name"
+                  optionValue="cuil"
+                  onChange={(e) => setForm((p) => ({ ...p, cuilBoss: e.value ?? "" }))}
+                  placeholder="Seleccioná un jefe"
+                  className="license-filter-dropdown"
+                  panelClassName="license-filter-dropdown-panel"
+                />
+              </div>
               {touched && !form.cuilBoss && <small className="text-danger fadeIn animated">* Campo obligatorio</small>}
             </div>
           )}
