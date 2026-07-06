@@ -7,7 +7,6 @@ import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { listShorts, createShort, modificateShort, deleteShort } from "@/lib/services/shorts.service";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const IMG_MAX = 5 * 1024 * 1024;
 const VIDEO_MAX = 52428800; // 50MB
 const VIDEO_LABEL = "50 MB";
@@ -59,7 +58,7 @@ function SkeletonCards() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="col-12 col-md-6 col-lg-4 col-xl-3 mb-3">
           <div style={{ border: "1.5px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
-            <div style={{ width: "100%", height: 180, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+            <div style={{ width: "100%", aspectRatio: "3 / 4", background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
             <div style={{ padding: "14px" }}>
               <div style={{ width: "60%", height: 16, borderRadius: 6, marginBottom: 10, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
               <div style={{ width: "90%", height: 12, borderRadius: 6, marginBottom: 16, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
@@ -145,7 +144,7 @@ export default function ShortsPage() {
       if (shortParaModificar) {
         const resp = await modificateShort(fd, shortParaModificar.id);
         setShorts((prev) => prev.map((s) => s.id === shortParaModificar.id ? resp ?? s : s));
-        if (resp?.image) setImgModif({ path: resp.image.path });
+        if (resp?.image_url) setImgModif({ image_url: resp.image_url });
         toast.current?.show({ severity: "success", summary: "Short modificado" });
       } else {
         const resp = await createShort(fd);
@@ -163,8 +162,8 @@ export default function ShortsPage() {
   function llenarFormulario(short: any) {
     setShortParaModificar(short);
     setForm({ title: short.title ?? "", description: short.description ?? "", published_at: formatDateForInput(short.published_at), unpublished_at: formatDateForInput(short.unpublished_at) });
-    setImgModif(short.image ? { path: short.image.path } : null);
-    setVideoModif(short.video ? { path: short.video.path } : null);
+    setImgModif(short.image_url ? { image_url: short.image_url } : null);
+    setVideoModif(short.video_url ? { video_url: short.video_url } : null);
     setTouched(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -335,7 +334,7 @@ export default function ShortsPage() {
                   <label className="profile-field-label">Imagen (máx 5MB)</label>
                   {shortParaModificar && imgModif && (
                     <div className="mb-2">
-                      <img src={`${API_URL}${imgModif.path}`} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
+                      <img src={`${imgModif.image_url}`} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
                     </div>
                   )}
                   <FileDropzone label="Arrastre o haga click para subir imagen" accept="image/*" file={imgFile} onFile={handleImg} onClear={() => setImgFile(null)} showPreview />
@@ -437,24 +436,24 @@ export default function ShortsPage() {
                         transition: "box-shadow 0.15s",
                       }}
                     >
-                      {(short.image?.path || short.video?.path) && (
-                        <div style={{ position: "relative", width: "100%", height: 180, flexShrink: 0, background: "#000" }}>
-                          {(mediaMode[short.id] ?? "image") === "video" && short.video?.path ? (
+                      {(short.image_url || short.video_url) && (
+                        <div style={{ position: "relative", width: "100%", aspectRatio: "3 / 4", flexShrink: 0, background: "#000" }}>
+                          {(mediaMode[short.id] ?? "image") === "video" && short.video_url ? (
                             <video
-                              src={`${API_URL}${short.video.path}`}
+                              src={short.video_url}
                               controls
                               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                             />
-                          ) : short.image?.path ? (
+                          ) : short.image_url ? (
                             <>
                               <img
-                                src={`${API_URL}${short.image.path}`}
+                                src={short.image_url}
                                 alt={short.title}
-                                onClick={() => setPreviewImage({ url: `${API_URL}${short.image.path}`, name: short.title })}
+                                onClick={() => setPreviewImage({ url: short.image_url, name: short.title })}
                                 style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in", display: "block", transition: "opacity 0.15s", opacity: hoveredCard === short.id ? 0.85 : 1 }}
                               />
                               <div
-                                onClick={() => setPreviewImage({ url: `${API_URL}${short.image.path}`, name: short.title })}
+                                onClick={() => setPreviewImage({ url: short.image_url, name: short.title })}
                                 style={{
                                   position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
                                   display: "flex", alignItems: "center", justifyContent: "center",
@@ -470,7 +469,7 @@ export default function ShortsPage() {
                               </div>
                             </>
                           ) : null}
-                          {short.image?.path && short.video?.path && (
+                          {short.image_url && short.video_url && (
                             <button
                               type="button"
                               onClick={() => toggleMedia(short.id)}
