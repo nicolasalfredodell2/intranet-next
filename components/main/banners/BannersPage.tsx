@@ -602,26 +602,29 @@ export default function BannersPage() {
         onHide={() => setPreviewImage(null)}
       >
         {previewImage && (
-          <>
+          <div style={{ position: "relative" }}>
             <img
               src={previewImage.orientation === "horizontal" ? previewImage.horizontal : previewImage.vertical}
               alt={previewImage.name}
               style={{ width: "100%", height: "auto", borderRadius: "8px", display: "block" }}
             />
             {previewImage.horizontal && previewImage.vertical && (
-              <div className="d-flex justify-content-center mt-3">
-                <button
-                  type="button"
-                  onClick={() => setPreviewImage((p) => p ? { ...p, orientation: p.orientation === "horizontal" ? "vertical" : "horizontal" } : p)}
-                  className="btn btn-light d-flex align-items-center"
-                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "6px 16px", color: "#64748b" }}
-                >
-                  <i className="pi pi-sync" style={{ fontSize: "0.78rem" }} />
-                  Ver {previewImage.orientation === "horizontal" ? "vertical" : "horizontal"}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewImage((p) => p ? { ...p, orientation: p.orientation === "horizontal" ? "vertical" : "horizontal" } : p)}
+                className="d-flex align-items-center"
+                style={{
+                  position: "absolute", top: "14px", left: "50%", transform: "translateX(-50%)",
+                  gap: "6px", borderRadius: "20px", fontWeight: 600, fontSize: "0.82rem", padding: "6px 16px",
+                  background: "rgba(30,41,59,0.65)", color: "#fff", border: "none",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
+                }}
+              >
+                <i className="pi pi-sync" style={{ fontSize: "0.78rem" }} />
+                Ver {previewImage.orientation === "horizontal" ? "vertical" : "horizontal"}
+              </button>
             )}
-          </>
+          </div>
         )}
       </Dialog>
 
