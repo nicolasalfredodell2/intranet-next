@@ -282,7 +282,7 @@ export default function AreasPage() {
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{areas.length} {areas.length === 1 ? "área" : "áreas"}</small>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{areas.length} {areas.length === 1 ? "área en total" : "áreas totales"}</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />

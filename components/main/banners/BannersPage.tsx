@@ -442,7 +442,7 @@ export default function BannersPage() {
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{banners.length} {banners.length === 1 ? "banner" : "banners"}</small>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{banners.length} {banners.length === 1 ? "banner en total" : "banners totales"}</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
