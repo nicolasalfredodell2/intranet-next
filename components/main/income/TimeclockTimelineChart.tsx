@@ -1,6 +1,6 @@
 "use client";
 
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, type TooltipItem, type Plugin } from "chart.js";
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, type TooltipItem, type Plugin, type ScriptableContext } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import { summarizeDay, timeToMinutes, TimeclockGroup, TimeclockDaySummary } from "@/lib/hooks/useTimeclock";
 
@@ -75,6 +75,52 @@ function extractTempMarkers(group: TimeclockGroup): TempMarker[] {
     .filter((r) => r.typeId === TEMP_EXIT_TYPE || r.typeId === TEMP_RETURN_TYPE)
     .map((r) => ({ minutes: timeToMinutes(r.time), time: r.time, typeId: r.typeId as 2 | 3 }))
     .filter((m): m is TempMarker => m.minutes != null);
+}
+
+interface AbsenceGap {
+  start: number;
+  end: number;
+}
+
+/** Periods within [dayStart, dayEnd] where the person was out on a "salida temporal" without (yet) returning. */
+function computeAbsenceGaps(markers: TempMarker[], dayStart: number, dayEnd: number): AbsenceGap[] {
+  const sorted = markers.slice().sort((a, b) => a.minutes - b.minutes);
+  const gaps: AbsenceGap[] = [];
+  let pendingExit: number | null = null;
+  for (const m of sorted) {
+    if (m.typeId === TEMP_EXIT_TYPE && pendingExit == null) {
+      pendingExit = m.minutes;
+    } else if (m.typeId === TEMP_RETURN_TYPE && pendingExit != null) {
+      gaps.push({ start: pendingExit, end: m.minutes });
+      pendingExit = null;
+    }
+  }
+  if (pendingExit != null) gaps.push({ start: pendingExit, end: dayEnd });
+
+  return gaps
+    .map((g) => ({ start: Math.max(g.start, dayStart), end: Math.min(g.end, dayEnd) }))
+    .filter((g) => g.end > g.start);
+}
+
+/** Bar fill that's transparent during absence gaps, so temporary-exit periods read as "empty" instead of solid color. */
+function buildGappedFill(ctx: CanvasRenderingContext2D, xStartPx: number, xEndPx: number, dayStart: number, dayEnd: number, gaps: AbsenceGap[], fillColor: string): CanvasGradient {
+  const gradient = ctx.createLinearGradient(xStartPx, 0, xEndPx, 0);
+  const totalRange = dayEnd - dayStart || 1;
+  const EPS = 0.0005;
+  const addStop = (offset: number, color: string) => gradient.addColorStop(Math.min(1, Math.max(0, offset)), color);
+
+  addStop(0, fillColor);
+  gaps.forEach((g) => {
+    const startOffset = (g.start - dayStart) / totalRange;
+    const endOffset = (g.end - dayStart) / totalRange;
+    addStop(Math.max(0, startOffset - EPS), fillColor);
+    addStop(startOffset, "rgba(0,0,0,0)");
+    addStop(endOffset, "rgba(0,0,0,0)");
+    addStop(Math.min(1, endOffset + EPS), fillColor);
+  });
+  addStop(1, fillColor);
+
+  return gradient;
 }
 
 interface WorkingHours {
@@ -175,7 +221,22 @@ export default function TimeclockTimelineChart({ groups, workingHours }: { group
       {
         label: "Jornada laboral",
         data: spans.map((s) => s.range),
-        backgroundColor: spans.map((s) => (s.status === "complete" ? COLOR_COMPLETE_BG : COLOR_INCOMPLETE_BG)),
+        backgroundColor: (ctx: ScriptableContext<"bar">) => {
+          const span = spans[ctx.dataIndex];
+          if (!span.range || span.status !== "complete") return COLOR_INCOMPLETE_BG;
+
+          const [start, end] = span.range;
+          const gaps = computeAbsenceGaps(tempMarkersByDay[ctx.dataIndex], start, end);
+          if (gaps.length === 0) return COLOR_COMPLETE_BG;
+
+          const xScale = ctx.chart.scales.x;
+          if (!xScale) return COLOR_COMPLETE_BG;
+          const xStartPx = xScale.getPixelForValue(start);
+          const xEndPx = xScale.getPixelForValue(end);
+          if (!isFinite(xStartPx) || !isFinite(xEndPx) || xStartPx === xEndPx) return COLOR_COMPLETE_BG;
+
+          return buildGappedFill(ctx.chart.ctx, xStartPx, xEndPx, start, end, gaps, COLOR_COMPLETE_BG);
+        },
         borderColor: spans.map((s) => (s.status === "complete" ? COLOR_COMPLETE : COLOR_INCOMPLETE)),
         borderWidth: spans.map((s) => (s.status === "complete" ? 0 : 1.5)),
         borderDash: spans.map((s) => (s.status === "complete" ? [] : [5, 4])),
