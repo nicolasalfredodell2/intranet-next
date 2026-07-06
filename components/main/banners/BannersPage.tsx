@@ -82,6 +82,7 @@ export default function BannersPage() {
   const [bannerParaModificar, setBannerParaModificar] = useState<any>(null);
   const [bannerToDelete, setBannerToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
@@ -501,7 +502,14 @@ export default function BannersPage() {
                       }}
                     >
                       {banner.image_horizontal_url && (
-                        <img src={`${banner.image_horizontal_url}`} alt={banner.name} style={{ width: "100%", height: 180, objectFit: "cover" }} />
+                        <img
+                          src={`${banner.image_horizontal_url}`}
+                          alt={banner.name}
+                          onClick={() => setPreviewImage({ url: banner.image_horizontal_url, name: banner.name })}
+                          style={{ width: "100%", height: 180, objectFit: "cover", cursor: "zoom-in", transition: "opacity 0.15s" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = "0.85"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = "1"; }}
+                        />
                       )}
                       <div className="flex-grow-1" style={{ padding: "14px" }}>
                         <p className="mb-1 font-weight-bold" style={{ fontSize: "0.9rem", color: "#1e293b" }}>{banner.name}</p>
@@ -566,6 +574,22 @@ export default function BannersPage() {
           </div>
         </div>
       </div>
+
+      {/* Image preview dialog */}
+      <Dialog
+        header={previewImage?.name}
+        visible={!!previewImage}
+        modal
+        draggable={false}
+        resizable={false}
+        dismissableMask
+        style={{ width: "min(90vw, 900px)" }}
+        onHide={() => setPreviewImage(null)}
+      >
+        {previewImage && (
+          <img src={previewImage.url} alt={previewImage.name} style={{ width: "100%", height: "auto", borderRadius: "8px", display: "block" }} />
+        )}
+      </Dialog>
 
       {/* Delete confirmation dialog */}
       <Dialog
