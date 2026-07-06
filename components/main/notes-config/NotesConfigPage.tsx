@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { getNotesConfig, setNotesConfig, getNotes } from "@/lib/services/notes.service";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -141,7 +142,7 @@ export default function NotesConfigPage() {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
         <div className="row page-titles">

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { login } from "@/lib/services/auth.service";
 import { getAllBossesForLegajo } from "@/lib/services/boss.service";
 import { createWithLegajoTwo } from "@/lib/services/exits2.service";
@@ -151,7 +152,7 @@ export default function ProtectedForIP2Form() {
 
   return (
     <>
-      <Toast ref={toast} />
+      <AppToast ref={toast} />
 
       <div className="align-items-center animated d-flex fadeIn p-5 row">
         <div

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { Dialog } from "primereact/dialog";
 import { searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile } from "@/lib/services/files-admin-items.service";
@@ -143,7 +144,7 @@ export default function FilesAdminUploadPage() {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
         <div className="row page-titles">

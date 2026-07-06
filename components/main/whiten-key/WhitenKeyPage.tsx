@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { whitenKey } from "@/lib/services/whiten-key.service";
 
@@ -81,7 +82,7 @@ export default function WhitenKeyPage() {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
 

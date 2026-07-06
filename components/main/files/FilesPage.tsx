@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { loadFiles, loadFilePDF } from "@/lib/services/files.service";
 
 function SkeletonCard() {
@@ -79,7 +80,7 @@ export default function FilesPage() {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
 

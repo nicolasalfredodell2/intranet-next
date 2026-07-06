@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { Chips } from "primereact/chips";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { loadAllGroups, saveGroupQR } from "@/lib/services/groups.service";
 
 const LOGO_BASE64 =
@@ -235,7 +236,7 @@ export default function QrDepartament({ isShow, qrCanvasRef, onHide, onChangeQR 
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
 
       <Dialog
         header={dialogHeader}

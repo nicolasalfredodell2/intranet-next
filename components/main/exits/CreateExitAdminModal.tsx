@@ -6,6 +6,7 @@ import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { getAllBossesForLegajo } from "@/lib/services/boss.service";
 import { createExitOrderAdmin } from "@/lib/services/exits.service";
@@ -171,7 +172,7 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
       <Dialog
         header={dialogHeader}
         visible={isOpen}

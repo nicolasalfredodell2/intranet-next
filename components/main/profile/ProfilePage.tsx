@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
@@ -271,7 +272,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
       <canvas ref={qrCanvasRef} style={{ position: "absolute", left: "-500px", top: 0 }} />
 
       <div className="fadeIn animated">

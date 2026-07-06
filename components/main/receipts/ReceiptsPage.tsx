@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { Dropdown } from "primereact/dropdown";
@@ -213,7 +214,7 @@ export default function ReceiptsPage() {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
 
       <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
         <div className="fadeIn animated" style={{ flex: 1, minWidth: 0 }}>

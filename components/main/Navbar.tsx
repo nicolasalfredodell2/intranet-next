@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { getDataUser } from "@/lib/services/perfil.service";
 import { connectRemote } from "@/lib/services/remote.service";
@@ -181,7 +182,7 @@ export default function Navbar() {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
 
       <header className="topbar fadeIn">
         <nav className="navbar top-navbar navbar-expand-md navbar-light">

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { useParams } from "next/navigation";
 import { getNote, createNote, modificateNote, deleteNoteImage } from "@/lib/services/notes.service";
@@ -161,7 +162,7 @@ export default function NotesPage() {
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
         <div className="row page-titles">

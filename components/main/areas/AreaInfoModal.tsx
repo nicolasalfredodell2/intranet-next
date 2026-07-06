@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { getAreaInfo, createAreaInfo, modificateAreaInfo, deleteAreaInfoImage, deleteAreaInfoVideo } from "@/lib/services/areas.service";
@@ -232,7 +233,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
 
   return (
     <>
-      <Toast ref={toast} position="bottom-center" />
+      <AppToast ref={toast} position="bottom-center" />
       <Dialog
         header={dialogHeader}
         visible
