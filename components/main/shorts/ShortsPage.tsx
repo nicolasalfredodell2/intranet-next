@@ -57,7 +57,7 @@ function SkeletonCards() {
   return (
     <div className="row">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="col-12 col-md-6 col-lg-4 mb-3">
+        <div key={i} className="col-12 col-md-6 col-lg-4 col-xl-3 mb-3">
           <div style={{ border: "1.5px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
             <div style={{ width: "100%", height: 180, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
             <div style={{ padding: "14px" }}>
@@ -86,6 +86,7 @@ export default function ShortsPage() {
   const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [mediaMode, setMediaMode] = useState<Record<string, "image" | "video">>({});
 
   const [form, setForm] = useState({ title: "", description: "", published_at: "", unpublished_at: "" });
   const [imgFile, setImgFile] = useState<File | null>(null);
@@ -172,6 +173,10 @@ export default function ShortsPage() {
     setForm({ title: "", description: "", published_at: "", unpublished_at: "" });
     setImgFile(null); setVideoFile(null); setImgModif(null); setVideoModif(null);
     setShortParaModificar(null); setTouched(false);
+  }
+
+  function toggleMedia(id: string) {
+    setMediaMode((prev) => ({ ...prev, [id]: (prev[id] ?? "image") === "video" ? "image" : "video" }));
   }
 
   async function handleDeleteConfirm() {
@@ -417,7 +422,7 @@ export default function ShortsPage() {
             {!loadingShorts && (
               <div className="row fadeIn animated">
                 {filtered.map((short) => (
-                  <div key={short.id} className="col-12 col-md-6 col-lg-4 mb-3">
+                  <div key={short.id} className="col-12 col-md-6 col-lg-4 col-xl-3 mb-3">
                     <div
                       onMouseEnter={() => setHoveredCard(short.id)}
                       onMouseLeave={() => setHoveredCard(null)}
@@ -432,33 +437,54 @@ export default function ShortsPage() {
                         transition: "box-shadow 0.15s",
                       }}
                     >
-                      {short.image?.path_url && (
-                        <div style={{ position: "relative", width: "100%", height: 180, flexShrink: 0 }}>
-                          <img
-                            src={`${API_URL}${short.image.path_url}`}
-                            alt={short.title}
-                            onClick={() => setPreviewImage({ url: `${API_URL}${short.image.path_url}`, name: short.title })}
-                            style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in", display: "block", transition: "opacity 0.15s", opacity: hoveredCard === short.id ? 0.85 : 1 }}
-                          />
-                          <div
-                            onClick={() => setPreviewImage({ url: `${API_URL}${short.image.path_url}`, name: short.title })}
-                            style={{
-                              position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-                              display: "flex", alignItems: "center", justifyContent: "center",
-                              opacity: hoveredCard === short.id ? 1 : 0,
-                              transition: "opacity 0.15s",
-                              pointerEvents: hoveredCard === short.id ? "auto" : "none",
-                              cursor: "zoom-in",
-                            }}
-                          >
-                            <span style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(30,41,59,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                              <i className="pi pi-search-plus" style={{ color: "#fff", fontSize: "1.1rem" }} />
-                            </span>
-                          </div>
-                          {short.video?.path_url && (
-                            <span style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", background: "rgba(30,41,59,0.65)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-                              <i className="pi pi-video" style={{ color: "#fff", fontSize: "0.7rem" }} />
-                            </span>
+                      {(short.image?.path_url || short.video?.path_url) && (
+                        <div style={{ position: "relative", width: "100%", height: 180, flexShrink: 0, background: "#000" }}>
+                          {(mediaMode[short.id] ?? "image") === "video" && short.video?.path_url ? (
+                            <video
+                              src={`${API_URL}${short.video.path_url}`}
+                              controls
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                            />
+                          ) : short.image?.path_url ? (
+                            <>
+                              <img
+                                src={`${API_URL}${short.image.path_url}`}
+                                alt={short.title}
+                                onClick={() => setPreviewImage({ url: `${API_URL}${short.image.path_url}`, name: short.title })}
+                                style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in", display: "block", transition: "opacity 0.15s", opacity: hoveredCard === short.id ? 0.85 : 1 }}
+                              />
+                              <div
+                                onClick={() => setPreviewImage({ url: `${API_URL}${short.image.path_url}`, name: short.title })}
+                                style={{
+                                  position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  opacity: hoveredCard === short.id ? 1 : 0,
+                                  transition: "opacity 0.15s",
+                                  pointerEvents: hoveredCard === short.id ? "auto" : "none",
+                                  cursor: "zoom-in",
+                                }}
+                              >
+                                <span style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(30,41,59,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                  <i className="pi pi-search-plus" style={{ color: "#fff", fontSize: "1.1rem" }} />
+                                </span>
+                              </div>
+                            </>
+                          ) : null}
+                          {short.image?.path_url && short.video?.path_url && (
+                            <button
+                              type="button"
+                              onClick={() => toggleMedia(short.id)}
+                              className="d-flex align-items-center"
+                              style={{
+                                position: "absolute", top: 8, right: 8, zIndex: 2,
+                                gap: "5px", borderRadius: "20px", fontWeight: 600, fontSize: "0.72rem", padding: "4px 10px",
+                                background: "rgba(30,41,59,0.65)", color: "#fff", border: "none",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                              }}
+                            >
+                              <i className={`pi ${(mediaMode[short.id] ?? "image") === "video" ? "pi-image" : "pi-video"}`} style={{ fontSize: "0.68rem" }} />
+                              Ver {(mediaMode[short.id] ?? "image") === "video" ? "imagen" : "video"}
+                            </button>
                           )}
                         </div>
                       )}
