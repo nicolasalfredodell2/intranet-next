@@ -58,7 +58,7 @@ function SkeletonCards() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="col-12 col-md-6 col-lg-4 col-xl-3 mb-3">
           <div style={{ border: "1.5px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
-            <div style={{ width: "100%", aspectRatio: "3 / 4", background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+            <div style={{ width: "100%", height: 220, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
             <div style={{ padding: "14px" }}>
               <div style={{ width: "60%", height: 16, borderRadius: 6, marginBottom: 10, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
               <div style={{ width: "90%", height: 12, borderRadius: 6, marginBottom: 16, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
@@ -437,7 +437,7 @@ export default function ShortsPage() {
                       }}
                     >
                       {(short.image_url || short.video_url) && (
-                        <div style={{ position: "relative", width: "100%", aspectRatio: "3 / 4", flexShrink: 0, background: "#000" }}>
+                        <div style={{ position: "relative", width: "100%", height: 220, flexShrink: 0, background: "#000" }}>
                           {(mediaMode[short.id] ?? "image") === "video" && short.video_url ? (
                             <video
                               src={short.video_url}
