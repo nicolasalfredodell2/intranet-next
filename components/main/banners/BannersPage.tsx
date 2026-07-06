@@ -82,7 +82,7 @@ export default function BannersPage() {
   const [bannerParaModificar, setBannerParaModificar] = useState<any>(null);
   const [bannerToDelete, setBannerToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
-  const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ horizontal: string; vertical: string; name: string; orientation: "horizontal" | "vertical" } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
@@ -506,11 +506,11 @@ export default function BannersPage() {
                           <img
                             src={`${banner.image_horizontal_url}`}
                             alt={banner.name}
-                            onClick={() => setPreviewImage({ url: banner.image_horizontal_url, name: banner.name })}
+                            onClick={() => setPreviewImage({ horizontal: banner.image_horizontal_url, vertical: banner.image_vertical_url, name: banner.name, orientation: "horizontal" })}
                             style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in", display: "block", transition: "opacity 0.15s", opacity: hoveredCard === banner.id ? 0.85 : 1 }}
                           />
                           <div
-                            onClick={() => setPreviewImage({ url: banner.image_horizontal_url, name: banner.name })}
+                            onClick={() => setPreviewImage({ horizontal: banner.image_horizontal_url, vertical: banner.image_vertical_url, name: banner.name, orientation: "horizontal" })}
                             style={{
                               position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
                               display: "flex", alignItems: "center", justifyContent: "center",
@@ -602,7 +602,26 @@ export default function BannersPage() {
         onHide={() => setPreviewImage(null)}
       >
         {previewImage && (
-          <img src={previewImage.url} alt={previewImage.name} style={{ width: "100%", height: "auto", borderRadius: "8px", display: "block" }} />
+          <>
+            <img
+              src={previewImage.orientation === "horizontal" ? previewImage.horizontal : previewImage.vertical}
+              alt={previewImage.name}
+              style={{ width: "100%", height: "auto", borderRadius: "8px", display: "block" }}
+            />
+            {previewImage.horizontal && previewImage.vertical && (
+              <div className="d-flex justify-content-center mt-3">
+                <button
+                  type="button"
+                  onClick={() => setPreviewImage((p) => p ? { ...p, orientation: p.orientation === "horizontal" ? "vertical" : "horizontal" } : p)}
+                  className="btn btn-light d-flex align-items-center"
+                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "6px 16px", color: "#64748b" }}
+                >
+                  <i className="pi pi-sync" style={{ fontSize: "0.78rem" }} />
+                  Ver {previewImage.orientation === "horizontal" ? "vertical" : "horizontal"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </Dialog>
 
