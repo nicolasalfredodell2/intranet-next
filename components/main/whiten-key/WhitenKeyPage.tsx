@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
+import { ProgressBar } from "primereact/progressbar";
 import { whitenKey } from "@/lib/services/whiten-key.service";
 
 const FIXED_TOKEN = "Qf6uN410hVaQf26udkBaBDsW2GqtQcud6Fp51v1XZIHPVxvc7Q6dnl5zHaK8Wc0cCCKPxhrFRRX";
@@ -11,6 +12,15 @@ interface Rules {
   minLowerCase: boolean;
   minNumbers: boolean;
   minUpperCase: boolean;
+}
+
+function RuleItem({ met, children }: { met: boolean; children: React.ReactNode }) {
+  return (
+    <li className="d-flex align-items-center" style={{ gap: "8px", padding: "4px 0", fontSize: "0.85rem", color: met ? "#059669" : "#64748b", fontWeight: met ? 600 : 400 }}>
+      <i className={`pi ${met ? "pi-check-circle" : "pi-circle"}`} style={{ fontSize: "0.85rem", flexShrink: 0 }} />
+      {children}
+    </li>
+  );
 }
 
 export default function WhitenKeyPage() {
@@ -39,7 +49,7 @@ export default function WhitenKeyPage() {
     setNewpassword(value);
   }
 
-  const isFormValid = username && newpassword && newpassword.length <= 30 && rules.minLength && rules.minLowerCase && rules.minUpperCase && rules.minNumbers;
+  const isFormValid = !!(username && newpassword && newpassword.length <= 30 && rules.minLength && rules.minLowerCase && rules.minUpperCase && rules.minNumbers);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +63,7 @@ export default function WhitenKeyPage() {
       if (resp.error === "False") {
         setNewpassword("");
         setRules({ minLength: false, minLowerCase: false, minNumbers: false, minUpperCase: false });
+        setTouchedPass(false);
         toast.current?.show({ severity: "success", summary: resp.message });
       } else {
         toast.current?.show({ severity: "error", summary: resp.message });
@@ -68,130 +79,129 @@ export default function WhitenKeyPage() {
     <>
       <Toast ref={toast} position="bottom-center" />
 
-      <div className="animated fadeIn">
-        <div className="row page-titles">
-          <div className="align-self-center col-md-5">
-            <h3 className="text-themecolor">Blanqueo de clave</h3>
-          </div>
-          <div className="align-self-center col-md-7">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Blanqueo de clave</li>
-            </ol>
+      <div className="fadeIn animated">
+
+        {/* Header card */}
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-lock" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Blanqueo de clave</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Restablecé la contraseña de acceso institucional</small>
+            </div>
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-md-12">
-            <div className="card card-body text-dark">
-              <div className="animated fadeIn row">
-                <div className="col-md-12">
-                  <div className="card card-body">
-                    <div className="row">
-                      <div className="col-12">
-                        <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
-                          <div className="row">
-                            <div className="col-12 col-md-4">
-                              <div className="form-group">
-                                <label><small>USUARIO</small></label>
-                                <input
-                                  disabled={loading}
-                                  className="form-control form-control-sm"
-                                  type="text"
-                                  value={username}
-                                  onChange={(e) => setUsername(e.target.value)}
-                                  onBlur={() => setTouchedUser(true)}
-                                />
-                                {touchedUser && !username && (
-                                  <small className="text-danger animated fadeIn">* Campo obligatorio</small>
-                                )}
-                              </div>
-                            </div>
+        {/* Form card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-key" style={{ color: "#059669", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva contraseña</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para blanquear la clave</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
-                            <div className="col-12 col-md-4">
-                              <div className="form-group">
-                                <label><small>NUEVA CONTRASEÑA</small></label>
-                                <div className="input-group">
-                                  <input
-                                    disabled={loading}
-                                    className="form-control form-control-sm"
-                                    type={showPassword ? "text" : "password"}
-                                    value={newpassword}
-                                    onChange={(e) => verifyRules(e.target.value)}
-                                    onBlur={() => setTouchedPass(true)}
-                                  />
-                                  <div
-                                    className="bg-light input-group-append pointer px-2 py-1"
-                                    style={{ borderBottomRightRadius: 5, borderTopRightRadius: 5, cursor: "pointer", display: "flex", alignItems: "center" }}
-                                    onClick={() => setShowPassword((p) => !p)}
-                                  >
-                                    <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`} />
-                                  </div>
-                                </div>
-                                {touchedPass && !newpassword && (
-                                  <small className="text-danger animated fadeIn">* Campo obligatorio</small>
-                                )}
-                                {touchedPass && newpassword.length > 30 && (
-                                  <small className="text-danger animated fadeIn">* La nueva contraseña puede tener hasta 30 caracteres</small>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="col-12 col-md-4 d-flex align-items-center">
-                              <button
-                                disabled={loading || !isFormValid}
-                                type="submit"
-                                className={`btn btn-block ${isFormValid ? "btn-info" : "btn-muted"}`}
-                              >
-                                {loading && <i className="animated fadeIn pi pi-spin pi-spinner mr-1" />}
-                                {loading ? "BLANQUEANDO CONTRASEÑA" : "BLANQUEAR CONTRASEÑA"}
-                              </button>
-                            </div>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
+              <div className="row">
+                <div className="col-12 col-md-4 mb-3">
+                  <label className={`profile-field-label${touchedUser && !username ? " text-danger" : ""}`}>Usuario</label>
+                  <input
+                    disabled={loading}
+                    className="profile-input"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    onBlur={() => setTouchedUser(true)}
+                    autoComplete="off"
+                  />
+                  {touchedUser && !username && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                 </div>
+
+                <div className="col-12 col-md-4 mb-3">
+                  <label className={`profile-field-label${touchedPass && (!newpassword || newpassword.length > 30) ? " text-danger" : ""}`}>Nueva contraseña</label>
+                  <div className="login-input-wrap">
+                    <input
+                      disabled={loading}
+                      className="profile-input login-input--with-toggle"
+                      type={showPassword ? "text" : "password"}
+                      value={newpassword}
+                      onChange={(e) => verifyRules(e.target.value)}
+                      onBlur={() => setTouchedPass(true)}
+                      autoComplete="off"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((p) => !p)}
+                      className="login-input-toggle"
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      aria-pressed={showPassword}
+                    >
+                      <i className={`pi ${showPassword ? "pi-eye-slash" : "pi-eye"}`} />
+                    </button>
+                  </div>
+                  {touchedPass && !newpassword && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                  {touchedPass && newpassword.length > 30 && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>* Hasta 30 caracteres</small>}
+                </div>
+
+                <div className="col-12 col-md-4 d-flex align-items-center">
+                  <button
+                    disabled={loading || !isFormValid}
+                    type="submit"
+                    className="btn btn-primary d-flex align-items-center"
+                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                  >
+                    <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                    {loading ? "Blanqueando..." : "Blanquear contraseña"}
+                  </button>
+                </div>
+              </div>
+
+              {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+            </form>
+          </div>
+        </div>
+
+        {/* Requirements card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff4e6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-shield" style={{ color: "#fd7e14", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Requisitos de contraseña</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Tu nueva clave debe cumplir con estas condiciones</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            <ul className="mb-0" style={{ listStyle: "none", padding: 0 }}>
+              <RuleItem met={rules.minLength}>Al menos 7 caracteres</RuleItem>
+              <RuleItem met={rules.minLowerCase}>Al menos 2 minúsculas</RuleItem>
+              <RuleItem met={rules.minUpperCase}>Al menos 1 mayúscula</RuleItem>
+              <RuleItem met={rules.minNumbers}>Al menos 1 número</RuleItem>
+            </ul>
+
+            <div className="qr-info-block mt-3">
+              <div className="qr-info-item" style={{ borderLeftColor: "#4a6cf7" }}>
+                <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-info-circle" /></span>
+                <span className="qr-info-text">El cambio de contraseña se verá reflejado en: <strong>PC personal, correo institucional, Workflow, Intranet, Chasqui y Ebla</strong>.</span>
+              </div>
+              <div className="qr-info-item" style={{ borderLeftColor: "#17a2b8" }}>
+                <span className="qr-info-icon qr-info-icon--info"><i className="pi pi-shield" /></span>
+                <span className="qr-info-text">Una contraseña larga, junto con combinación de letras y números, nos permite proteger nuestros datos.</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-12">
-            <div className="alert alert-light" role="alert">
-              <strong>Su contraseña debe contener:</strong>
-              <ul className="mt-1">
-                <li className={rules.minLength ? "text-success" : ""}>
-                  Al menos 7 caracteres
-                  {rules.minLength && <i className="animated fadeIn fa-regular fa-circle-check ml-1" />}
-                </li>
-                <li className={rules.minLowerCase ? "text-success" : ""}>
-                  Al menos 2 minúsculas
-                  {rules.minLowerCase && <i className="animated fadeIn fa-regular fa-circle-check ml-1" />}
-                </li>
-                <li className={rules.minUpperCase ? "text-success" : ""}>
-                  Al menos 1 mayúscula
-                  {rules.minUpperCase && <i className="animated fadeIn fa-regular fa-circle-check ml-1" />}
-                </li>
-                <li className={rules.minNumbers ? "text-success" : ""}>
-                  Al menos 1 número
-                  {rules.minNumbers && <i className="animated fadeIn fa-regular fa-circle-check ml-1" />}
-                </li>
-              </ul>
-            </div>
-
-            <div className="alert alert-primary" role="alert">
-              <p className="m-0 p-0 text-center text-dark">
-                <small>El cambio de contraseña se verá reflejado en: <strong>PC personal, correo institucional, Workflow, Intranet, Chasqui y Ebla</strong>.</small>
-              </p>
-              <p className="m-0 p-0 text-center text-dark">
-                <small>Una contraseña larga, junto con combinación de letras y números, nos permite proteger nuestros datos.</small>
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );
