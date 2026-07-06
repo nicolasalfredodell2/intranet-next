@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
+import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { listShorts, createShort, modificateShort, deleteShort } from "@/lib/services/shorts.service";
 
@@ -18,9 +19,57 @@ function getToday(): string {
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split("T")[0];
 }
 
-function formatDate(s: string | null): string {
+function formatDateForInput(s: string | null): string {
   if (!s) return "";
-  return s.split("T")[0];
+  return s.split(" ")[0].split("T")[0];
+}
+
+function formatDateDisplay(s: string | null): string {
+  const iso = formatDateForInput(s);
+  if (!iso) return "--";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  return (
+    <span
+      style={{ display: "inline-flex" }}
+      onMouseEnter={(e) => {
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setPos({ top: r.top, left: r.left + r.width / 2 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && (
+        <div style={{ position: "fixed", top: pos.top - 10, left: pos.left, transform: "translateX(-50%) translateY(-100%)", background: "#1e293b", color: "#fff", padding: "5px 11px", borderRadius: "7px", fontSize: "0.71rem", fontWeight: 500, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 9999, boxShadow: "0 4px 14px rgba(0,0,0,0.18)", letterSpacing: "0.01em" }}>
+          {label}
+          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", borderWidth: "5px", borderStyle: "solid", borderColor: "#1e293b transparent transparent transparent" }} />
+        </div>
+      )}
+    </span>
+  );
+}
+
+function SkeletonCards() {
+  return (
+    <div className="row">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="col-12 col-md-6 col-lg-4 mb-3">
+          <div style={{ border: "1.5px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
+            <div style={{ width: "100%", height: 180, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+            <div style={{ padding: "14px" }}>
+              <div style={{ width: "60%", height: 16, borderRadius: 6, marginBottom: 10, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+              <div style={{ width: "90%", height: 12, borderRadius: 6, marginBottom: 16, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+              <div style={{ width: "100%", height: 30, borderRadius: 8, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function ShortsPage() {
@@ -32,9 +81,11 @@ export default function ShortsPage() {
   const [loadingShorts, setLoadingShorts] = useState(false);
   const [touched, setTouched] = useState(false);
   const [shortParaModificar, setShortParaModificar] = useState<any>(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [shortToDelete, setShortToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   const [form, setForm] = useState({ title: "", description: "", published_at: "", unpublished_at: "" });
   const [imgFile, setImgFile] = useState<File | null>(null);
@@ -110,7 +161,7 @@ export default function ShortsPage() {
 
   function llenarFormulario(short: any) {
     setShortParaModificar(short);
-    setForm({ title: short.title ?? "", description: short.description ?? "", published_at: formatDate(short.published_at), unpublished_at: formatDate(short.unpublished_at) });
+    setForm({ title: short.title ?? "", description: short.description ?? "", published_at: formatDateForInput(short.published_at), unpublished_at: formatDateForInput(short.unpublished_at) });
     setImgModif(short.image ? { path_url: short.image.path_url } : null);
     setVideoModif(short.video ? { path_url: short.video.path_url } : null);
     setTouched(false);
@@ -130,136 +181,408 @@ export default function ShortsPage() {
       await deleteShort(shortToDelete.id);
       setShorts((prev) => prev.filter((s) => s.id !== shortToDelete.id));
       toast.current?.show({ severity: "success", summary: "Short eliminado" });
-      setShowDeleteModal(false); setShortToDelete(null);
+      setShortToDelete(null);
     } catch { toast.current?.show({ severity: "error", summary: "No se pudo eliminar el short" }); }
     finally { setLoadingDelete(false); }
   }
 
-  const FileInput = ({ accept, label, file, onFile, onClear }: { accept: string; label: string; file: File | null; onFile: (f: File) => void; onClear: () => void }) => {
+  const filtered = (searchTerm
+    ? shorts.filter((s) => s.title?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : shorts
+  ).slice().sort((a, b) => formatDateForInput(a.published_at).localeCompare(formatDateForInput(b.published_at)));
+
+  const FileDropzone = ({ label, file, accept, onFile, onClear, showPreview }: { label: string; file: File | null; accept: string; onFile: (f: File) => void; onClear: () => void; showPreview?: boolean }) => {
+    const [drag, setDrag] = useState(false);
     const ref = useRef<HTMLInputElement>(null);
     return (
-      <div className="dropzone-area text-center" onClick={() => !file && ref.current?.click()}>
+      <div className={`dropzone-area${drag ? " drag-over" : ""} text-center`}
+        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
+        onClick={() => !file && ref.current?.click()}
+      >
         <small className="text-muted">{label}</small>
         <input ref={ref} type="file" accept={accept} style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }} />
-        {file && <div className="mt-1"><small className="text-success">{file.name}</small> <button type="button" className="btn btn-sm btn-link text-danger p-0 ml-1" onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button></div>}
+        {file && (
+          <div className="mt-2 position-relative d-inline-block">
+            {showPreview ? (
+              <img src={URL.createObjectURL(file)} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
+            ) : (
+              <small className="text-success d-block">{file.name}</small>
+            )}
+            <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
+          </div>
+        )}
       </div>
     );
   };
+
+  const deleteDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-trash" style={{ color: "#dc3545", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar short</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
+      </div>
+    </div>
+  );
 
   return (
     <>
       <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">{shortParaModificar ? "Modificación de short" : "Subida de short"}</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Shorts</li>
-            </ol>
+
+        {/* Header card */}
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-video" style={{ color: "#059669", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Shorts</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Gestión de shorts institucionales</small>
+            </div>
+            <button
+              type="button"
+              disabled={loadingShorts}
+              onClick={load}
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className={loadingShorts ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+              Recargar
+            </button>
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-body">
-                <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
-                  <div className="row">
-                    <div className="form-group col-12 col-md-6">
-                      <label><small>Título (máx 50) *</small></label>
-                      <input type="text" maxLength={50} className="form-control form-control-sm" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
-                      {touched && !form.title && <small className="text-danger">* Obligatorio</small>}
-                    </div>
-                    <div className="form-group col-6 col-md-3">
-                      <label><small>Fecha desde *</small></label>
-                      <input type="date" className="form-control form-control-sm" min={today} max={maxPublished} value={form.published_at} onChange={(e) => setForm((p) => ({ ...p, published_at: e.target.value }))} />
-                      {touched && !form.published_at && <small className="text-danger">* Obligatorio</small>}
-                    </div>
-                    <div className="form-group col-6 col-md-3">
-                      <label><small>Fecha hasta *</small></label>
-                      <input type="date" className="form-control form-control-sm" min={minUnpublished} value={form.unpublished_at} onChange={(e) => setForm((p) => ({ ...p, unpublished_at: e.target.value }))} />
-                      {touched && !form.unpublished_at && <small className="text-danger">* Obligatorio</small>}
-                    </div>
-                    <div className="form-group col-12">
-                      <label><small>Descripción (máx 300) *</small></label>
-                      <textarea className="form-control" maxLength={300} rows={3} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
-                      {touched && !form.description && <small className="text-danger">* Obligatorio</small>}
-                    </div>
-                  </div>
-
-                  <div className="row mb-3">
-                    <div className="col-12 col-md-6">
-                      <label><small>Imagen (máx 5MB)</small></label>
-                      {shortParaModificar && imgModif && <div className="mb-1"><img src={`${API_URL}${imgModif.path_url}`} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} /></div>}
-                      <FileInput accept="image/*" label="Arrastre o haga click para imagen" file={imgFile} onFile={handleImg} onClear={() => setImgFile(null)} />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label><small>Video (máx {VIDEO_LABEL})</small></label>
-                      {shortParaModificar && videoModif && <small className="text-muted d-block mb-1">Video previo guardado</small>}
-                      <FileInput accept="video/*" label="Arrastre o haga click para video" file={videoFile} onFile={handleVideo} onClear={() => setVideoFile(null)} />
-                    </div>
-                  </div>
-
-                  <div className="row mt-4">
-                    <div className="col-6">
-                      <button disabled={loading} type="submit" className="btn btn-block btn-info">
-                        {shortParaModificar ? (loading ? "MODIFICANDO" : "MODIFICAR") : (loading ? "CREANDO" : "CREAR SHORT")}
-                      </button>
-                    </div>
-                    <div className="col-6">
-                      <button type="button" disabled={loading} className="btn btn-block btn-muted" onClick={limpiar}>Limpiar</button>
-                    </div>
-                  </div>
-                  {loading && <ProgressBar mode="indeterminate" style={{ height: "6px" }} className="mt-2" />}
-                </form>
-              </div>
+        {/* Create / modify form card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: shortParaModificar ? "#eff6ff" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className={`pi ${shortParaModificar ? "pi-pencil" : "pi-plus-circle"}`} style={{ color: shortParaModificar ? "#3b82f6" : "#059669", fontSize: "1rem" }} />
             </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
+                {shortParaModificar ? "Modificar short" : "Nuevo short"}
+              </h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
+                {shortParaModificar ? shortParaModificar.title : "Completá los datos para crear un short"}
+              </small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
+              <div className="row">
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Título (máx 50) *</label>
+                  <input
+                    className="profile-input"
+                    type="text"
+                    maxLength={50}
+                    value={form.title}
+                    onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                  />
+                  {touched && !form.title && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                </div>
+                <div className="col-6 col-md-3 mb-3">
+                  <label className="profile-field-label">Fecha desde *</label>
+                  <input
+                    className="profile-input"
+                    type="date"
+                    min={today}
+                    max={maxPublished}
+                    value={form.published_at}
+                    onChange={(e) => setForm((p) => ({ ...p, published_at: e.target.value }))}
+                  />
+                  {touched && !form.published_at && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                </div>
+                <div className="col-6 col-md-3 mb-3">
+                  <label className="profile-field-label">Fecha hasta *</label>
+                  <input
+                    className="profile-input"
+                    type="date"
+                    min={minUnpublished}
+                    value={form.unpublished_at}
+                    onChange={(e) => setForm((p) => ({ ...p, unpublished_at: e.target.value }))}
+                  />
+                  {touched && !form.unpublished_at && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                </div>
+                <div className="col-12 mb-3">
+                  <label className="profile-field-label">Descripción (máx 300) *</label>
+                  <textarea
+                    className="profile-input"
+                    maxLength={300}
+                    rows={3}
+                    value={form.description}
+                    onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                  />
+                  {touched && !form.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                </div>
+              </div>
+
+              <div className="row mb-3">
+                <div className="col-12 col-md-6">
+                  <label className="profile-field-label">Imagen (máx 5MB)</label>
+                  {shortParaModificar && imgModif && (
+                    <div className="mb-2">
+                      <img src={`${API_URL}${imgModif.path_url}`} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
+                    </div>
+                  )}
+                  <FileDropzone label="Arrastre o haga click para subir imagen" accept="image/*" file={imgFile} onFile={handleImg} onClear={() => setImgFile(null)} showPreview />
+                </div>
+                <div className="col-12 col-md-6">
+                  <label className="profile-field-label">Video (máx {VIDEO_LABEL})</label>
+                  {shortParaModificar && videoModif && (
+                    <small className="text-muted d-block mb-2">Video previo guardado</small>
+                  )}
+                  <FileDropzone label="Arrastre o haga click para subir video" accept="video/*" file={videoFile} onFile={handleVideo} onClear={() => setVideoFile(null)} />
+                </div>
+              </div>
+
+              <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
+                <button
+                  disabled={loading}
+                  type="submit"
+                  className="btn btn-primary d-flex align-items-center"
+                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                >
+                  <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                  {shortParaModificar
+                    ? (loading ? "Modificando..." : "Modificar")
+                    : (loading ? "Creando..." : "Crear short")}
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={limpiar}
+                  className="btn btn-light text-muted ml-auto"
+                  style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+                >
+                  Limpiar
+                </button>
+              </div>
+
+              {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+            </form>
           </div>
         </div>
 
-        {/* List */}
-        <div className="row mt-4">
-          {shorts.map((short) => (
-            <div key={short.id} className="col-12 col-md-6 col-lg-4 mb-4 fadeIn animated">
-              <div className="card h-100">
-                <div className="card-body">
-                  <h6>{short.title}</h6>
-                  <small className="text-muted">{short.description?.slice(0, 80)}{short.description?.length > 80 ? "..." : ""}</small>
-                  <div className="mt-2">
-                    <small className="text-muted">{formatDate(short.published_at)} — {formatDate(short.unpublished_at)}</small>
+        {/* List card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-list" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{shorts.length} {shorts.length === 1 ? "short" : "shorts"}</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+
+            {/* Filter bar */}
+            {(shorts.length > 0 || searchTerm) && (
+              <div className="license-filter-bar mb-3">
+                <div className="license-filter-bar-inputs">
+                  <div className={`license-filter-input-wrap${searchTerm ? " license-filter-input-wrap--active" : ""}`}>
+                    <i className="pi pi-search license-filter-icon" />
+                    <input
+                      className="license-filter-input"
+                      style={{ paddingLeft: "32px" }}
+                      placeholder="Buscar short por título…"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                   </div>
                 </div>
-                <div className="card-footer d-flex justify-content-between">
-                  <button className="btn btn-sm btn-info" onClick={() => llenarFormulario(short)}><i className="mdi mdi-pencil-outline" /> Editar</button>
-                  <button className="btn btn-sm btn-danger" onClick={() => { setShortToDelete(short); setShowDeleteModal(true); }}><i className="mdi mdi-trash-can-outline" /> Borrar</button>
-                </div>
+                {searchTerm && (
+                  <button type="button" className="license-filter-clear" onClick={() => setSearchTerm("")}>
+                    <i className="pi pi-times" /> Limpiar
+                  </button>
+                )}
               </div>
-            </div>
-          ))}
-          {loadingShorts && <div className="col-12 text-center py-4"><i className="pi pi-spin pi-spinner" /> Cargando shorts...</div>}
-          {!loadingShorts && shorts.length === 0 && <div className="col-12 text-center py-4 text-muted">No hay shorts.</div>}
+            )}
+
+            {/* Loading skeleton */}
+            {loadingShorts && <SkeletonCards />}
+
+            {/* Shorts grid */}
+            {!loadingShorts && (
+              <div className="row fadeIn animated">
+                {filtered.map((short) => (
+                  <div key={short.id} className="col-12 col-md-6 col-lg-4 mb-3">
+                    <div
+                      onMouseEnter={() => setHoveredCard(short.id)}
+                      onMouseLeave={() => setHoveredCard(null)}
+                      style={{
+                        border: "1.5px solid #e2e8f0",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        boxShadow: hoveredCard === short.id ? "0 4px 16px rgba(0,0,0,0.08)" : "none",
+                        transition: "box-shadow 0.15s",
+                      }}
+                    >
+                      {short.image?.path_url && (
+                        <div style={{ position: "relative", width: "100%", height: 180, flexShrink: 0 }}>
+                          <img
+                            src={`${API_URL}${short.image.path_url}`}
+                            alt={short.title}
+                            onClick={() => setPreviewImage({ url: `${API_URL}${short.image.path_url}`, name: short.title })}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in", display: "block", transition: "opacity 0.15s", opacity: hoveredCard === short.id ? 0.85 : 1 }}
+                          />
+                          <div
+                            onClick={() => setPreviewImage({ url: `${API_URL}${short.image.path_url}`, name: short.title })}
+                            style={{
+                              position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              opacity: hoveredCard === short.id ? 1 : 0,
+                              transition: "opacity 0.15s",
+                              pointerEvents: hoveredCard === short.id ? "auto" : "none",
+                              cursor: "zoom-in",
+                            }}
+                          >
+                            <span style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(30,41,59,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <i className="pi pi-search-plus" style={{ color: "#fff", fontSize: "1.1rem" }} />
+                            </span>
+                          </div>
+                          {short.video?.path_url && (
+                            <span style={{ position: "absolute", top: 8, right: 8, width: 26, height: 26, borderRadius: "50%", background: "rgba(30,41,59,0.65)", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+                              <i className="pi pi-video" style={{ color: "#fff", fontSize: "0.7rem" }} />
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <div className="flex-grow-1" style={{ padding: "14px" }}>
+                        <p className="mb-1 font-weight-bold" style={{ fontSize: "0.9rem", color: "#1e293b" }}>{short.title}</p>
+                        <p className="mb-1" style={{ fontSize: "0.82rem", color: "#64748b" }}>
+                          {short.description?.slice(0, 80)}{short.description?.length > 80 ? "..." : ""}
+                        </p>
+                        <p className="mb-0" style={{ fontSize: "0.78rem", color: "#94a3b8" }}>
+                          {formatDateDisplay(short.published_at)} — {formatDateDisplay(short.unpublished_at)}
+                        </p>
+                      </div>
+                      <div className="d-flex align-items-center justify-content-between px-3 pb-3 pt-2" style={{ gap: "6px", borderTop: "1px solid rgba(0,0,0,0.04)" }}>
+                        <Tooltip label="Cantidad de likes">
+                          <span
+                            style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: "#eff6ff", color: "#3b82f6", borderRadius: "20px", padding: "4px 10px", fontSize: "0.78rem", fontWeight: 700 }}
+                          >
+                            <i className="pi pi-thumbs-up-fill" style={{ fontSize: "0.75rem" }} />
+                            {short.likes_count ?? 0}
+                          </span>
+                        </Tooltip>
+                        <div className="d-flex align-items-center" style={{ gap: "6px" }}>
+                          <Tooltip label="Modificar">
+                            <button
+                              type="button"
+                              onClick={() => llenarFormulario(short)}
+                              style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#3b82f6" }}
+                            >
+                              <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
+                            </button>
+                          </Tooltip>
+                          <Tooltip label="Eliminar">
+                            <button
+                              type="button"
+                              onClick={() => setShortToDelete(short)}
+                              style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545" }}
+                            >
+                              <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
+                            </button>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {shorts.length === 0 && (
+                  <div className="col-12" style={{ padding: "40px", textAlign: "center" }}>
+                    <i className="pi pi-video" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>No hay shorts disponibles para mostrar.</p>
+                  </div>
+                )}
+                {shorts.length > 0 && filtered.length === 0 && (
+                  <div className="col-12" style={{ padding: "40px", textAlign: "center" }}>
+                    <i className="pi pi-search" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
+                      No se encontraron shorts con el título &quot;{searchTerm}&quot;.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {showDeleteModal && (
-        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 400 }}>
-            <div className="modal-content text-center p-4">
-              <i className="mdi mdi-alert-circle-outline text-danger mb-3" style={{ fontSize: "3rem" }} />
-              <h4>¿Eliminar short?</h4>
-              <p className="text-muted"><strong>&quot;{shortToDelete?.title}&quot;</strong></p>
-              <div className="row g-2 mt-4">
-                <div className="col-6"><button disabled={loadingDelete} className="btn btn-light w-100" onClick={() => { setShowDeleteModal(false); setShortToDelete(null); }}>Cancelar</button></div>
-                <div className="col-6"><button disabled={loadingDelete} className="btn btn-danger w-100" onClick={handleDeleteConfirm}>{loadingDelete ? "Eliminando..." : "Sí, eliminar"}</button></div>
-              </div>
+      {/* Image preview dialog */}
+      <Dialog
+        header={previewImage?.name}
+        visible={!!previewImage}
+        modal
+        draggable={false}
+        resizable={false}
+        dismissableMask
+        style={{ width: "min(90vw, 900px)" }}
+        onHide={() => setPreviewImage(null)}
+      >
+        {previewImage && (
+          <img src={previewImage.url} alt={previewImage.name} style={{ width: "100%", height: "auto", borderRadius: "8px", display: "block" }} />
+        )}
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        header={deleteDialogHeader}
+        visible={!!shortToDelete}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(420px, 92vw)" }}
+        onHide={() => setShortToDelete(null)}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                disabled={loadingDelete}
+                onClick={handleDeleteConfirm}
+                type="button"
+                className="btn btn-danger d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingDelete ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
+                {loadingDelete ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+              <button
+                disabled={loadingDelete}
+                onClick={() => setShortToDelete(null)}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
             </div>
+            {loadingDelete && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
-        </div>
-      )}
+        }
+      >
+        <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
+          Está a punto de eliminar el short <strong>{shortToDelete?.title}</strong>.
+        </p>
+      </Dialog>
     </>
   );
 }
