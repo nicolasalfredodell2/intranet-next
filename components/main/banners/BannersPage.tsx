@@ -8,7 +8,6 @@ import { ProgressBar } from "primereact/progressbar";
 import { listBanners, createBanner, modificateBanner, deleteBanner, deleteBannerImage } from "@/lib/services/banners.service";
 import { getAllNotes } from "@/lib/services/notes.service";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const MAX_SIZE = 5 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
 const URL_PATTERN = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?(\?.*)?$/;
@@ -386,7 +385,7 @@ export default function BannersPage() {
                   <label className="profile-field-label">Imagen horizontal</label>
                   {bannerParaModificar && fileHorizModif && (
                     <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
-                      <img src={`${API_URL}${fileHorizModif.path_url}`} alt="" style={{ width: 80, height: 50, objectFit: "cover", borderRadius: 4 }} />
+                      <img src={`${fileHorizModif.path_url}`} alt="" style={{ width: 80, height: 50, objectFit: "cover", borderRadius: 4 }} />
                       {!isDeletingHoriz && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("horizontal")}>Quitar</button>}
                       {isDeletingHoriz && <i className="pi pi-spin pi-spinner" />}
                     </div>
@@ -397,7 +396,7 @@ export default function BannersPage() {
                   <label className="profile-field-label">Imagen vertical</label>
                   {bannerParaModificar && fileVertModif && (
                     <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
-                      <img src={`${API_URL}${fileVertModif.path_url}`} alt="" style={{ width: 50, height: 80, objectFit: "cover", borderRadius: 4 }} />
+                      <img src={`${fileVertModif.path_url}`} alt="" style={{ width: 50, height: 80, objectFit: "cover", borderRadius: 4 }} />
                       {!isDeletingVert && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("vertical")}>Quitar</button>}
                       {isDeletingVert && <i className="pi pi-spin pi-spinner" />}
                     </div>
@@ -495,7 +494,7 @@ export default function BannersPage() {
                       }}
                     >
                       {banner.image_horizontal_url && (
-                        <img src={`${API_URL}${banner.image_horizontal_url}`} alt={banner.name} style={{ width: "100%", height: 110, objectFit: "cover" }} />
+                        <img src={`${banner.image_horizontal_url}`} alt={banner.name} style={{ width: "100%", height: 110, objectFit: "cover" }} />
                       )}
                       <div className="flex-grow-1" style={{ padding: "14px" }}>
                         <p className="mb-1 font-weight-bold" style={{ fontSize: "0.9rem", color: "#1e293b" }}>{banner.name}</p>
