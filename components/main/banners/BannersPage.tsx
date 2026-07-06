@@ -50,7 +50,7 @@ function SkeletonCards() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div key={i} className="col-12 col-md-6 col-lg-4 mb-3">
           <div style={{ border: "1.5px solid #e2e8f0", borderRadius: "12px", overflow: "hidden" }}>
-            <div style={{ width: "100%", height: 110, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+            <div style={{ width: "100%", height: 180, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
             <div style={{ padding: "14px" }}>
               <div style={{ width: "60%", height: 16, borderRadius: 6, marginBottom: 10, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
               <div style={{ width: "90%", height: 12, borderRadius: 6, marginBottom: 16, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
@@ -216,7 +216,7 @@ export default function BannersPage() {
   const filtered = (searchTerm
     ? banners.filter((b) => b.name?.toLowerCase().includes(searchTerm.toLowerCase()))
     : banners
-  ).slice().sort((a, b) => (a.name ?? "").localeCompare(b.name ?? "", "es", { sensitivity: "base" }));
+  ).slice().sort((a, b) => formatDateForInput(a.published_at).localeCompare(formatDateForInput(b.published_at)));
 
   const FileDropzone = ({ label, file, onFile, onClear }: { label: string; file: File | null; onFile: (f: File) => void; onClear: () => void }) => {
     const [drag, setDrag] = useState(false);
@@ -494,7 +494,7 @@ export default function BannersPage() {
                       }}
                     >
                       {banner.image_horizontal_url && (
-                        <img src={`${banner.image_horizontal_url}`} alt={banner.name} style={{ width: "100%", height: 110, objectFit: "cover" }} />
+                        <img src={`${banner.image_horizontal_url}`} alt={banner.name} style={{ width: "100%", height: 180, objectFit: "cover" }} />
                       )}
                       <div className="flex-grow-1" style={{ padding: "14px" }}>
                         <p className="mb-1 font-weight-bold" style={{ fontSize: "0.9rem", color: "#1e293b" }}>{banner.name}</p>
