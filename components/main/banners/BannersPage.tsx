@@ -22,6 +22,13 @@ function formatDateForInput(s: string | null): string {
   return s.split(" ")[0].split("T")[0];
 }
 
+function formatDateDisplay(s: string | null): string {
+  const iso = formatDateForInput(s);
+  if (!iso) return "--";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   return (
@@ -499,7 +506,7 @@ export default function BannersPage() {
                       <div className="flex-grow-1" style={{ padding: "14px" }}>
                         <p className="mb-1 font-weight-bold" style={{ fontSize: "0.9rem", color: "#1e293b" }}>{banner.name}</p>
                         <p className="mb-0" style={{ fontSize: "0.82rem", color: "#64748b" }}>
-                          {formatDateForInput(banner.published_at)} — {formatDateForInput(banner.unpublished_at)}
+                          {formatDateDisplay(banner.published_at)} — {formatDateDisplay(banner.unpublished_at)}
                         </p>
                       </div>
                       <div className="d-flex align-items-center justify-content-end px-3 pb-3 pt-2" style={{ gap: "6px", borderTop: "1px solid rgba(0,0,0,0.04)" }}>
