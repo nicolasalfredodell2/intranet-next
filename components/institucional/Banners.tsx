@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 interface BannersProps {
   banners: any[];
@@ -10,7 +9,6 @@ interface BannersProps {
 export default function Banners({ banners }: BannersProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSmall, setIsSmall] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     const check = () => setIsSmall(window.innerWidth < 1200);
@@ -24,10 +22,11 @@ export default function Banners({ banners }: BannersProps) {
   const banner = banners[currentIndex];
   const imgSrc = isSmall ? banner.image_horizontal_url : banner.image_vertical_url;
   const isClickable = banner.external_url || banner.note;
+  const ctaLabel = banner.note ? "Ver nota interna" : banner.external_url ? "Ver enlace externo" : null;
 
   const handleClick = () => {
-    if (banner.external_url) window.open(banner.external_url, "_blank");
-    else if (banner.note) router.push(`/institucional/noticia/${banner.note.id}`);
+    if (banner.external_url) window.open(banner.external_url, "_blank", "noopener,noreferrer");
+    else if (banner.note) window.open(`/institucional/noticia/${banner.note.id}`, "_blank", "noopener,noreferrer");
   };
 
   const prev = () => setCurrentIndex((i) => (i > 0 ? i - 1 : banners.length - 1));
@@ -67,6 +66,15 @@ export default function Banners({ banners }: BannersProps) {
                 />
               ))}
             </div>
+          )}
+
+          {ctaLabel && (
+            <button
+              className={`cta-btn${banners.length > 1 ? " with-dots" : ""}`}
+              onClick={handleClick}
+            >
+              {ctaLabel}
+            </button>
           )}
         </div>
       </div>
@@ -125,6 +133,30 @@ export default function Banners({ banners }: BannersProps) {
           background-color: #ffffff;
           width: 20px;
           border-radius: 10px;
+        }
+        .cta-btn {
+          position: absolute;
+          bottom: 15px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(54, 120, 231, 0.9);
+          color: #fff;
+          border: none;
+          border-radius: 20px;
+          padding: 6px 16px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          cursor: pointer;
+          z-index: 20;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+          white-space: nowrap;
+          transition: background 0.2s ease;
+        }
+        .cta-btn:hover {
+          background: rgba(54, 120, 231, 1);
+        }
+        .cta-btn.with-dots {
+          bottom: 42px;
         }
         @media (max-width: 1199px) {
           .banner-img {
