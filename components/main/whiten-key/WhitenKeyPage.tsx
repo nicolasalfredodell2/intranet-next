@@ -51,6 +51,12 @@ export default function WhitenKeyPage() {
 
   const isFormValid = !!(username && newpassword && newpassword.length <= 30 && rules.minLength && rules.minLowerCase && rules.minUpperCase && rules.minNumbers);
 
+  function limpiar() {
+    setNewpassword("");
+    setRules({ minLength: false, minLowerCase: false, minNumbers: false, minUpperCase: false });
+    setTouchedPass(false);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouchedUser(true);
@@ -61,9 +67,7 @@ export default function WhitenKeyPage() {
     try {
       const resp = await whitenKey({ username, newpassword, token: FIXED_TOKEN });
       if (resp.error === "False") {
-        setNewpassword("");
-        setRules({ minLength: false, minLowerCase: false, minNumbers: false, minUpperCase: false });
-        setTouchedPass(false);
+        limpiar();
         toast.current?.show({ severity: "success", summary: resp.message });
       } else {
         toast.current?.show({ severity: "error", summary: resp.message });
@@ -110,7 +114,7 @@ export default function WhitenKeyPage() {
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
               <div className="row">
-                <div className="col-12 col-md-4 mb-3">
+                <div className="col-12 col-md-6 mb-3">
                   <label className={`profile-field-label${touchedUser && !username ? " text-danger" : ""}`}>Usuario</label>
                   <input
                     disabled={loading}
@@ -124,12 +128,13 @@ export default function WhitenKeyPage() {
                   {touchedUser && !username && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                 </div>
 
-                <div className="col-12 col-md-4 mb-3">
+                <div className="col-12 col-md-6 mb-3">
                   <label className={`profile-field-label${touchedPass && (!newpassword || newpassword.length > 30) ? " text-danger" : ""}`}>Nueva contraseña</label>
-                  <div className="login-input-wrap">
+                  <div style={{ position: "relative" }}>
                     <input
                       disabled={loading}
-                      className="profile-input login-input--with-toggle"
+                      className="profile-input"
+                      style={{ paddingRight: "38px" }}
                       type={showPassword ? "text" : "password"}
                       value={newpassword}
                       onChange={(e) => verifyRules(e.target.value)}
@@ -139,9 +144,13 @@ export default function WhitenKeyPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((p) => !p)}
-                      className="login-input-toggle"
                       aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                       aria-pressed={showPassword}
+                      style={{
+                        position: "absolute", right: "9px", top: "50%", transform: "translateY(-50%)",
+                        background: "none", border: "none", borderRadius: "6px", padding: "4px",
+                        color: "#94a3b8", cursor: "pointer", display: "flex", alignItems: "center",
+                      }}
                     >
                       <i className={`pi ${showPassword ? "pi-eye-slash" : "pi-eye"}`} />
                     </button>
@@ -149,18 +158,27 @@ export default function WhitenKeyPage() {
                   {touchedPass && !newpassword && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                   {touchedPass && newpassword.length > 30 && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>* Hasta 30 caracteres</small>}
                 </div>
+              </div>
 
-                <div className="col-12 col-md-4 d-flex align-items-center">
-                  <button
-                    disabled={loading || !isFormValid}
-                    type="submit"
-                    className="btn btn-primary d-flex align-items-center"
-                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
-                  >
-                    <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                    {loading ? "Blanqueando..." : "Blanquear contraseña"}
-                  </button>
-                </div>
+              <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
+                <button
+                  disabled={loading || !isFormValid}
+                  type="submit"
+                  className="btn btn-primary d-flex align-items-center"
+                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                >
+                  <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                  {loading ? "Blanqueando..." : "Blanquear contraseña"}
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={limpiar}
+                  className="btn btn-light text-muted ml-auto"
+                  style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+                >
+                  Limpiar
+                </button>
               </div>
 
               {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
@@ -176,7 +194,7 @@ export default function WhitenKeyPage() {
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Requisitos de contraseña</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Tu nueva clave debe cumplir con estas condiciones</small>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>La nueva clave debe cumplir con estas condiciones</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
@@ -188,8 +206,24 @@ export default function WhitenKeyPage() {
               <RuleItem met={rules.minUpperCase}>Al menos 1 mayúscula</RuleItem>
               <RuleItem met={rules.minNumbers}>Al menos 1 número</RuleItem>
             </ul>
+          </div>
+        </div>
 
-            <div className="qr-info-block mt-3">
+        {/* Info card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-info-circle" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Información importante</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Tené en cuenta lo siguiente</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            <div className="qr-info-block">
               <div className="qr-info-item" style={{ borderLeftColor: "#4a6cf7" }}>
                 <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-info-circle" /></span>
                 <span className="qr-info-text">El cambio de contraseña se verá reflejado en: <strong>PC personal, correo institucional, Workflow, Intranet, Chasqui y Ebla</strong>.</span>
