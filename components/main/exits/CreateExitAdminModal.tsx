@@ -246,23 +246,29 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
 
           <div className="col-12 col-md-6 mb-3">
             <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Legajo *</label>
-            <input
-              type="text"
-              className="form-control form-control-sm mt-1"
-              value={form.file}
-              onChange={handleFileChange}
-            />
+            <div className={`license-filter-input-wrap mt-1${form.file ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-id-card license-filter-icon" />
+              <input
+                type="text"
+                style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none" }}
+                value={form.file}
+                onChange={handleFileChange}
+              />
+            </div>
             {touched && !form.file && <small className="text-danger fadeIn animated">* Campo obligatorio</small>}
           </div>
 
           <div className="col-12 col-md-6 mb-3">
             <label style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Confirmar legajo *</label>
-            <input
-              type="text"
-              className="form-control form-control-sm mt-1"
-              value={form.confirm_file}
-              onChange={handleConfirmFileChange}
-            />
+            <div className={`license-filter-input-wrap mt-1${form.confirm_file ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-id-card license-filter-icon" />
+              <input
+                type="text"
+                style={{ paddingLeft: "32px", border: "none", width: "100%", fontSize: "0.84rem", background: "transparent", outline: "none" }}
+                value={form.confirm_file}
+                onChange={handleConfirmFileChange}
+              />
+            </div>
             {touched && !form.confirm_file && <small className="text-danger fadeIn animated">* Campo obligatorio</small>}
           </div>
 
