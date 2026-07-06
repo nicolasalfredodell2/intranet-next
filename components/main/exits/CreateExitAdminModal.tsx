@@ -179,6 +179,7 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
         draggable={false}
         resizable={false}
         closable={false}
+        dismissableMask
         style={{ width: "min(600px, 92vw)" }}
         onHide={handleHide}
         footer={dialogFooter}

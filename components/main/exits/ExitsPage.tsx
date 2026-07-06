@@ -1310,6 +1310,7 @@ export default function ExitsPage() {
         draggable={false}
         resizable={false}
         closable={false}
+        dismissableMask
         style={{ width: "min(560px, 92vw)" }}
         onHide={closeModalModificateItem}
         footer={
