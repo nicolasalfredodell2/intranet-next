@@ -510,6 +510,20 @@ export default function BannersPage() {
                         </p>
                       </div>
                       <div className="d-flex align-items-center justify-content-end px-3 pb-3 pt-2" style={{ gap: "6px", borderTop: "1px solid rgba(0,0,0,0.04)" }}>
+                        {(banner.note_id || banner.external_url) && (
+                          <Tooltip label={banner.note_id ? "Ver nota interna" : "Ver enlace externo"}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const url = banner.note_id ? `/institucional/noticia/${banner.note_id}` : banner.external_url;
+                                window.open(url, "_blank", "noopener,noreferrer");
+                              }}
+                              style={{ background: "none", border: "1.5px solid #d1fae5", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#059669" }}
+                            >
+                              <i className="pi pi-external-link" style={{ fontSize: "0.85rem" }} />
+                            </button>
+                          </Tooltip>
+                        )}
                         <Tooltip label="Modificar">
                           <button
                             type="button"
