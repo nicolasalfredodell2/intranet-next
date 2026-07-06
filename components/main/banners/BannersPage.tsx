@@ -502,14 +502,29 @@ export default function BannersPage() {
                       }}
                     >
                       {banner.image_horizontal_url && (
-                        <img
-                          src={`${banner.image_horizontal_url}`}
-                          alt={banner.name}
-                          onClick={() => setPreviewImage({ url: banner.image_horizontal_url, name: banner.name })}
-                          style={{ width: "100%", height: 180, objectFit: "cover", cursor: "zoom-in", transition: "opacity 0.15s" }}
-                          onMouseEnter={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = "0.85"; }}
-                          onMouseLeave={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = "1"; }}
-                        />
+                        <div style={{ position: "relative", width: "100%", height: 180, flexShrink: 0 }}>
+                          <img
+                            src={`${banner.image_horizontal_url}`}
+                            alt={banner.name}
+                            onClick={() => setPreviewImage({ url: banner.image_horizontal_url, name: banner.name })}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in", display: "block", transition: "opacity 0.15s", opacity: hoveredCard === banner.id ? 0.85 : 1 }}
+                          />
+                          <div
+                            onClick={() => setPreviewImage({ url: banner.image_horizontal_url, name: banner.name })}
+                            style={{
+                              position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              opacity: hoveredCard === banner.id ? 1 : 0,
+                              transition: "opacity 0.15s",
+                              pointerEvents: hoveredCard === banner.id ? "auto" : "none",
+                              cursor: "zoom-in",
+                            }}
+                          >
+                            <span style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(30,41,59,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <i className="pi pi-search-plus" style={{ color: "#fff", fontSize: "1.1rem" }} />
+                            </span>
+                          </div>
+                        </div>
                       )}
                       <div className="flex-grow-1" style={{ padding: "14px" }}>
                         <p className="mb-1 font-weight-bold" style={{ fontSize: "0.9rem", color: "#1e293b" }}>{banner.name}</p>
