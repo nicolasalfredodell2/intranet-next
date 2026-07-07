@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
+import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
@@ -1189,8 +1190,13 @@ export default function ExitsPage() {
         </div>
       )}
 
-      {/* ── PDF viewer dialog ── */}
-      <Dialog
+      {/* ── PDF viewer slide-in ── */}
+      <Sidebar
+        visible={!!pdfUrl}
+        onHide={closePdfExit}
+        position="right"
+        dismissable
+        style={{ width: "min(700px, 92vw)", display: "flex", flexDirection: "column" }}
         header={
           <div className="d-flex align-items-center" style={{ gap: "12px" }}>
             <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1202,16 +1208,10 @@ export default function ExitsPage() {
             </div>
           </div>
         }
-        visible={!!pdfUrl}
-        onHide={closePdfExit}
-        modal
-        dismissableMask
-        maximizable
-        style={{ width: "min(1000px, 92vw)", height: "90vh" }}
-        contentStyle={{ flex: 1, padding: 0, display: "flex" }}
+        pt={{ content: { style: { flex: 1, padding: 0, display: "flex", height: "100%" } } }}
       >
         {pdfUrl && <iframe src={pdfUrl} style={{ flex: 1, width: "100%", border: "none" }} title="Orden de salida PDF" />}
-      </Dialog>
+      </Sidebar>
 
       {/* ── Boss selection dialog ── */}
       <Dialog
