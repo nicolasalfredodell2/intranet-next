@@ -391,7 +391,7 @@ export default function ProfilePage() {
                         <i className={loadingActionQr ? "pi pi-spin pi-spinner" : "fa fa-qrcode"} style={{ fontSize: "1.4rem" }} />
                       </div>
                       <p className="qr-action-label">{loadingActionQr ? "Descargando..." : "QR personal"}</p>
-                      <span style={{ fontSize: "0.7rem", color: "#94a3b8", textAlign: "center", lineHeight: 1.3 }}>Descargá tu firma con QR</span>
+                      <span style={{ fontSize: "0.7rem", color: "#94a3b8", textAlign: "center", lineHeight: 1.3 }}>Descargá tu QR</span>
                     </div>
                     <div className="qr-action-card" onClick={() => setIsOpenDialogQR(true)}>
                       <div className="qr-action-icon">
