@@ -111,6 +111,12 @@ const READ_ONLY_BADGE = (
   </span>
 );
 
+const SIGNATURE_BADGE = (
+  <span style={{ fontSize: "0.65rem", background: "#eff6ff", color: "#3b82f6", borderRadius: "20px", padding: "1px 7px", display: "inline-flex", alignItems: "center", gap: "3px", verticalAlign: "middle" }}>
+    <i className="pi pi-file-edit" style={{ fontSize: "0.58rem" }} /> Aparece en firma
+  </span>
+);
+
 function CardSectionHeader({ icon, iconBg, iconColor, title, subtitle, action }: { icon: string; iconBg: string; iconColor: string; title: string; subtitle: string; action?: React.ReactNode }) {
   return (
     <>
@@ -440,7 +446,7 @@ export default function ProfilePage() {
                     <p className="profile-section-sub">Información Personal</p>
                     <div className="row">
                       <div className="col-12 col-md-6 mb-3">
-                        <label className={`profile-field-label${touched.name && errors.name ? " text-danger" : ""}`}>Nombre/s</label>
+                        <label className={`profile-field-label${touched.name && errors.name ? " text-danger" : ""}`}>Nombre/s {SIGNATURE_BADGE}</label>
                         <input
                           className="profile-input"
                           value={form.name}
@@ -452,7 +458,7 @@ export default function ProfilePage() {
                         {touched.name && errors.name && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>{errors.name}</small>}
                       </div>
                       <div className="col-12 col-md-6 mb-3">
-                        <label className={`profile-field-label${touched.lastname && errors.lastname ? " text-danger" : ""}`}>Apellido/s</label>
+                        <label className={`profile-field-label${touched.lastname && errors.lastname ? " text-danger" : ""}`}>Apellido/s {SIGNATURE_BADGE}</label>
                         <input
                           className="profile-input"
                           value={form.lastname}
@@ -499,7 +505,7 @@ export default function ProfilePage() {
                     <p className="profile-section-sub">Información Laboral</p>
                     <div className="row">
                       <div className="col-12 col-md-6 mb-3">
-                        <label className="profile-field-label">Lugar {READ_ONLY_BADGE}</label>
+                        <label className="profile-field-label">Lugar {READ_ONLY_BADGE} {SIGNATURE_BADGE}</label>
                         <input className="profile-input" value={form.location} disabled autoComplete="off" />
                       </div>
                       <div className="col-12 col-md-6 mb-3">
@@ -509,7 +515,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="row">
                       <div className="col-12 col-md-6 mb-3">
-                        <label className={`profile-field-label${touched.occupation && errors.occupation ? " text-danger" : ""}`}>Función</label>
+                        <label className={`profile-field-label${touched.occupation && errors.occupation ? " text-danger" : ""}`}>Función {SIGNATURE_BADGE}</label>
                         <input
                           className="profile-input"
                           value={form.occupation}
