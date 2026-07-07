@@ -254,6 +254,11 @@ export default function ReceiptsPage() {
                   )}
                 </div>
               </div>
+
+              <div className="qr-info-item mt-3" style={{ borderLeftColor: "#4a6cf7" }}>
+                <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-info-circle" /></span>
+                <span className="qr-info-text">Para ver tus propios recibos de sueldo, este filtro no debe estar activo.</span>
+              </div>
             </div>
           </div>
         )}
