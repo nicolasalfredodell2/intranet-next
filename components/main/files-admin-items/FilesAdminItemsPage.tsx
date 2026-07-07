@@ -57,6 +57,7 @@ export default function FilesAdminItemsPage() {
   const [loadingAction, setLoadingAction] = useState(false);
   const [search, setSearch] = useState("");
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   const [catForm, setCatForm] = useState({ name: "", description: "" });
   const [catTouched, setCatTouched] = useState(false);
@@ -124,6 +125,10 @@ export default function FilesAdminItemsPage() {
     setCatForm({ name: cat.name, description: cat.description });
     setCatTouched(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function toggleExpanded(id: string) {
+    setExpandedCategories((p) => ({ ...p, [id]: !p[id] }));
   }
 
   async function handleDeleteCat() {
@@ -501,8 +506,8 @@ export default function FilesAdminItemsPage() {
                   >
                     <div className="d-flex align-items-center justify-content-between" style={{ padding: "14px 16px", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
                       <div style={{ minWidth: 0 }}>
-                        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.9rem", color: "#1e293b" }}>{cat.name}</p>
-                        <p className="mb-0" style={{ fontSize: "0.8rem", color: "#64748b" }}>{cat.description}</p>
+                        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.9rem", color: "#1e293b", fontWeight: 700 }}>{cat.name}</p>
+                        <p className="mb-0" style={{ fontSize: "0.8rem", color: "#64748b", fontStyle: "italic" }}>{cat.description}</p>
                       </div>
                       <div className="d-flex align-items-center" style={{ gap: "6px", flexShrink: 0 }}>
                         <Tooltip label="Modificar">
@@ -518,35 +523,55 @@ export default function FilesAdminItemsPage() {
                       </div>
                     </div>
 
-                    <div style={{ padding: "8px 16px 16px" }}>
-                      {(cat.subitems ?? []).map((sub: any) => (
-                        <div key={sub.id} className="d-flex align-items-center justify-content-between" style={{ padding: "8px 0", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
-                          <span style={{ fontSize: "0.84rem", color: "#374151" }}>{sub.name}</span>
-                          <div className="d-flex align-items-center" style={{ gap: "6px", flexShrink: 0 }}>
-                            <Tooltip label="Ver usuarios">
-                              <button type="button" onClick={() => openUsers(sub)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
-                                <i className="pi pi-users" style={{ fontSize: "0.85rem" }} />
-                              </button>
-                            </Tooltip>
-                            <Tooltip label="Modificar">
-                              <button
-                                type="button"
-                                onClick={() => { setSubToEdit({ ...sub, item_id: cat.id }); setSubForm({ name: sub.name, description: sub.description }); setSubTouched(false); setShowSubForm(cat); }}
-                                style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}
-                              >
-                                <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
-                              </button>
-                            </Tooltip>
-                            <Tooltip label="Eliminar">
-                              <button type="button" onClick={() => setSubToDelete({ ...sub, item_id: cat.id })} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
-                                <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
-                              </button>
-                            </Tooltip>
-                          </div>
+                    <div style={{ padding: "10px 16px 14px" }}>
+                      <button
+                        type="button"
+                        onClick={() => toggleExpanded(cat.id)}
+                        className="d-flex align-items-center justify-content-between w-100"
+                        style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "8px 12px", cursor: "pointer", fontSize: "0.78rem", fontWeight: 600, color: "#64748b" }}
+                      >
+                        <span className="d-flex align-items-center" style={{ gap: "6px" }}>
+                          <i className="pi pi-sitemap" style={{ fontSize: "0.75rem" }} />
+                          Subcategorías ({(cat.subitems ?? []).length})
+                        </span>
+                        <i className={`pi ${expandedCategories[cat.id] ? "pi-chevron-up" : "pi-chevron-down"}`} style={{ fontSize: "0.7rem" }} />
+                      </button>
+
+                      {expandedCategories[cat.id] && (
+                        <div className="animated fadeIn" style={{ marginTop: "8px", paddingLeft: "10px", borderLeft: "2px solid #eef1ff" }}>
+                          {(cat.subitems ?? []).map((sub: any) => (
+                            <div key={sub.id} className="d-flex align-items-center justify-content-between" style={{ padding: "8px 8px", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
+                              <div style={{ minWidth: 0 }}>
+                                <p className="mb-0" style={{ fontSize: "0.84rem", color: "#374151", fontWeight: 700 }}>{sub.name}</p>
+                                {sub.description && <p className="mb-0" style={{ fontSize: "0.76rem", color: "#94a3b8", fontStyle: "italic" }}>{sub.description}</p>}
+                              </div>
+                              <div className="d-flex align-items-center" style={{ gap: "6px", flexShrink: 0 }}>
+                                <Tooltip label="Ver usuarios">
+                                  <button type="button" onClick={() => openUsers(sub)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                                    <i className="pi pi-users" style={{ fontSize: "0.85rem" }} />
+                                  </button>
+                                </Tooltip>
+                                <Tooltip label="Modificar">
+                                  <button
+                                    type="button"
+                                    onClick={() => { setSubToEdit({ ...sub, item_id: cat.id }); setSubForm({ name: sub.name, description: sub.description }); setSubTouched(false); setShowSubForm(cat); }}
+                                    style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}
+                                  >
+                                    <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
+                                  </button>
+                                </Tooltip>
+                                <Tooltip label="Eliminar">
+                                  <button type="button" onClick={() => setSubToDelete({ ...sub, item_id: cat.id })} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
+                                    <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
+                                  </button>
+                                </Tooltip>
+                              </div>
+                            </div>
+                          ))}
+                          {(cat.subitems ?? []).length === 0 && (
+                            <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: "6px 0 0" }}>Sin subcategorías.</p>
+                          )}
                         </div>
-                      ))}
-                      {(cat.subitems ?? []).length === 0 && (
-                        <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: "6px 0 0" }}>Sin subcategorías.</p>
                       )}
                     </div>
                   </div>
