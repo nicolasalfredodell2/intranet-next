@@ -55,28 +55,62 @@ body::-webkit-scrollbar-track {
    Auth / Login
    ======================== */
 
-.login-register {
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
-  min-height: 100vh !important;
+.login-split {
+  display: flex;
+  min-height: 100vh;
   width: 100%;
-  padding: 10% 0;
-  position: fixed;
-  top: 0;
-  left: 0;
+}
+
+.login-split-left {
+  align-items: center;
+  background: #0b1224;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  padding: 24px;
+  position: relative;
+  width: 75vw;
+}
+
+.login-split-image {
+  filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.35));
+  height: 35%;
+  object-fit: contain;
+  position: relative;
+  width: 35%;
+  z-index: 1;
+}
+
+.login-split-right {
+  align-items: center;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  width: 25vw;
 }
 
 .login-box {
-  position: absolute;
-  z-index: 2;
-  margin-left: auto;
-  margin-right: auto;
-  left: 0;
-  right: 0;
-  top: 20px;
   text-align: center;
-  width: 400px;
+  width: 100%;
+  max-width: 400px;
+}
+
+@media (max-width: 900px) {
+  .login-split {
+    flex-direction: column;
+  }
+
+  .login-split-left,
+  .login-split-right {
+    width: 100%;
+  }
+
+  .login-split-left {
+    min-height: 38vh;
+    padding: 32px 16px;
+  }
 }
 
 @media (max-width: 480px) {

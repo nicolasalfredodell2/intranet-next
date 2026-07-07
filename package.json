@@ -21,6 +21,7 @@
     "chart.js": "^4.5.1",
     "dom-to-image-more": "^3.10.0",
     "file-saver": "^2.0.5",
+    "framer-motion": "^12.42.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "jwt-decode": "^4.0.0",
