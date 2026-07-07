@@ -216,7 +216,7 @@ export default function WhitenKeyPage() {
             <div className="qr-info-block">
               <div className="qr-info-item" style={{ borderLeftColor: "#4a6cf7" }}>
                 <span className="qr-info-icon qr-info-icon--primary"><i className="pi pi-info-circle" /></span>
-                <span className="qr-info-text">El cambio de contraseña se verá reflejado en: <strong>PC personal, correo institucional, Workflow, Intranet, Chasqui y Ebla</strong>.</span>
+                <span className="qr-info-text">El cambio de contraseña se verá reflejado en: <strong style={{ fontWeight: 700 }}>PC personal, correo institucional, Workflow, Intranet, Chasqui y Ebla</strong>.</span>
               </div>
               <div className="qr-info-item" style={{ borderLeftColor: "#17a2b8" }}>
                 <span className="qr-info-icon qr-info-icon--info"><i className="pi pi-shield" /></span>
