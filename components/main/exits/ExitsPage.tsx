@@ -278,6 +278,10 @@ function formatTimeOnly(str: string | null | undefined): string {
   } catch { return str; }
 }
 
+function getExitDate(item: { _rawStatus?: string; created_at?: string | null; departure_hour?: string | null }): string | null | undefined {
+  return item._rawStatus === "Cancel" ? item.created_at : item.departure_hour;
+}
+
 function toDateInputValue(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -591,14 +595,14 @@ export default function ExitsPage() {
   const myTypeOptions   = [...new Set(items.map((i) => i.type))].filter(Boolean).sort();
   const myBossOptions   = [...new Set(items.map((i) => i.lastname_name))].filter(Boolean).sort();
   const myStatusOptions = [...new Set(items.map((i) => i.status))].filter(Boolean).sort();
-  const myExitDates     = [...new Set(items.map((i) => String(i.departure_hour ?? "").slice(0, 10)))].filter(Boolean);
+  const myExitDates     = [...new Set(items.map((i) => String(getExitDate(i) ?? "").slice(0, 10)))].filter(Boolean);
   const myExitDateObjects = myExitDates.map((d) => new Date(`${d}T00:00:00`));
 
   const filteredItems = items.filter((item) => {
     if (filtersForExists.type          && item.type !== filtersForExists.type)                     return false;
     if (filtersForExists.lastname_name && item.lastname_name !== filtersForExists.lastname_name)    return false;
     if (filtersForExists.status        && item.status !== filtersForExists.status)                 return false;
-    if (filtersForExists.date          && !String(item.departure_hour ?? "").startsWith(filtersForExists.date)) return false;
+    if (filtersForExists.date          && !String(getExitDate(item) ?? "").startsWith(filtersForExists.date)) return false;
     return true;
   });
 
@@ -904,7 +908,7 @@ export default function ExitsPage() {
                             </span>
                           </td>
                           <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                            {formatDateOnly(item.departure_hour)}
+                            {formatDateOnly(getExitDate(item))}
                           </td>
                           <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
                             {formatTimeOnly(item.departure_hour)}
@@ -1118,7 +1122,7 @@ export default function ExitsPage() {
                                 </span>
                               </td>
                               <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                                {formatDateOnly(item.departure_hour)}
+                                {formatDateOnly(getExitDate(item))}
                               </td>
                               <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
                                 {formatTimeOnly(item.departure_hour)}
