@@ -477,15 +477,16 @@ export default function FilesAdminItemsPage() {
             {/* Categories list */}
             {!loading && (
               <div className="fadeIn animated">
+                <div className="row">
                 {filtered.map((cat: any) => (
+                  <div key={cat.id} className="col-12 col-md-4 mb-3">
                   <div
-                    key={cat.id}
                     onMouseEnter={() => setHoveredCategory(cat.id)}
                     onMouseLeave={() => setHoveredCategory(null)}
                     style={{
                       border: "1.5px solid #e2e8f0",
                       borderRadius: "12px",
-                      marginBottom: "12px",
+                      height: "100%",
                       boxShadow: hoveredCategory === cat.id ? "0 4px 16px rgba(0,0,0,0.08)" : "none",
                       transition: "box-shadow 0.15s",
                     }}
@@ -561,7 +562,9 @@ export default function FilesAdminItemsPage() {
                       )}
                     </div>
                   </div>
+                  </div>
                 ))}
+                </div>
 
                 {items.length === 0 && (
                   <div style={{ padding: "40px", textAlign: "center" }}>
