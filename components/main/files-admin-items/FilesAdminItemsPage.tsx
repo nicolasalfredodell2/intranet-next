@@ -65,9 +65,6 @@ export default function FilesAdminItemsPage() {
   const [catToDelete, setCatToDelete] = useState<any>(null);
   const [loadingDeleteCat, setLoadingDeleteCat] = useState(false);
 
-  const [showSubForm, setShowSubForm] = useState<any>(null);
-  const [subForm, setSubForm] = useState({ name: "", description: "" });
-  const [subTouched, setSubTouched] = useState(false);
   const [subToEdit, setSubToEdit] = useState<any>(null);
   const [subToDelete, setSubToDelete] = useState<any>(null);
   const [loadingDeleteSub, setLoadingDeleteSub] = useState(false);
@@ -143,49 +140,41 @@ export default function FilesAdminItemsPage() {
     finally { setLoadingDeleteCat(false); }
   }
 
-  function closeSubForm() {
-    setShowSubForm(null);
-    setSubToEdit(null);
-    setSubForm({ name: "", description: "" });
-    setSubTouched(false);
-  }
-
-  async function handleSubSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSubTouched(true);
-    if (!subForm.name || !subForm.description) return;
-    setLoadingAction(true);
-    try {
-      await updateFileSubcategory({ ...subForm, id: subToEdit.id, item_id: subToEdit.item_id, order: "1" });
-      setItems((p) => p.map((cat) => ({
-        ...cat,
-        subitems: cat.subitems.map((s: any) => s.id === subToEdit.id ? { ...s, ...subForm } : s),
-      })));
-      toast.current?.show({ severity: "success", summary: "Subcategoría modificada" });
-      closeSubForm();
-    } catch (err: any) {
-      toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
-    } finally { setLoadingAction(false); }
-  }
-
   function limpiarNewSubForm() {
     setNewSubForm({ name: "", description: "", item_id: "" });
     setNewSubTouched(false);
+    setSubToEdit(null);
   }
 
-  async function handleCreateSub(e: React.FormEvent) {
+  function editSubcategory(sub: any, cat: any) {
+    setSubToEdit({ ...sub, item_id: cat.id });
+    setNewSubForm({ name: sub.name, description: sub.description, item_id: cat.id });
+    setNewSubTouched(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function handleSubSubmit(e: React.FormEvent) {
     e.preventDefault();
     setNewSubTouched(true);
     if (!newSubForm.name || !newSubForm.description || !newSubForm.item_id) return;
     setLoadingAction(true);
     try {
-      const resp = await createFileSubcategory({ name: newSubForm.name, description: newSubForm.description, item_id: newSubForm.item_id, order: "1" });
-      const newSub = resp.data ?? resp;
-      setItems((p) => p.map((cat) => cat.id === newSubForm.item_id
-        ? { ...cat, subitems: [...cat.subitems, newSub].sort((a: any, b: any) => a.name.localeCompare(b.name)) }
-        : cat
-      ));
-      toast.current?.show({ severity: "success", summary: "Subcategoría creada" });
+      if (subToEdit) {
+        await updateFileSubcategory({ name: newSubForm.name, description: newSubForm.description, id: subToEdit.id, item_id: newSubForm.item_id, order: "1" });
+        setItems((p) => p.map((cat) => ({
+          ...cat,
+          subitems: cat.subitems.map((s: any) => s.id === subToEdit.id ? { ...s, name: newSubForm.name, description: newSubForm.description } : s),
+        })));
+        toast.current?.show({ severity: "success", summary: "Subcategoría modificada" });
+      } else {
+        const resp = await createFileSubcategory({ name: newSubForm.name, description: newSubForm.description, item_id: newSubForm.item_id, order: "1" });
+        const newSub = resp.data ?? resp;
+        setItems((p) => p.map((cat) => cat.id === newSubForm.item_id
+          ? { ...cat, subitems: [...cat.subitems, newSub].sort((a: any, b: any) => a.name.localeCompare(b.name)) }
+          : cat
+        ));
+        toast.current?.show({ severity: "success", summary: "Subcategoría creada" });
+      }
       limpiarNewSubForm();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
@@ -238,18 +227,6 @@ export default function FilesAdminItemsPage() {
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar subcategoría</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
-      </div>
-    </div>
-  );
-
-  const subFormHeader = (
-    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
-      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
-      </div>
-      <div style={{ minWidth: 0 }}>
-        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar subcategoría</p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{showSubForm?.name}</small>
       </div>
     </div>
   );
@@ -365,21 +342,25 @@ export default function FilesAdminItemsPage() {
           </div>
         </div>
 
-        {/* Create subcategory form card */}
+        {/* Create / modify subcategory form card */}
         <div className="card profile-card mt-4">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: subToEdit ? "#eff6ff" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className={`pi ${subToEdit ? "pi-pencil" : "pi-plus-circle"}`} style={{ color: subToEdit ? "#3b82f6" : "#059669", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva subcategoría</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear una subcategoría</small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
+                {subToEdit ? "Modificar subcategoría" : "Nueva subcategoría"}
+              </h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
+                {subToEdit ? subToEdit.name : "Completá los datos para crear una subcategoría"}
+              </small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-            <form className="animated fadeIn" onSubmit={handleCreateSub} noValidate>
+            <form className="animated fadeIn" onSubmit={handleSubSubmit} noValidate>
               <div className="row">
                 <div className="col-12 col-md-4 mb-3">
                   <label className="profile-field-label">Nombre *</label>
@@ -403,7 +384,10 @@ export default function FilesAdminItemsPage() {
                 </div>
                 <div className="col-12 col-md-4 mb-3">
                   <label className="profile-field-label">Categoría *</label>
-                  <div className={`license-filter-input-wrap${newSubForm.item_id ? " license-filter-input-wrap--active" : ""}`}>
+                  <div
+                    className={`license-filter-input-wrap${newSubForm.item_id ? " license-filter-input-wrap--active" : ""}`}
+                    style={{ padding: "9px 13px", border: "1.5px solid #e2e8f0" }}
+                  >
                     <i className="pi pi-folder license-filter-icon" />
                     <Dropdown
                       value={newSubForm.item_id || null}
@@ -429,7 +413,9 @@ export default function FilesAdminItemsPage() {
                   style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
                 >
                   <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                  {loadingAction ? "Creando..." : "Crear subcategoría"}
+                  {subToEdit
+                    ? (loadingAction ? "Modificando..." : "Modificar")
+                    : (loadingAction ? "Creando..." : "Crear subcategoría")}
                 </button>
                 <button
                   type="button"
@@ -554,7 +540,7 @@ export default function FilesAdminItemsPage() {
                                 <Tooltip label="Modificar">
                                   <button
                                     type="button"
-                                    onClick={() => { setSubToEdit({ ...sub, item_id: cat.id }); setSubForm({ name: sub.name, description: sub.description }); setSubTouched(false); setShowSubForm(cat); }}
+                                    onClick={() => editSubcategory(sub, cat)}
                                     style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}
                                   >
                                     <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
@@ -596,68 +582,6 @@ export default function FilesAdminItemsPage() {
           </div>
         </div>
       </div>
-
-      {/* Sub form dialog */}
-      <Dialog
-        header={subFormHeader}
-        visible={!!showSubForm}
-        modal
-        draggable={false}
-        resizable={false}
-        closable={false}
-        dismissableMask
-        style={{ width: "min(480px, 92vw)" }}
-        onHide={closeSubForm}
-        footer={
-          <div>
-            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-              <button
-                form="sub-category-form"
-                disabled={loadingAction}
-                type="submit"
-                className="btn btn-primary d-flex align-items-center"
-                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
-              >
-                <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                {subToEdit ? (loadingAction ? "Modificando..." : "Modificar") : (loadingAction ? "Creando..." : "Crear")}
-              </button>
-              <button
-                disabled={loadingAction}
-                onClick={closeSubForm}
-                type="button"
-                className="btn btn-light text-muted ml-auto"
-                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
-              >
-                Volver
-              </button>
-            </div>
-            {loadingAction && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
-          </div>
-        }
-      >
-        <form id="sub-category-form" onSubmit={handleSubSubmit} noValidate>
-          <div className="mb-3">
-            <label className="profile-field-label">Nombre *</label>
-            <input
-              className="profile-input"
-              type="text"
-              value={subForm.name}
-              onChange={(e) => setSubForm((p) => ({ ...p, name: e.target.value }))}
-            />
-            {subTouched && !subForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
-          </div>
-          <div className="mb-1">
-            <label className="profile-field-label">Descripción *</label>
-            <input
-              className="profile-input"
-              type="text"
-              value={subForm.description}
-              onChange={(e) => setSubForm((p) => ({ ...p, description: e.target.value }))}
-            />
-            {subTouched && !subForm.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
-          </div>
-        </form>
-      </Dialog>
 
       {/* Users dialog */}
       <Dialog
