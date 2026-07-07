@@ -46,7 +46,7 @@ export default function Navbar() {
   const [showRemoteModal, setShowRemoteModal] = useState(false);
   const [isLoadingRemote, setIsLoadingRemote] = useState(false);
   const [cooldownLeft, setCooldownLeft] = useState(0);
-  const [userData, setUserData] = useState<{ first_name?: string; last_name?: string; email?: string; avatar?: string } | null>(null);
+  const [userData, setUserData] = useState<{ first_name?: string; last_name?: string; email?: string; avatar?: string; internal?: string } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [horario, setHorario] = useState<{ in: string; out: string } | null>(null);
   const [isLate, setIsLate] = useState<boolean>(false);
@@ -398,7 +398,18 @@ export default function Navbar() {
                         <div className="navbar-user-dropdown-header">
                           <div style={{ minWidth: 0 }}>
                             {fullName && <p className="navbar-user-dropdown-name">{fullName}</p>}
-                            {userData.email && <p className="navbar-user-dropdown-email">{userData.email}</p>}
+                            {userData.email && (
+                              <p className="navbar-user-dropdown-email d-flex align-items-center" style={{ gap: "5px" }}>
+                                <i className="pi pi-envelope" style={{ fontSize: "0.7rem" }} />
+                                {userData.email}
+                              </p>
+                            )}
+                            {userData.internal && (
+                              <p className="navbar-user-dropdown-email d-flex align-items-center" style={{ gap: "5px", marginTop: "2px" }}>
+                                <i className="pi pi-phone" style={{ fontSize: "0.7rem" }} />
+                                Int. {userData.internal}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="navbar-user-dropdown-divider" />
