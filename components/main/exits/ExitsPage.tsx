@@ -308,8 +308,9 @@ export default function ExitsPage() {
   const [myFirst,          setMyFirst]          = useState(0);
   const [myRows,           setMyRows]           = useState(10);
 
-  const [idSelectedExitForViewPDF,   setIdSelectedExitForViewPDF]   = useState<number | null>(null);
-  const [isLoadingActionOpenPdfExit, setIsLoadingActionOpenPdfExit] = useState(false);
+  const [loadingActionOpenPdfExit, setLoadingActionOpenPdfExit] = useState<number | null>(null);
+  const [pdfUrl,  setPdfUrl]  = useState<string | null>(null);
+  const [pdfExit, setPdfExit] = useState<any>(null);
 
   const [isOpenModalCancelExit,   setIsOpenModalCancelExit]   = useState(false);
   const [loadingActionCancelExit, setLoadingActionCancelExit] = useState(false);
@@ -464,23 +465,33 @@ export default function ExitsPage() {
 
   // ── PDF ───────────────────────────────────────────────────────────────────────
   async function openPdfExit(exit: any) {
-    setIdSelectedExitForViewPDF(exit.id);
-    if (isLoadingActionOpenPdfExit) return;
+    if (loadingActionOpenPdfExit) return;
+    if (pdfExit?.id === exit.id) {
+      toast.current?.show({ severity: "info", summary: "Ya estás viendo este PDF", life: 2500 });
+      return;
+    }
     if (!exit.path_end) {
-      setIdSelectedExitForViewPDF(null);
       toast.current?.show({ severity: "error", summary: "No se encontró el PDF" });
       return;
     }
-    setIsLoadingActionOpenPdfExit(true);
+    setLoadingActionOpenPdfExit(exit.id);
     try {
       const buffer = await loadExitPDF(exit.id);
-      window.open(URL.createObjectURL(new Blob([buffer], { type: "application/pdf" })));
+      const blob = new Blob([buffer], { type: "application/pdf" });
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(URL.createObjectURL(blob));
+      setPdfExit(exit);
     } catch {
       toast.current?.show({ severity: "error", summary: "No se encontró el PDF" });
     } finally {
-      setIdSelectedExitForViewPDF(null);
-      setIsLoadingActionOpenPdfExit(false);
+      setLoadingActionOpenPdfExit(null);
     }
+  }
+
+  function closePdfExit() {
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    setPdfUrl(null);
+    setPdfExit(null);
   }
 
   // ── Cancel ────────────────────────────────────────────────────────────────────
@@ -876,7 +887,7 @@ export default function ExitsPage() {
                           className="fadeIn animated"
                           onMouseEnter={() => setHoveredRow(item.id)}
                           onMouseLeave={() => setHoveredRow(null)}
-                          style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === item.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                          style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === item.id || pdfExit?.id === item.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
                         >
                           <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
                             <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
@@ -909,7 +920,7 @@ export default function ExitsPage() {
                                     onClick={() => openPdfExit(item)}
                                     style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
                                   >
-                                    <i className={isLoadingActionOpenPdfExit && idSelectedExitForViewPDF === item.id ? "pi pi-spin pi-spinner" : "pi pi-file-pdf"} style={{ fontSize: "1rem" }} />
+                                    <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "pi pi-file-pdf"} style={{ fontSize: "1rem" }} />
                                   </button>
                                 </Tooltip>
                               )}
@@ -1090,7 +1101,7 @@ export default function ExitsPage() {
                               className="fadeIn animated"
                               onMouseEnter={() => setHoveredAdminRow(item.id)}
                               onMouseLeave={() => setHoveredAdminRow(null)}
-                              style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredAdminRow === item.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                              style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredAdminRow === item.id || pdfExit?.id === item.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
                             >
                               <td style={{ padding: "10px 8px", fontSize: "0.86rem", color: "#374151" }}>
                                 {item.lastname_name}
@@ -1123,7 +1134,7 @@ export default function ExitsPage() {
                                         onClick={() => openPdfExit(item)}
                                         style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
                                       >
-                                        <i className={isLoadingActionOpenPdfExit && idSelectedExitForViewPDF === item.id ? "pi pi-spin pi-spinner" : "pi pi-file-pdf"} style={{ fontSize: "1rem" }} />
+                                        <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "pi pi-file-pdf"} style={{ fontSize: "1rem" }} />
                                       </button>
                                     </Tooltip>
                                   )}
@@ -1177,6 +1188,30 @@ export default function ExitsPage() {
           </div>
         </div>
       )}
+
+      {/* ── PDF viewer dialog ── */}
+      <Dialog
+        header={
+          <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="mdi mdi-file-pdf-box" style={{ color: "#dc3545", fontSize: "1.2rem" }} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pdfExit?.lastname_name}</p>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Orden de salida</small>
+            </div>
+          </div>
+        }
+        visible={!!pdfUrl}
+        onHide={closePdfExit}
+        modal
+        dismissableMask
+        maximizable
+        style={{ width: "min(1000px, 92vw)", height: "90vh" }}
+        contentStyle={{ flex: 1, padding: 0, display: "flex" }}
+      >
+        {pdfUrl && <iframe src={pdfUrl} style={{ flex: 1, width: "100%", border: "none" }} title="Orden de salida PDF" />}
+      </Dialog>
 
       {/* ── Boss selection dialog ── */}
       <Dialog
