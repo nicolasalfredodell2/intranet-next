@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BalloonsBackground from "./BalloonsBackground";
 
 interface BirthdayDialogProps {
   birthdays: any[];
@@ -17,6 +18,8 @@ export default function BirthdayDialog({ birthdays, onClose }: BirthdayDialogPro
 
   return (
     <div className="custom-overlay" onClick={onClose}>
+      <BalloonsBackground />
+
       <div className="custom-dialog-card" onClick={(e) => e.stopPropagation()}>
         <button className="close-btn" onClick={onClose}>&times;</button>
 
