@@ -14,16 +14,6 @@ function subtractDays(dateStr: string, days: number): string {
   return `${y}-${m}-${dd}`;
 }
 
-function formatTimeAmPm(time: string): string {
-  const match = time.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (!match) return time;
-  const [, h, m, s] = match;
-  const hour = parseInt(h, 10);
-  const period = hour >= 12 ? "PM" : "AM";
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  return `${String(hour12).padStart(2, "0")}:${m}:${s ?? "00"} ${period}`;
-}
-
 function formatGroupTitle(dateStr: string): string {
   try {
     const date = new Date(`${dateStr}T00:00:00`);
@@ -152,7 +142,7 @@ export default function IncomePage() {
                     <small style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{r.hostLabel}</small>
                   </div>
                   <span style={{ fontSize: "0.82rem", fontWeight: 700, color: r.isEntry ? "#059669" : "#dc3545", whiteSpace: "nowrap" }}>
-                    {formatTimeAmPm(r.time)}
+                    {r.time}
                   </span>
                 </div>
               ))}
