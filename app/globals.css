@@ -1848,13 +1848,13 @@ input[disabled] {
 .app-toast-card {
   position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   width: 100%;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
-  padding: 14px 36px 14px 14px;
+  padding: 14px;
   margin-bottom: 12px;
   overflow: hidden;
   animation: app-toast-in 0.25s ease;
@@ -1892,9 +1892,7 @@ input[disabled] {
 }
 
 .app-toast-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  flex-shrink: 0;
   background: none;
   border: none;
   color: #94a3b8;
