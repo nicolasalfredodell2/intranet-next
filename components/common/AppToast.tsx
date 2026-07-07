@@ -56,8 +56,8 @@ function ToastCard({ message, toastRef }: { message: ToastMessage; toastRef: Rea
   }
 
   return (
-    <div className="app-toast-card" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <div className="app-toast-icon" style={{ background: meta.bg, color: meta.color }}>
+    <div className="app-toast-card" style={{ background: meta.bg }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <div className="app-toast-icon" style={{ color: meta.color }}>
         <i className={`pi ${meta.icon}`} />
       </div>
       <div className="app-toast-body">
