@@ -346,6 +346,31 @@ export default function BannersPage() {
               </div>
 
               <div className="row mb-3">
+                <div className="col-12 col-md-6">
+                  <label className="profile-field-label">Imagen horizontal</label>
+                  {bannerParaModificar && fileHorizModif && (
+                    <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
+                      <img src={`${fileHorizModif.path_url}`} alt="" style={{ width: 80, height: 50, objectFit: "cover", borderRadius: 4 }} />
+                      {!isDeletingHoriz && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("horizontal")}>Quitar</button>}
+                      {isDeletingHoriz && <i className="pi pi-spin pi-spinner" />}
+                    </div>
+                  )}
+                  <FileDropzone label="Arrastre o haga click para subir imagen horizontal" file={fileHorizontal} onFile={handleFileHoriz} onClear={() => setFileHorizontal(null)} />
+                </div>
+                <div className="col-12 col-md-6">
+                  <label className="profile-field-label">Imagen vertical</label>
+                  {bannerParaModificar && fileVertModif && (
+                    <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
+                      <img src={`${fileVertModif.path_url}`} alt="" style={{ width: 50, height: 80, objectFit: "cover", borderRadius: 4 }} />
+                      {!isDeletingVert && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("vertical")}>Quitar</button>}
+                      {isDeletingVert && <i className="pi pi-spin pi-spinner" />}
+                    </div>
+                  )}
+                  <FileDropzone label="Arrastre o haga click para subir imagen vertical" file={fileVertical} onFile={handleFileVert} onClear={() => setFileVertical(null)} />
+                </div>
+              </div>
+
+              <div className="row mb-3">
                 <div className="col-12">
                   <div className="d-flex" style={{ gap: "16px" }}>
                     <div className="form-check">
@@ -387,31 +412,6 @@ export default function BannersPage() {
                     {touched && form.is_external && form.external_url && !URL_PATTERN.test(form.external_url) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* URL no válida</small>}
                   </div>
                 )}
-              </div>
-
-              <div className="row mb-3">
-                <div className="col-12 col-md-6">
-                  <label className="profile-field-label">Imagen horizontal</label>
-                  {bannerParaModificar && fileHorizModif && (
-                    <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
-                      <img src={`${fileHorizModif.path_url}`} alt="" style={{ width: 80, height: 50, objectFit: "cover", borderRadius: 4 }} />
-                      {!isDeletingHoriz && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("horizontal")}>Quitar</button>}
-                      {isDeletingHoriz && <i className="pi pi-spin pi-spinner" />}
-                    </div>
-                  )}
-                  <FileDropzone label="Arrastre o haga click para subir imagen horizontal" file={fileHorizontal} onFile={handleFileHoriz} onClear={() => setFileHorizontal(null)} />
-                </div>
-                <div className="col-12 col-md-6">
-                  <label className="profile-field-label">Imagen vertical</label>
-                  {bannerParaModificar && fileVertModif && (
-                    <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
-                      <img src={`${fileVertModif.path_url}`} alt="" style={{ width: 50, height: 80, objectFit: "cover", borderRadius: 4 }} />
-                      {!isDeletingVert && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("vertical")}>Quitar</button>}
-                      {isDeletingVert && <i className="pi pi-spin pi-spinner" />}
-                    </div>
-                  )}
-                  <FileDropzone label="Arrastre o haga click para subir imagen vertical" file={fileVertical} onFile={handleFileVert} onClear={() => setFileVertical(null)} />
-                </div>
               </div>
 
               <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
