@@ -269,12 +269,10 @@ function formatTimeOnly(str: string | null | undefined): string {
   if (!str) return "--";
   try {
     const date = new Date(str);
-    const rawHours = date.getHours();
+    const hh = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
     const seconds = String(date.getSeconds()).padStart(2, "0");
-    const ampm = rawHours >= 12 ? "PM" : "AM";
-    const hh = String(rawHours % 12 || 12).padStart(2, "0");
-    return `${hh}:${minutes}:${seconds} ${ampm}`;
+    return `${hh}:${minutes}:${seconds}`;
   } catch { return str; }
 }
 
