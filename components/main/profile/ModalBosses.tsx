@@ -67,7 +67,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
       });
       setSelectedMap(map);
     }
-    fetchResults("");
+    setSearchResults([]);
   }, [show]);
 
   const selectedItems = useMemo(() => Object.values(selectedMap), [selectedMap]);
@@ -95,7 +95,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
   function handleSearchChange(value: string) {
     setSearch(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!value.trim()) { fetchResults(""); return; }
+    if (!value.trim()) { setSearchResults([]); return; }
     debounceRef.current = setTimeout(() => fetchResults(value.trim()), SEARCH_DEBOUNCE_MS);
   }
 
@@ -234,7 +234,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
       ) : searchResults.length === 0 ? (
         <div className="text-center py-4 animated fadeIn" style={{ color: "#94a3b8", fontSize: "0.88rem" }}>
           <i className="pi pi-search mb-2" style={{ fontSize: "1.5rem", display: "block", opacity: 0.4 }} />
-          {search ? "Sin resultados para tu búsqueda." : "No hay usuarios disponibles."}
+          {search ? "Sin resultados para tu búsqueda." : "Escribí un nombre o apellido para buscar."}
         </div>
       ) : (
         <div style={{ maxHeight: "240px", overflowY: "auto", padding: "4px 2px" }}>
