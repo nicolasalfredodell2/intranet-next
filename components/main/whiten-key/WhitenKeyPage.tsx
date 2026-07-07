@@ -17,8 +17,14 @@ interface Rules {
 
 function RuleItem({ met, children }: { met: boolean; children: React.ReactNode }) {
   return (
-    <li className="d-flex align-items-center" style={{ gap: "8px", padding: "4px 0", fontSize: "0.85rem", color: met ? "#059669" : "#64748b", fontWeight: met ? 600 : 400 }}>
-      <i className={`pi ${met ? "pi-check-circle" : "pi-circle"}`} style={{ fontSize: "0.85rem", flexShrink: 0 }} />
+    <li
+      className="d-flex align-items-center"
+      style={{
+        gap: "5px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.76rem", fontWeight: met ? 600 : 500,
+        color: met ? "#059669" : "#64748b", background: met ? "rgba(5,150,105,0.08)" : "#f1f5f9", whiteSpace: "nowrap",
+      }}
+    >
+      <i className={`pi ${met ? "pi-check-circle" : "pi-circle"}`} style={{ fontSize: "0.72rem", flexShrink: 0 }} />
       {children}
     </li>
   );
@@ -158,6 +164,12 @@ export default function WhitenKeyPage() {
                   </div>
                   {touchedPass && !newpassword && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                   {touchedPass && newpassword.length > 30 && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>* Hasta 30 caracteres</small>}
+                  <ul className="mb-0 mt-2" style={{ listStyle: "none", padding: 0, display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                    <RuleItem met={rules.minLength}>Al menos 7 caracteres</RuleItem>
+                    <RuleItem met={rules.minLowerCase}>Al menos 2 minúsculas</RuleItem>
+                    <RuleItem met={rules.minUpperCase}>Al menos 1 mayúscula</RuleItem>
+                    <RuleItem met={rules.minNumbers}>Al menos 1 número</RuleItem>
+                  </ul>
                 </div>
               </div>
 
@@ -184,29 +196,6 @@ export default function WhitenKeyPage() {
 
               {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
             </form>
-          </div>
-        </div>
-
-        {/* Requirements card */}
-        <div className="card profile-card mt-4">
-          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff4e6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-shield" style={{ color: "#fd7e14", fontSize: "1rem" }} />
-            </div>
-            <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Requisitos de contraseña</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>La nueva clave debe cumplir con estas condiciones</small>
-            </div>
-          </div>
-          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
-
-          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-            <ul className="mb-0" style={{ listStyle: "none", padding: 0 }}>
-              <RuleItem met={rules.minLength}>Al menos 7 caracteres</RuleItem>
-              <RuleItem met={rules.minLowerCase}>Al menos 2 minúsculas</RuleItem>
-              <RuleItem met={rules.minUpperCase}>Al menos 1 mayúscula</RuleItem>
-              <RuleItem met={rules.minNumbers}>Al menos 1 número</RuleItem>
-            </ul>
           </div>
         </div>
 
