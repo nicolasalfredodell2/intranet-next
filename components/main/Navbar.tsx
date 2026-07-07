@@ -9,6 +9,7 @@ import { getDataUser } from "@/lib/services/perfil.service";
 import { connectRemote } from "@/lib/services/remote.service";
 import { loadDailyPart } from "@/lib/services/daily-part.service";
 import { useTimeclock } from "@/lib/hooks/useTimeclock";
+import { version as appVersion } from "@/package.json";
 
 const LATE_THRESHOLD_MINS = 11;
 const LATE_DIALOG_STORAGE_KEY = "late-arrival-dialog-shown-date";
@@ -197,13 +198,18 @@ export default function Navbar() {
                 height="27"
               />
               <div className="d-none d-xl-flex flex-column" style={{ lineHeight: 1, textAlign: "left" }}>
-                <span style={{
-                  fontWeight: 800,
-                  fontSize: "0.92rem",
-                  letterSpacing: "0.1em",
-                  color: "#1a1a2e",
-                }}>
-                  INTRANET
+                <span className="d-flex align-items-center" style={{ gap: "6px" }}>
+                  <span style={{
+                    fontWeight: 800,
+                    fontSize: "0.92rem",
+                    letterSpacing: "0.1em",
+                    color: "#1a1a2e",
+                  }}>
+                    INTRANET
+                  </span>
+                  <span style={{ fontSize: "0.78rem", color: "#adb5bd", fontWeight: 600 }}>
+                    v{appVersion}
+                  </span>
                 </span>
                 <span style={{ fontSize: "0.58rem", color: "#adb5bd", letterSpacing: "0.03em", fontWeight: 500, marginTop: "2px" }}>
                   Tribunal de Cuentas de la provincia de Río Negro
