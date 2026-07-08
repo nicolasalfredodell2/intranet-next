@@ -264,9 +264,9 @@ export default function AreasPage() {
                 </div>
                 <div className="col-12 col-md-6 mb-3">
                   <label className="profile-field-label">Descripción *</label>
-                  <input
+                  <textarea
                     className="profile-input"
-                    type="text"
+                    rows={2}
                     value={form.description}
                     onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                   />
@@ -477,9 +477,9 @@ export default function AreasPage() {
           </div>
           <div className="mb-1">
             <label className="profile-field-label">Descripción *</label>
-            <input
+            <textarea
               className="profile-input"
-              type="text"
+              rows={3}
               value={modifyForm.description}
               onChange={(e) => setModifyForm((p) => ({ ...p, description: e.target.value }))}
             />
