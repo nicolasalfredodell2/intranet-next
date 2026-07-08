@@ -253,6 +253,21 @@ export default function FilesAdminUploadPage() {
     </div>
   );
 
+  const previewNameParts = previewFile?.name.split(".") ?? [];
+  const previewExt = previewNameParts.length > 1 ? previewNameParts.pop() : null;
+  const previewNameNoExt = previewNameParts.join(".");
+
+  const previewSidebarHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
+      <span style={{ fontWeight: 700, fontSize: "0.93rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{previewNameNoExt}</span>
+      {previewExt && (
+        <span style={{ background: "#eff6ff", color: "#3b82f6", borderRadius: "20px", padding: "2px 10px", fontSize: "0.72rem", fontWeight: 700, flexShrink: 0 }}>
+          {previewExt.toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+
   const deleteDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
       <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -552,7 +567,7 @@ export default function FilesAdminUploadPage() {
       </Dialog>
 
       {/* File preview sidebar */}
-      <Sidebar visible={!!previewFile} position="right" onHide={closePreview} baseZIndex={2000} style={{ width: "min(560px, 92vw)" }} header={previewFile?.name}>
+      <Sidebar visible={!!previewFile} position="right" onHide={closePreview} baseZIndex={2000} style={{ width: "min(560px, 92vw)" }} header={previewSidebarHeader}>
         {previewFile?.type === "image" && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
