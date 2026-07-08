@@ -106,6 +106,7 @@ export default function BannersPage() {
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [previewImage, setPreviewImage] = useState<{ horizontal: string; vertical: string; name: string; orientation: "horizontal" | "vertical" } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("created_at");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   const [form, setForm] = useState({
@@ -241,10 +242,28 @@ export default function BannersPage() {
     finally { setLoadingDelete(false); }
   }
 
+  const SORT_OPTIONS = [
+    { label: "Nombre (A-Z)", value: "name_asc" },
+    { label: "Nombre (Z-A)", value: "name_desc" },
+    { label: "Vigencia", value: "vigencia" },
+    { label: "Fecha de creación", value: "created_at" },
+  ];
+
   const filtered = (searchTerm
     ? banners.filter((b) => b.name?.toLowerCase().includes(searchTerm.toLowerCase()))
     : banners
-  ).slice().sort((a, b) => formatDateForInput(a.published_at).localeCompare(formatDateForInput(b.published_at)));
+  ).slice().sort((a, b) => {
+    switch (sortBy) {
+      case "name_asc":
+        return (a.name ?? "").localeCompare(b.name ?? "", "es", { sensitivity: "base" });
+      case "name_desc":
+        return (b.name ?? "").localeCompare(a.name ?? "", "es", { sensitivity: "base" });
+      case "created_at":
+        return formatDateForInput(b.created_at).localeCompare(formatDateForInput(a.created_at));
+      default:
+        return formatDateForInput(a.published_at).localeCompare(formatDateForInput(b.published_at));
+    }
+  });
 
   const FileDropzone = ({ label, file, onFile, onClear }: { label: string; file: File | null; onFile: (f: File) => void; onClear: () => void }) => {
     const [drag, setDrag] = useState(false);
@@ -494,6 +513,16 @@ export default function BannersPage() {
                       placeholder="Buscar banner por nombre…"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="license-filter-input-wrap license-filter-input-wrap--active">
+                    <i className="pi pi-sort-alt license-filter-icon" />
+                    <Dropdown
+                      value={sortBy}
+                      options={SORT_OPTIONS}
+                      onChange={(e) => setSortBy(e.value)}
+                      className="license-filter-dropdown"
+                      panelClassName="license-filter-dropdown-panel"
                     />
                   </div>
                 </div>
