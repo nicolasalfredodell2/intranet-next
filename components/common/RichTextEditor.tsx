@@ -256,7 +256,6 @@ function Toolbar({ editor }: { editor: Editor }) {
       draggable={false}
       resizable={false}
       closable={false}
-      dismissableMask
       style={{ width: "min(460px, 92vw)" }}
       onHide={() => setShowImageDialog(false)}
       footer={
