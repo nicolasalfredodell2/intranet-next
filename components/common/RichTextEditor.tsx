@@ -103,13 +103,13 @@ function Toolbar({ editor }: { editor: Editor }) {
       <span className="rich-text-editor-toolbar-divider" />
 
       <ToolbarButton title="Negrita" active={state.bold} onClick={() => editor.chain().focus().toggleBold().run()}>
-        <i className="pi pi-bold" />
+        <strong>B</strong>
       </ToolbarButton>
       <ToolbarButton title="Cursiva" active={state.italic} onClick={() => editor.chain().focus().toggleItalic().run()}>
-        <i className="pi pi-italic" />
+        <em>I</em>
       </ToolbarButton>
       <ToolbarButton title="Subrayado" active={state.underline} onClick={() => editor.chain().focus().toggleUnderline().run()}>
-        <i className="pi pi-underline" />
+        <span style={{ textDecoration: "underline" }}>U</span>
       </ToolbarButton>
       <ToolbarButton title="Tachado" active={state.strike} onClick={() => editor.chain().focus().toggleStrike().run()}>
         S
