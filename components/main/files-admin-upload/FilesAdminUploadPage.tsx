@@ -149,6 +149,7 @@ export default function FilesAdminUploadPage() {
     setUploadSubcat(null);
     setUploadFiles([]);
     setUploadTouched(false);
+    closePreview();
   }
 
   async function handleUpload(e: React.FormEvent) {
@@ -472,7 +473,7 @@ export default function FilesAdminUploadPage() {
         resizable={false}
         closable={false}
         baseZIndex={2000}
-        dismissableMask
+        position={"center"}
         style={{ width: "min(480px, 92vw)" }}
         onHide={closeUploadDialog}
         footer={
@@ -567,7 +568,17 @@ export default function FilesAdminUploadPage() {
       </Dialog>
 
       {/* File preview sidebar */}
-      <Sidebar visible={!!previewFile} position="right" onHide={closePreview} baseZIndex={2000} style={{ width: "min(560px, 92vw)" }} header={previewSidebarHeader}>
+      <Sidebar
+        visible={!!previewFile}
+        position="right"
+        modal={false}
+        showCloseIcon={!showUpload}
+        closeOnEscape={!showUpload}
+        onHide={() => { if (!showUpload) closePreview(); }}
+        baseZIndex={2000}
+        style={{ width: "min(560px, 92vw)" }}
+        header={previewSidebarHeader}
+      >
         {previewFile?.type === "image" && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
