@@ -497,7 +497,12 @@ export default function ShortsPage() {
                             <video
                               src={short.video_url}
                               controls
-                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                              onPlay={(e) => {
+                                document.querySelectorAll("video").forEach((v) => {
+                                  if (v !== e.currentTarget) v.pause();
+                                });
+                              }}
+                              style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                             />
                           ) : short.image_url ? (
                             <>
