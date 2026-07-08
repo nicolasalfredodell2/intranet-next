@@ -51,6 +51,10 @@ function formatDateDisplay(s: string | null): string {
   return `${d}/${m}/${y}`;
 }
 
+function truncateText(text: string, max: number): string {
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   return (
@@ -485,6 +489,7 @@ export default function BannersPage() {
                         options={notes}
                         optionLabel="title"
                         optionValue="id"
+                        itemTemplate={(option) => truncateText(option?.title ?? "", 60)}
                         onChange={(e) => setForm((p) => ({ ...p, note_id: e.value ?? "" }))}
                         placeholder="Seleccioná una nota"
                         className="license-filter-dropdown"
@@ -858,6 +863,7 @@ export default function BannersPage() {
                     options={notes}
                     optionLabel="title"
                     optionValue="id"
+                    itemTemplate={(option) => truncateText(option?.title ?? "", 60)}
                     onChange={(e) => setModifyForm((p) => ({ ...p, note_id: e.value ?? "" }))}
                     placeholder="Seleccioná una nota"
                     className="license-filter-dropdown"

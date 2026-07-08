@@ -1368,12 +1368,18 @@ input[disabled] {
   padding: 4px !important;
 }
 
+.license-filter-dropdown-panel {
+  max-width: 100% !important;
+}
+
 .license-filter-dropdown-panel .p-dropdown-item {
   border-radius: 6px !important;
   color: #374151 !important;
   font-size: 0.82rem !important;
   padding: 8px 12px !important;
   transition: background 0.12s ease !important;
+  white-space: normal !important;
+  word-break: break-word !important;
 }
 
 .license-filter-dropdown-panel .p-dropdown-item:hover,
