@@ -329,6 +329,10 @@ function Toolbar({ editor }: { editor: Editor }) {
         <img
           src={imagePreview || imageUrl.trim()}
           alt="Vista previa"
+          onLoad={(e) => {
+            setImageWidth(String(e.currentTarget.naturalWidth));
+            setImageHeight(String(e.currentTarget.naturalHeight));
+          }}
           style={{ maxWidth: "100%", maxHeight: 160, borderRadius: 8, border: "1px solid #e2e8f0" }}
         />
       )}
