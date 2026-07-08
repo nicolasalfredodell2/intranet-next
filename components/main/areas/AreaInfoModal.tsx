@@ -210,7 +210,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
             <i className="pi pi-spin pi-spinner mr-2" /> Cargando información del área...
           </div>
         ) : (
-          <div style={{ maxHeight: "65vh", overflowY: "auto" }}>
+          <div>
             {!infoArea && (
               <div
                 className="animated fadeIn"
@@ -221,7 +221,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
               </div>
             )}
 
-            <div className="row">
+            <div className="row mt-4">
               <div className="col-12 col-md-6 mb-3">
                 <label className="profile-field-label">Título *</label>
                 <input
@@ -250,9 +250,9 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
               {touched && !form.text && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
 
-            <div className="row mt-2">
+            <div className="row">
               <div className="col-12 col-xl-6 mb-3">
-                <p className="profile-section-sub mb-2">Gestión de imágenes</p>
+                <p className="profile-field-label mb-2">Imágenes</p>
                 {existingImages.length > 0 && (
                   <div className="mb-2">
                     <small className="text-muted d-block mb-2">Imágenes subidas:</small>
@@ -318,7 +318,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
               </div>
 
               <div className="col-12 col-xl-6 mb-3">
-                <p className="profile-section-sub mb-2">Gestión de videos</p>
+                <p className="profile-field-label mb-2">Videos</p>
                 {existingVideos.length > 0 && (
                   <div className="mb-2">
                     <small className="text-muted d-block mb-2">Videos subidos:</small>
