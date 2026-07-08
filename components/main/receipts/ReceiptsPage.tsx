@@ -80,10 +80,12 @@ export default function ReceiptsPage() {
 
   useEffect(() => { setPaginatorFirst(0); }, [filters]);
 
-  function handleCuilChange(value: string) {
+  function handleCuilChange(rawValue: string) {
+    const value = rawValue.replace(/\D/g, "").slice(0, 11);
     setCuilSearch(value);
-    setLoading(true);
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (value.length !== 11 && value.length !== 0) return;
+    setLoading(true);
     debounceRef.current = setTimeout(() => chargeReceipts(value), 1000);
   }
 
@@ -242,7 +244,10 @@ export default function ReceiptsPage() {
                   <input
                     className="profile-input"
                     style={{ paddingLeft: "36px", paddingRight: cuilSearch ? "40px" : "13px" }}
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={11}
                     placeholder="Ingresá el CUIL…"
                     value={cuilSearch}
                     onChange={(e) => handleCuilChange(e.target.value)}
