@@ -5,6 +5,7 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
 import { searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile } from "@/lib/services/files-admin-items.service";
 import { loadFilePDF } from "@/lib/services/files.service";
 
@@ -17,6 +18,64 @@ const MIME_MAP: Record<string, string> = {
   xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   odt: "application/vnd.oasis.opendocument.text",
 };
+
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  return (
+    <span
+      style={{ display: "inline-flex" }}
+      onMouseEnter={(e) => {
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setPos({ top: r.top, left: r.left + r.width / 2 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && (
+        <div style={{ position: "fixed", top: pos.top - 10, left: pos.left, transform: "translateX(-50%) translateY(-100%)", background: "#1e293b", color: "#fff", padding: "5px 11px", borderRadius: "7px", fontSize: "0.71rem", fontWeight: 500, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 9999, boxShadow: "0 4px 14px rgba(0,0,0,0.18)", letterSpacing: "0.01em" }}>
+          {label}
+          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", borderWidth: "5px", borderStyle: "solid", borderColor: "#1e293b transparent transparent transparent" }} />
+        </div>
+      )}
+    </span>
+  );
+}
+
+function SkeletonUsers() {
+  return (
+    <div style={{ padding: "4px 0" }}>
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "9px 12px", marginBottom: "4px" }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite", flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ height: 11, borderRadius: 4, width: "60%", background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SkeletonFiles() {
+  return (
+    <div>
+      {[1, 2].map((i) => (
+        <div key={i} style={{ marginBottom: 16 }}>
+          <div style={{ width: "35%", height: 14, borderRadius: 6, marginBottom: 10, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+          {[1, 2].map((j) => (
+            <div key={j} style={{ height: 40, borderRadius: 10, marginBottom: 6, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function getInitial(name: string): string {
+  return (name ?? "?")[0]?.toUpperCase() ?? "?";
+}
+
+const ICON_BTN_STYLE = { background: "none", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center" } as const;
 
 export default function FilesAdminUploadPage() {
   const toast = useRef<Toast>(null);
@@ -32,6 +91,7 @@ export default function FilesAdminUploadPage() {
   const [uploadCat, setUploadCat] = useState<any>(null);
   const [uploadSubcat, setUploadSubcat] = useState<any>(null);
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
+  const [uploadTouched, setUploadTouched] = useState(false);
   const [loadingUpload, setLoadingUpload] = useState(false);
 
   const [fileToDelete, setFileToDelete] = useState<any>(null);
@@ -74,8 +134,17 @@ export default function FilesAdminUploadPage() {
     finally { setLoadingItems(false); }
   }
 
+  function closeUploadDialog() {
+    setShowUpload(false);
+    setUploadCat(null);
+    setUploadSubcat(null);
+    setUploadFiles([]);
+    setUploadTouched(false);
+  }
+
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
+    setUploadTouched(true);
     if (!uploadFiles.length || !uploadCat || !uploadSubcat || !userSelected) return;
     setLoadingUpload(true);
     try {
@@ -95,7 +164,7 @@ export default function FilesAdminUploadPage() {
         });
         return updatedItems;
       });
-      setShowUpload(false); setUploadFiles([]); setUploadCat(null); setUploadSubcat(null);
+      closeUploadDialog();
     } catch { toast.current?.show({ severity: "error", summary: "No se pudo subir el archivo" }); }
     finally { setLoadingUpload(false); }
   }
@@ -142,80 +211,208 @@ export default function FilesAdminUploadPage() {
     finally { setLoadingFile(null); }
   }
 
+  const totalFiles = items.reduce((acc, cat) => acc + cat.subitems.reduce((a: number, s: any) => a + (s.data ?? []).length, 0), 0);
+
+  const uploadDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-cloud-upload" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Subir archivo</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{userSelected?.lastname_name ?? userSelected?.name ?? ""}</small>
+      </div>
+    </div>
+  );
+
+  const deleteDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-trash" style={{ color: "#dc3545", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar archivo</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Carga de archivos por usuario</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Carga de archivos</li>
-            </ol>
+
+        {/* Header card */}
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-cloud-upload" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Carga de archivos por usuario</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Subí, visualizá y eliminá archivos del legajo de un agente</small>
+            </div>
           </div>
         </div>
 
-        <div className="row">
-          {/* User list */}
+        <div className="row mt-4">
+          {/* User search */}
           <div className="col-12 col-lg-4">
-            <div className="card">
-              <div className="card-header"><h6>Buscar usuario</h6></div>
-              <div className="card-body">
-                <input type="text" className="form-control form-control-sm mb-2" placeholder="Nombre o apellido..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
-                {loadingUsers && <ProgressBar mode="indeterminate" style={{ height: "4px" }} />}
-                <ul className="list-group list-group-flush" style={{ maxHeight: 400, overflowY: "auto" }}>
-                  {users.map((u: any) => (
-                    <li key={u.id} className={`list-group-item list-group-item-action pointer py-1 ${userSelected?.id === u.id ? "active" : ""}`} onClick={() => selectUser(u)}>
-                      <small>{u.lastname_name ?? u.name}</small>
-                    </li>
-                  ))}
-                  {!loadingUsers && users.length === 0 && <li className="list-group-item text-muted text-center"><small>Sin resultados</small></li>}
-                </ul>
+            <div className="card profile-card">
+              <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+                <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className="pi pi-search" style={{ color: "#059669", fontSize: "1rem" }} />
+                </div>
+                <div className="flex-grow-1">
+                  <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar usuario</h5>
+                  <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Seleccioná un agente para gestionar sus archivos</small>
+                </div>
+              </div>
+              <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+              <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+                <div className="bosses-search-wrap">
+                  <i className="pi pi-search bosses-search-icon" />
+                  <input
+                    className="profile-input"
+                    style={{ paddingLeft: "36px", paddingRight: userSearch ? "40px" : "13px" }}
+                    placeholder="Nombre o apellido…"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    autoComplete="off"
+                  />
+                  {userSearch && (
+                    <button type="button" className="bosses-search-clear" onClick={() => setUserSearch("")}>
+                      <i className="pi pi-times" style={{ fontSize: "0.72rem" }} />
+                    </button>
+                  )}
+                </div>
+
+                {loadingUsers ? (
+                  <SkeletonUsers />
+                ) : users.length === 0 ? (
+                  <div className="text-center py-4 animated fadeIn" style={{ color: "#94a3b8", fontSize: "0.88rem" }}>
+                    <i className="pi pi-users mb-2" style={{ fontSize: "1.5rem", display: "block", opacity: 0.4 }} />
+                    Sin resultados
+                  </div>
+                ) : (
+                  <div className="fadeIn animated" style={{ maxHeight: 420, overflowY: "auto", padding: "2px" }}>
+                    {users.map((u: any) => {
+                      const isSelected = userSelected?.id === u.id;
+                      return (
+                        <div
+                          key={u.id}
+                          className={`bosses-modal-item${isSelected ? " bosses-modal-item--selected" : ""}`}
+                          onClick={() => selectUser(u)}
+                        >
+                          <div style={{ width: 36, height: 36, borderRadius: "50%", background: isSelected ? "rgba(74,108,247,0.15)" : "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "0.78rem", fontWeight: 700, color: isSelected ? "#4a6cf7" : "#64748b", transition: "background 0.15s, color 0.15s" }}>
+                            {getInitial(u.lastname_name ?? u.name)}
+                          </div>
+                          <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                            <p className="mb-0" style={{ fontSize: "0.87rem", fontWeight: isSelected ? 600 : 400, color: isSelected ? "#1e293b" : "#374151", lineHeight: 1.3 }}>
+                              {u.lastname_name ?? u.name}
+                            </p>
+                          </div>
+                          <i
+                            className={`pi pi-check-circle${isSelected ? " animated fadeIn" : ""}`}
+                            style={{ color: isSelected ? "#4a6cf7" : "transparent", fontSize: "1rem", flexShrink: 0, transition: "color 0.15s" }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Files */}
+          {/* Files for selected user */}
           <div className="col-12 col-lg-8">
-            {!userSelected && <div className="text-center text-muted py-5">Seleccione un usuario para ver sus archivos.</div>}
-            {userSelected && (
-              <div className="card">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                  <h6>{userSelected.lastname_name}</h6>
-                  <button className="btn btn-sm btn-info" onClick={() => { setShowUpload(true); setUploadCat(null); setUploadSubcat(null); setUploadFiles([]); }}>
-                    <i className="mdi mdi-upload" /> Subir archivo
+            {!userSelected ? (
+              <div className="card profile-card">
+                <div className="card-body text-center py-5" style={{ color: "#94a3b8" }}>
+                  <i className="pi pi-folder-open" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                  <p style={{ margin: 0, fontSize: "0.9rem" }}>Seleccioná un usuario para ver sus archivos.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="card profile-card">
+                <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+                  <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <i className="pi pi-folder-open" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+                  </div>
+                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                    <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>{userSelected.lastname_name ?? userSelected.name}</h5>
+                    <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
+                      {loadingItems ? "Cargando archivos…" : `${totalFiles} ${totalFiles === 1 ? "archivo" : "archivos"}`}
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setShowUpload(true); setUploadCat(null); setUploadSubcat(null); setUploadFiles([]); setUploadTouched(false); }}
+                    className="btn btn-primary d-flex align-items-center"
+                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", flexShrink: 0 }}
+                  >
+                    <i className="pi pi-cloud-upload" style={{ fontSize: "0.78rem" }} />
+                    Subir archivo
                   </button>
                 </div>
-                <div className="card-body">
-                  {loadingItems && <ProgressBar mode="indeterminate" style={{ height: "4px" }} />}
-                  {!loadingItems && items.length === 0 && <p className="text-muted text-center">No hay archivos para este usuario.</p>}
-                  {items.map((cat: any) => (
-                    <div key={cat.id} className="mb-3 fadeIn animated">
-                      <h6 className="text-muted"><i className="mdi mdi-folder-outline mr-1" />{cat.name}</h6>
-                      {cat.subitems.map((sub: any) => (
-                        <div key={sub.id} className="ml-3 mb-2">
-                          <div className="font-weight-bold small mb-1"><i className="mdi mdi-folder mr-1 text-info" />{sub.name}</div>
-                          {(sub.data ?? []).map((file: any) => (
-                            <div key={file.id} className="d-flex justify-content-between align-items-center py-1 px-2 border-bottom">
-                              <span className="small"><i className="mdi mdi-file-outline mr-1" />{file.path?.split("/").pop()}</span>
-                              <div>
-                                <button className="btn btn-sm btn-light mr-1" onClick={() => handleViewFile(file)} disabled={loadingFile === file.id}>
-                                  {loadingFile === file.id ? <i className="pi pi-spin pi-spinner" /> : <i className="mdi mdi-eye-outline text-info" />}
-                                </button>
-                                <button className="btn btn-sm btn-danger" onClick={() => setFileToDelete({ ...file, catName: cat.name, subName: sub.name })}>
-                                  <i className="mdi mdi-delete-outline" />
-                                </button>
-                              </div>
+                <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+                <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+                  {loadingItems && <SkeletonFiles />}
+
+                  {!loadingItems && items.length === 0 && (
+                    <div style={{ padding: "30px 0", textAlign: "center" }}>
+                      <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                      <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>No hay archivos para este usuario.</p>
+                    </div>
+                  )}
+
+                  {!loadingItems && items.length > 0 && (
+                    <div className="fadeIn animated">
+                      {items.map((cat: any) => (
+                        <div key={cat.id} style={{ marginBottom: "18px" }}>
+                          <p className="mb-2" style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1e293b" }}>
+                            <i className="pi pi-folder" style={{ fontSize: "0.78rem", marginRight: "6px", color: "#94a3b8" }} />
+                            {cat.name}
+                          </p>
+                          {cat.subitems.map((sub: any) => (
+                            <div key={sub.id} style={{ marginLeft: "18px", marginBottom: "10px" }}>
+                              <p className="mb-1" style={{ fontSize: "0.78rem", fontWeight: 600, color: "#64748b" }}>
+                                <i className="pi pi-folder-open" style={{ fontSize: "0.72rem", marginRight: "6px", color: "#3b82f6" }} />
+                                {sub.name}
+                              </p>
+                              {(sub.data ?? []).map((file: any) => (
+                                <div
+                                  key={file.id}
+                                  className="d-flex align-items-center justify-content-between"
+                                  style={{ padding: "8px 12px", borderRadius: "10px", background: "#f8fafc", border: "1px solid #e2e8f0", marginBottom: "6px" }}
+                                >
+                                  <span className="d-flex align-items-center" style={{ gap: "6px", fontSize: "0.82rem", color: "#374151", minWidth: 0 }}>
+                                    <i className="pi pi-file" style={{ fontSize: "0.78rem", color: "#94a3b8", flexShrink: 0 }} />
+                                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.path?.split("/").pop()}</span>
+                                  </span>
+                                  <div className="d-flex align-items-center" style={{ gap: "6px", flexShrink: 0 }}>
+                                    <Tooltip label="Ver archivo">
+                                      <button type="button" onClick={() => handleViewFile(file)} disabled={loadingFile === file.id} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                                        <i className={loadingFile === file.id ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "0.85rem" }} />
+                                      </button>
+                                    </Tooltip>
+                                    <Tooltip label="Eliminar">
+                                      <button type="button" onClick={() => setFileToDelete({ ...file, catName: cat.name, subName: sub.name })} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
+                                        <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
+                                      </button>
+                                    </Tooltip>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           ))}
                         </div>
                       ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
@@ -224,54 +421,145 @@ export default function FilesAdminUploadPage() {
       </div>
 
       {/* Upload dialog */}
-      <Dialog header="Subir archivo" visible={showUpload} modal draggable={false} resizable={false} style={{ width: "460px" }} onHide={() => setShowUpload(false)}>
-        <form onSubmit={handleUpload} noValidate>
-          <div className="form-group">
-            <label><small>Categoría *</small></label>
-            <select className="custom-select w-100" value={uploadCat?.id ?? ""} onChange={(e) => {
-              const cat = items.find((c) => String(c.id) === e.target.value);
-              setUploadCat(cat ?? null); setUploadSubcat(null);
-            }}>
-              <option value=""></option>
-              {items.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+      <Dialog
+        header={uploadDialogHeader}
+        visible={showUpload}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(480px, 92vw)" }}
+        onHide={closeUploadDialog}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="upload-file-form"
+                disabled={loadingUpload}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingUpload ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingUpload ? "Subiendo..." : "Subir"}
+              </button>
+              <button
+                disabled={loadingUpload}
+                onClick={closeUploadDialog}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingUpload && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
-          <div className="form-group">
-            <label><small>Subcategoría *</small></label>
-            <select className="custom-select w-100" value={uploadSubcat?.id ?? ""} onChange={(e) => {
-              const sub = uploadCat?.subitems?.find((s: any) => String(s.id) === e.target.value);
-              setUploadSubcat(sub ?? null);
-            }} disabled={!uploadCat}>
-              <option value=""></option>
-              {(uploadCat?.subitems ?? []).map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
+        }
+      >
+        <form id="upload-file-form" onSubmit={handleUpload} noValidate>
+          <div className="mb-3">
+            <label className="profile-field-label">Categoría *</label>
+            <div className={`license-filter-input-wrap${uploadCat ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-folder license-filter-icon" />
+              <Dropdown
+                value={uploadCat?.id ?? null}
+                options={items}
+                optionLabel="name"
+                optionValue="id"
+                onChange={(e) => {
+                  const cat = items.find((c) => c.id === e.value);
+                  setUploadCat(cat ?? null);
+                  setUploadSubcat(null);
+                }}
+                placeholder="Seleccioná una categoría"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+                emptyMessage="Sin categorías"
+              />
+            </div>
+            {uploadTouched && !uploadCat && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
           </div>
-          <div className="form-group">
-            <label><small>Archivo *</small></label>
-            <input type="file" multiple className="form-control-file" onChange={(e) => setUploadFiles(Array.from(e.target.files ?? []))} />
+
+          <div className="mb-3">
+            <label className="profile-field-label">Subcategoría *</label>
+            <div className={`license-filter-input-wrap${uploadSubcat ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-folder license-filter-icon" />
+              <Dropdown
+                value={uploadSubcat?.id ?? null}
+                options={uploadCat?.subitems ?? []}
+                optionLabel="name"
+                optionValue="id"
+                onChange={(e) => {
+                  const sub = uploadCat?.subitems?.find((s: any) => s.id === e.value);
+                  setUploadSubcat(sub ?? null);
+                }}
+                disabled={!uploadCat}
+                placeholder="Seleccioná una subcategoría"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+                emptyMessage="Sin subcategorías"
+              />
+            </div>
+            {uploadTouched && !uploadSubcat && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
           </div>
-          <button disabled={loadingUpload || !uploadCat || !uploadSubcat || !uploadFiles.length} type="submit" className="btn btn-info btn-block mt-2">
-            {loadingUpload ? "Subiendo..." : "Subir"}
-          </button>
+
+          <div className="mb-1">
+            <label className="profile-field-label">Archivo *</label>
+            <input
+              type="file"
+              multiple
+              className="form-control-file"
+              onChange={(e) => setUploadFiles(Array.from(e.target.files ?? []))}
+            />
+            {uploadTouched && !uploadFiles.length && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
         </form>
       </Dialog>
 
-      {/* Delete modal */}
-      {fileToDelete && (
-        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 400 }}>
-            <div className="modal-content text-center p-4">
-              <i className="mdi mdi-alert-circle-outline text-danger mb-3" style={{ fontSize: "3rem" }} />
-              <h4>¿Eliminar archivo?</h4>
-              <p className="text-muted small">{fileToDelete?.path?.split("/").pop()}</p>
-              <div className="row g-2 mt-3">
-                <div className="col-6"><button disabled={loadingDelete} className="btn btn-light w-100" onClick={() => setFileToDelete(null)}>Cancelar</button></div>
-                <div className="col-6"><button disabled={loadingDelete} className="btn btn-danger w-100" onClick={handleDeleteFile}>{loadingDelete ? "..." : "Eliminar"}</button></div>
-              </div>
+      {/* Delete dialog */}
+      <Dialog
+        header={deleteDialogHeader}
+        visible={!!fileToDelete}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(420px, 92vw)" }}
+        onHide={() => setFileToDelete(null)}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                disabled={loadingDelete}
+                onClick={handleDeleteFile}
+                type="button"
+                className="btn btn-danger d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingDelete ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
+                {loadingDelete ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+              <button
+                disabled={loadingDelete}
+                onClick={() => setFileToDelete(null)}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
             </div>
+            {loadingDelete && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
-        </div>
-      )}
+        }
+      >
+        <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
+          Está a punto de eliminar el archivo <strong>{fileToDelete?.path?.split("/").pop()}</strong>.
+        </p>
+      </Dialog>
     </>
   );
 }
