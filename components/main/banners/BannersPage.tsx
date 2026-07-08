@@ -353,6 +353,7 @@ export default function BannersPage() {
                   <input
                     className="profile-input"
                     type="text"
+                    maxLength={100}
                     value={form.name}
                     onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                   />
