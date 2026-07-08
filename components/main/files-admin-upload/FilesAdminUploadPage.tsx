@@ -5,6 +5,7 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { Dialog } from "primereact/dialog";
+import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
 import { loadFileCategories, searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile } from "@/lib/services/files-admin-items.service";
 import { loadFilePDF } from "@/lib/services/files.service";
@@ -98,6 +99,8 @@ export default function FilesAdminUploadPage() {
 
   const [fileToDelete, setFileToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+
+  const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
 
   useEffect(() => {
     loadFileCategories().then(setCategories).catch(() => toast.current?.show({ severity: "error", summary: "No se pudo cargar las categorías" }));
@@ -199,22 +202,41 @@ export default function FilesAdminUploadPage() {
     if (loadingFile) return;
     setLoadingFile(file.id);
     const ext = (file.path ?? "").split(".").pop()?.toLowerCase() ?? "pdf";
+    const name = file.path?.split("/").pop() ?? "archivo";
     try {
       const buffer = await loadFilePDF(file.path);
       const mime = MIME_MAP[ext] ?? "application/octet-stream";
       const blob = new Blob([buffer], { type: mime });
+      const url = URL.createObjectURL(blob);
       if (ext === "odt") {
         const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
+        link.href = url;
         link.download = "archivo.odt";
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+      } else if (ext === "pdf") {
+        setPreviewFile({ url, type: "pdf", name });
+      } else if (["png", "jpg", "jpeg", "gif"].includes(ext)) {
+        setPreviewFile({ url, type: "image", name });
       } else {
-        window.open(URL.createObjectURL(blob));
+        window.open(url);
       }
     } catch { toast.current?.show({ severity: "error", summary: "No se pudo abrir el archivo" }); }
     finally { setLoadingFile(null); }
+  }
+
+  function closePreview() {
+    if (previewFile) URL.revokeObjectURL(previewFile.url);
+    setPreviewFile(null);
+  }
+
+  function previewLocalFile(file: File) {
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const url = URL.createObjectURL(file);
+    if (ext === "pdf") setPreviewFile({ url, type: "pdf", name: file.name });
+    else if (["png", "jpg", "jpeg", "gif"].includes(ext)) setPreviewFile({ url, type: "image", name: file.name });
+    else window.open(url);
   }
 
   const totalFiles = items.reduce((acc, cat) => acc + cat.subitems.reduce((a: number, s: any) => a + (s.data ?? []).length, 0), 0);
@@ -434,6 +456,7 @@ export default function FilesAdminUploadPage() {
         draggable={false}
         resizable={false}
         closable={false}
+        baseZIndex={2000}
         dismissableMask
         style={{ width: "min(480px, 92vw)" }}
         onHide={closeUploadDialog}
@@ -517,12 +540,27 @@ export default function FilesAdminUploadPage() {
               type="file"
               multiple
               className="form-control-file"
-              onChange={(e) => setUploadFiles(Array.from(e.target.files ?? []))}
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                setUploadFiles(files);
+                if (files[0]) previewLocalFile(files[0]);
+              }}
             />
             {uploadTouched && !uploadFiles.length && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
           </div>
         </form>
       </Dialog>
+
+      {/* File preview sidebar */}
+      <Sidebar visible={!!previewFile} position="right" onHide={closePreview} baseZIndex={2000} style={{ width: "min(560px, 92vw)" }} header={previewFile?.name}>
+        {previewFile?.type === "image" && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
+        )}
+        {previewFile?.type === "pdf" && (
+          <iframe src={previewFile.url} title={previewFile.name} style={{ width: "100%", height: "calc(100vh - 120px)", border: "none" }} />
+        )}
+      </Sidebar>
 
       {/* Delete dialog */}
       <Dialog
