@@ -6,7 +6,7 @@ import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
-import { searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile } from "@/lib/services/files-admin-items.service";
+import { loadFileCategories, searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile } from "@/lib/services/files-admin-items.service";
 import { loadFilePDF } from "@/lib/services/files.service";
 
 const MIME_MAP: Record<string, string> = {
@@ -87,6 +87,8 @@ export default function FilesAdminUploadPage() {
   const [loadingItems, setLoadingItems] = useState(false);
   const [loadingFile, setLoadingFile] = useState<string | null>(null);
 
+  const [categories, setCategories] = useState<any[]>([]);
+
   const [showUpload, setShowUpload] = useState(false);
   const [uploadCat, setUploadCat] = useState<any>(null);
   const [uploadSubcat, setUploadSubcat] = useState<any>(null);
@@ -96,6 +98,10 @@ export default function FilesAdminUploadPage() {
 
   const [fileToDelete, setFileToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+
+  useEffect(() => {
+    loadFileCategories().then(setCategories).catch(() => toast.current?.show({ severity: "error", summary: "No se pudo cargar las categorías" }));
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => loadUsers(), 1000);
@@ -465,11 +471,11 @@ export default function FilesAdminUploadPage() {
               <i className="pi pi-folder license-filter-icon" />
               <Dropdown
                 value={uploadCat?.id ?? null}
-                options={items}
+                options={categories}
                 optionLabel="name"
                 optionValue="id"
                 onChange={(e) => {
-                  const cat = items.find((c) => c.id === e.value);
+                  const cat = categories.find((c) => c.id === e.value);
                   setUploadCat(cat ?? null);
                   setUploadSubcat(null);
                 }}
