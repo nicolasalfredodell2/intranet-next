@@ -571,15 +571,24 @@ export default function FilesAdminUploadPage() {
 
           <div className="mb-1">
             <label className="profile-field-label">Archivo *</label>
-            <input
-              type="file"
-              className="form-control-file"
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? []);
-                setUploadFiles(files);
-                if (files[0]) previewLocalFile(files[0]);
-              }}
-            />
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <input
+                type="file"
+                className="form-control-file"
+                onChange={(e) => setUploadFiles(Array.from(e.target.files ?? []))}
+              />
+              {uploadFiles[0] && (
+                <Tooltip label="Previsualizar">
+                  <button
+                    type="button"
+                    onClick={() => previewLocalFile(uploadFiles[0])}
+                    style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b", flexShrink: 0 }}
+                  >
+                    <i className="pi pi-eye" style={{ fontSize: "0.85rem" }} />
+                  </button>
+                </Tooltip>
+              )}
+            </div>
             {uploadTouched && !uploadFiles.length && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
           </div>
         </form>
