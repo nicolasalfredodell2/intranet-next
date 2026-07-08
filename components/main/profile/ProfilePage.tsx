@@ -29,6 +29,12 @@ function toDateInputValue(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
+function getMaxBirthdate(): Date {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 18);
+  return d;
+}
+
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   return (
@@ -489,7 +495,7 @@ export default function ProfilePage() {
                             locale="es"
                             showButtonBar
                             minDate={new Date("1950-01-01T00:00:00")}
-                            maxDate={new Date("2003-01-01T00:00:00")}
+                            maxDate={getMaxBirthdate()}
                             disabled={loading}
                             placeholder="Seleccioná una fecha"
                             className="license-filter-dropdown"
