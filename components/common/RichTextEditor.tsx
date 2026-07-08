@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
-import { mergeAttributes, ResizableNodeView } from "@tiptap/core";
+import { Extension, Node, mergeAttributes, ResizableNodeView } from "@tiptap/core";
 import { useEditor, EditorContent, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -75,6 +75,267 @@ const ResizableImage = Image.extend({
   },
 });
 
+interface VideoOptions {
+  HTMLAttributes: Record<string, unknown>;
+  resize: { enabled: boolean; minWidth?: number; minHeight?: number } | false;
+}
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    video: {
+      setVideo: (options: { src: string; width?: number; height?: number }) => ReturnType;
+    };
+  }
+}
+
+const Video = Node.create<VideoOptions>({
+  name: "video",
+  group: "block",
+  atom: true,
+  draggable: true,
+  addOptions() {
+    return { HTMLAttributes: {}, resize: false };
+  },
+  addAttributes() {
+    return {
+      src: { default: null },
+      width: { default: null },
+      height: { default: null },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "video" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["video", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { controls: "true" })];
+  },
+  addCommands() {
+    return {
+      setVideo: (options) => ({ commands }) => commands.insertContent({ type: this.name, attrs: options }),
+    };
+  },
+  addNodeView() {
+    if (!this.options.resize || !this.options.resize.enabled || typeof document === "undefined") {
+      return null;
+    }
+    const { minWidth, minHeight } = this.options.resize;
+    return ({ node, getPos, HTMLAttributes, editor }) => {
+      const el = document.createElement("video");
+      el.controls = true;
+      el.draggable = false;
+      const mergedAttributes = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
+      Object.entries(mergedAttributes).forEach(([key, value]) => {
+        if (value != null && key !== "width" && key !== "height") {
+          el.setAttribute(key, String(value));
+        }
+      });
+      if (mergedAttributes.src != null) el.src = mergedAttributes.src;
+
+      return new ResizableNodeView({
+        element: el,
+        editor,
+        node,
+        getPos,
+        onResize: (width, height) => {
+          el.style.width = `${width}px`;
+          el.style.height = `${height}px`;
+        },
+        onCommit: (width, height) => {
+          const pos = getPos();
+          if (pos === undefined) return;
+          editor.chain().setNodeSelection(pos).updateAttributes(this.name, { width, height }).run();
+        },
+        onUpdate: (updatedNode) => updatedNode.type === node.type,
+        options: {
+          min: { width: minWidth, height: minHeight },
+          className: {
+            handle: "rich-text-editor-image-handle",
+            resizing: "rich-text-editor-image-resizing",
+          },
+        },
+      });
+    };
+  },
+});
+
+interface VideoEmbedOptions {
+  HTMLAttributes: Record<string, unknown>;
+  resize: { enabled: boolean; minWidth?: number; minHeight?: number } | false;
+}
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    videoEmbed: {
+      setVideoEmbed: (options: { src: string; width?: number; height?: number }) => ReturnType;
+    };
+  }
+}
+
+const EMBED_ALLOW = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+
+function getVideoEmbedUrl(url: string): string | null {
+  const youtube = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (youtube) return `https://www.youtube.com/embed/${youtube[1]}`;
+  const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  return null;
+}
+
+const VideoEmbed = Node.create<VideoEmbedOptions>({
+  name: "videoEmbed",
+  group: "block",
+  atom: true,
+  draggable: true,
+  addOptions() {
+    return { HTMLAttributes: {}, resize: false };
+  },
+  addAttributes() {
+    return {
+      src: { default: null },
+      width: { default: 560 },
+      height: { default: 315 },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "iframe[data-video-embed]" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["iframe", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+      "data-video-embed": "",
+      frameborder: "0",
+      allow: EMBED_ALLOW,
+      allowfullscreen: "true",
+    })];
+  },
+  addCommands() {
+    return {
+      setVideoEmbed: (options) => ({ commands }) => commands.insertContent({ type: this.name, attrs: options }),
+    };
+  },
+  addNodeView() {
+    if (!this.options.resize || !this.options.resize.enabled || typeof document === "undefined") {
+      return null;
+    }
+    const { minWidth, minHeight } = this.options.resize;
+    return ({ node, getPos, HTMLAttributes, editor }) => {
+      const el = document.createElement("iframe");
+      el.setAttribute("frameborder", "0");
+      el.setAttribute("allow", EMBED_ALLOW);
+      el.setAttribute("allowfullscreen", "true");
+      const mergedAttributes = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
+      Object.entries(mergedAttributes).forEach(([key, value]) => {
+        if (value != null && key !== "width" && key !== "height") {
+          el.setAttribute(key, String(value));
+        }
+      });
+      if (mergedAttributes.src != null) el.src = mergedAttributes.src;
+
+      return new ResizableNodeView({
+        element: el,
+        editor,
+        node,
+        getPos,
+        onResize: (width, height) => {
+          el.style.width = `${width}px`;
+          el.style.height = `${height}px`;
+        },
+        onCommit: (width, height) => {
+          const pos = getPos();
+          if (pos === undefined) return;
+          editor.chain().setNodeSelection(pos).updateAttributes(this.name, { width, height }).run();
+        },
+        onUpdate: (updatedNode) => updatedNode.type === node.type,
+        options: {
+          min: { width: minWidth, height: minHeight },
+          className: {
+            handle: "rich-text-editor-image-handle",
+            resizing: "rich-text-editor-image-resizing",
+          },
+        },
+      });
+    };
+  },
+});
+
+const INDENT_STEP_PX = 24;
+const INDENT_MAX = 8;
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    textIndent: {
+      indent: () => ReturnType;
+      outdent: () => ReturnType;
+    };
+  }
+}
+
+const Indent = Extension.create({
+  name: "textIndent",
+  addOptions() {
+    return { types: ["paragraph", "heading"] };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          indent: {
+            default: 0,
+            renderHTML: (attributes) => {
+              if (!attributes.indent) return {};
+              return { style: `margin-left: ${attributes.indent * INDENT_STEP_PX}px` };
+            },
+            parseHTML: (element) => {
+              const margin = parseInt(element.style.marginLeft || "0", 10);
+              return margin ? Math.round(margin / INDENT_STEP_PX) : 0;
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      indent: () => ({ editor, commands, tr, state, dispatch }) => {
+        if (editor.isActive("listItem")) return commands.sinkListItem("listItem");
+        if (editor.isActive("taskItem")) return commands.sinkListItem("taskItem");
+        const { types } = this.options;
+        const { from, to } = state.selection;
+        let applied = false;
+        state.doc.nodesBetween(from, to, (node, pos) => {
+          if (types.includes(node.type.name)) {
+            const current = node.attrs.indent ?? 0;
+            if (current < INDENT_MAX) {
+              tr.setNodeMarkup(pos, undefined, { ...node.attrs, indent: current + 1 });
+              applied = true;
+            }
+          }
+        });
+        if (applied && dispatch) dispatch(tr);
+        return applied;
+      },
+      outdent: () => ({ editor, commands, tr, state, dispatch }) => {
+        if (editor.isActive("listItem")) return commands.liftListItem("listItem");
+        if (editor.isActive("taskItem")) return commands.liftListItem("taskItem");
+        const { types } = this.options;
+        const { from, to } = state.selection;
+        let applied = false;
+        state.doc.nodesBetween(from, to, (node, pos) => {
+          if (types.includes(node.type.name)) {
+            const current = node.attrs.indent ?? 0;
+            if (current > 0) {
+              tr.setNodeMarkup(pos, undefined, { ...node.attrs, indent: current - 1 });
+              applied = true;
+            }
+          }
+        });
+        if (applied && dispatch) dispatch(tr);
+        return applied;
+      },
+    };
+  },
+});
+
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string) => void;
@@ -107,6 +368,12 @@ function Toolbar({ editor }: { editor: Editor }) {
   const [imageWidth, setImageWidth] = useState("");
   const [imageHeight, setImageHeight] = useState("");
   const imageFileInputRef = useRef<HTMLInputElement>(null);
+  const [showVideoDialog, setShowVideoDialog] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoPreview, setVideoPreview] = useState("");
+  const [videoWidth, setVideoWidth] = useState("");
+  const [videoHeight, setVideoHeight] = useState("");
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
 
   const state = useEditorState({
     editor,
@@ -187,6 +454,53 @@ function Toolbar({ editor }: { editor: Editor }) {
     const height = imageHeight ? Number(imageHeight) : undefined;
     editor.chain().focus().setImage({ src, width, height }).run();
     setShowImageDialog(false);
+  }
+
+  function openVideoDialog() {
+    setVideoUrl("");
+    setVideoPreview("");
+    setVideoWidth("");
+    setVideoHeight("");
+    setShowVideoDialog(true);
+  }
+
+  function handleVideoUrlChange(value: string) {
+    setVideoUrl(value);
+    if (value.trim()) {
+      setVideoPreview("");
+      if (videoFileInputRef.current) videoFileInputRef.current.value = "";
+    } else if (!videoPreview) {
+      setVideoWidth("");
+      setVideoHeight("");
+    }
+  }
+
+  function handleVideoFileChange(file: File | null) {
+    if (!file) {
+      setVideoPreview("");
+      if (!videoUrl.trim()) { setVideoWidth(""); setVideoHeight(""); }
+      return;
+    }
+    setVideoUrl("");
+    const reader = new FileReader();
+    reader.onload = () => setVideoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  const videoEmbedUrl = !videoPreview ? getVideoEmbedUrl(videoUrl.trim()) : null;
+
+  function confirmInsertVideo() {
+    const src = videoPreview || videoUrl.trim();
+    if (!src) return;
+    const width = videoWidth ? Number(videoWidth) : undefined;
+    const height = videoHeight ? Number(videoHeight) : undefined;
+
+    if (videoEmbedUrl) {
+      editor.chain().focus().setVideoEmbed({ src: videoEmbedUrl, width: width ?? 560, height: height ?? 315 }).run();
+    } else {
+      editor.chain().focus().setVideo({ src, width, height }).run();
+    }
+    setShowVideoDialog(false);
   }
 
   return (
@@ -288,6 +602,12 @@ function Toolbar({ editor }: { editor: Editor }) {
       <ToolbarButton title="Justificar" active={state.alignJustify} onClick={() => editor.chain().focus().setTextAlign("justify").run()}>
         <i className="pi pi-align-justify" />
       </ToolbarButton>
+      <ToolbarButton title="Disminuir sangría" onClick={() => editor.chain().focus().outdent().run()}>
+        <i className="pi pi-angle-double-left" />
+      </ToolbarButton>
+      <ToolbarButton title="Aumentar sangría" onClick={() => editor.chain().focus().indent().run()}>
+        <i className="pi pi-angle-double-right" />
+      </ToolbarButton>
       <span className="rich-text-editor-toolbar-divider" />
 
       <ToolbarButton title="Enlace" active={state.link} onClick={setLink}>
@@ -295,6 +615,9 @@ function Toolbar({ editor }: { editor: Editor }) {
       </ToolbarButton>
       <ToolbarButton title="Imagen" onClick={openImageDialog}>
         <i className="pi pi-image" />
+      </ToolbarButton>
+      <ToolbarButton title="Video" onClick={openVideoDialog}>
+        <i className="pi pi-video" />
       </ToolbarButton>
       <ToolbarButton title="Insertar tabla" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
         <i className="pi pi-table" />
@@ -414,6 +737,112 @@ function Toolbar({ editor }: { editor: Editor }) {
         También podés arrastrar los bordes de la imagen dentro del editor para redimensionarla.
       </p>
     </Dialog>
+
+    <Dialog
+      header="Insertar video"
+      visible={showVideoDialog}
+      modal
+      draggable={false}
+      resizable={false}
+      closable={false}
+      style={{ width: "min(460px, 92vw)" }}
+      onHide={() => setShowVideoDialog(false)}
+      footer={
+        <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+          <button
+            type="button"
+            disabled={!videoUrl.trim() && !videoPreview}
+            onClick={confirmInsertVideo}
+            className="btn btn-primary d-flex align-items-center"
+            style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+          >
+            <i className="pi pi-check" style={{ fontSize: "0.78rem" }} />
+            Insertar
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowVideoDialog(false)}
+            className="btn btn-light text-muted ml-auto"
+            style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+          >
+            Volver
+          </button>
+        </div>
+      }
+    >
+      <div className="mb-3">
+        <label className="profile-field-label">URL del video</label>
+        <input
+          className="profile-input"
+          type="text"
+          placeholder="https://…"
+          value={videoUrl}
+          onChange={(e) => handleVideoUrlChange(e.target.value)}
+        />
+      </div>
+      <div className="mb-3">
+        <label className="profile-field-label">O subí un archivo desde tu PC</label>
+        <input
+          ref={videoFileInputRef}
+          type="file"
+          accept="video/*"
+          className="form-control-file"
+          onChange={(e) => handleVideoFileChange(e.target.files?.[0] ?? null)}
+        />
+      </div>
+      <div className="row">
+        <div className="col-6 mb-3">
+          <label className="profile-field-label">Ancho (px)</label>
+          <input
+            className="profile-input"
+            type="number"
+            min={1}
+            placeholder="Auto"
+            value={videoWidth}
+            onChange={(e) => setVideoWidth(e.target.value)}
+          />
+        </div>
+        <div className="col-6 mb-3">
+          <label className="profile-field-label">Alto (px)</label>
+          <input
+            className="profile-input"
+            type="number"
+            min={1}
+            placeholder="Auto"
+            value={videoHeight}
+            onChange={(e) => setVideoHeight(e.target.value)}
+          />
+        </div>
+      </div>
+      {(videoPreview || videoUrl.trim()) && (
+        videoEmbedUrl ? (
+          <iframe
+            src={videoEmbedUrl}
+            width="100%"
+            height={200}
+            frameBorder={0}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            style={{ borderRadius: 8, border: "1px solid #e2e8f0" }}
+          />
+        ) : (
+          <video
+            src={videoPreview || videoUrl.trim()}
+            controls
+            onLoadedMetadata={(e) => {
+              setVideoWidth(String(e.currentTarget.videoWidth));
+              setVideoHeight(String(e.currentTarget.videoHeight));
+            }}
+            style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8, border: "1px solid #e2e8f0" }}
+          />
+        )
+      )}
+      <p style={{ fontSize: "0.72rem", color: "#94a3b8", marginTop: "8px", marginBottom: 0 }}>
+        {videoEmbedUrl
+          ? "Se detectó un video de YouTube/Vimeo, se insertará como reproductor embebido."
+          : "También podés arrastrar los bordes del video dentro del editor para redimensionarlo."}
+      </p>
+    </Dialog>
     </>
   );
 }
@@ -429,6 +858,13 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
         allowBase64: true,
         resize: { enabled: true, minWidth: 40, minHeight: 40 },
       }),
+      Video.configure({
+        resize: { enabled: true, minWidth: 80, minHeight: 60 },
+      }),
+      VideoEmbed.configure({
+        resize: { enabled: true, minWidth: 120, minHeight: 90 },
+      }),
+      Indent,
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,

@@ -1647,6 +1647,7 @@ input[disabled] {
   background: #f8fafc;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
+  font-family: var(--font-montserrat), "Montserrat", sans-serif;
   overflow: hidden;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
