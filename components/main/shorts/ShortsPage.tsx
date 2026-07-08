@@ -4,8 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
+import { Calendar } from "primereact/calendar";
+import { addLocale } from "primereact/api";
 import { ProgressBar } from "primereact/progressbar";
 import { listShorts, createShort, modificateShort, deleteShort } from "@/lib/services/shorts.service";
+
+addLocale("es", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  now: "Ahora",
+  clear: "Limpiar",
+});
 
 const IMG_MAX = 5 * 1024 * 1024;
 const VIDEO_MAX = 52428800; // 50MB
@@ -16,6 +31,13 @@ const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvi
 function getToday(): string {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+}
+
+function toDateInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function formatDateForInput(s: string | null): string {
@@ -84,6 +106,7 @@ export default function ShortsPage() {
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("created_at");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [mediaMode, setMediaMode] = useState<Record<string, "image" | "video">>({});
 
@@ -93,8 +116,6 @@ export default function ShortsPage() {
   const [imgModif, setImgModif] = useState<any>(null);
   const [videoModif, setVideoModif] = useState<any>(null);
 
-  const minUnpublished = form.published_at || today;
-  const maxPublished = form.unpublished_at || "";
 
   useEffect(() => { load(); }, []);
 
@@ -190,10 +211,28 @@ export default function ShortsPage() {
     finally { setLoadingDelete(false); }
   }
 
+  const SORT_OPTIONS = [
+    { label: "Fecha de creación", value: "created_at" },
+    { label: "Vigencia", value: "vigencia" },
+    { label: "Título (A-Z)", value: "title_asc" },
+    { label: "Título (Z-A)", value: "title_desc" },
+  ];
+
   const filtered = (searchTerm
     ? shorts.filter((s) => s.title?.toLowerCase().includes(searchTerm.toLowerCase()))
     : shorts
-  ).slice().sort((a, b) => formatDateForInput(a.published_at).localeCompare(formatDateForInput(b.published_at)));
+  ).slice().sort((a, b) => {
+    switch (sortBy) {
+      case "title_asc":
+        return (a.title ?? "").localeCompare(b.title ?? "", "es", { sensitivity: "base" });
+      case "title_desc":
+        return (b.title ?? "").localeCompare(a.title ?? "", "es", { sensitivity: "base" });
+      case "vigencia":
+        return formatDateForInput(a.published_at).localeCompare(formatDateForInput(b.published_at));
+      default:
+        return formatDateForInput(b.created_at).localeCompare(formatDateForInput(a.created_at));
+    }
+  });
 
   const FileDropzone = ({ label, file, accept, onFile, onClear, showPreview }: { label: string; file: File | null; accept: string; onFile: (f: File) => void; onClear: () => void; showPreview?: boolean }) => {
     const [drag, setDrag] = useState(false);
@@ -293,28 +332,34 @@ export default function ShortsPage() {
                   />
                   {touched && !form.title && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                 </div>
-                <div className="col-6 col-md-3 mb-3">
-                  <label className="profile-field-label">Fecha desde *</label>
-                  <input
-                    className="profile-input"
-                    type="date"
-                    min={today}
-                    max={maxPublished}
-                    value={form.published_at}
-                    onChange={(e) => setForm((p) => ({ ...p, published_at: e.target.value }))}
-                  />
-                  {touched && !form.published_at && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
-                </div>
-                <div className="col-6 col-md-3 mb-3">
-                  <label className="profile-field-label">Fecha hasta *</label>
-                  <input
-                    className="profile-input"
-                    type="date"
-                    min={minUnpublished}
-                    value={form.unpublished_at}
-                    onChange={(e) => setForm((p) => ({ ...p, unpublished_at: e.target.value }))}
-                  />
-                  {touched && !form.unpublished_at && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Vigencia (desde - hasta) *</label>
+                  <div className={`license-filter-input-wrap${form.published_at || form.unpublished_at ? " license-filter-input-wrap--active" : ""}`}>
+                    <i className="pi pi-calendar license-filter-icon" />
+                    <Calendar
+                      value={form.published_at
+                        ? [new Date(`${form.published_at}T00:00:00`), form.unpublished_at ? new Date(`${form.unpublished_at}T00:00:00`) : null]
+                        : null}
+                      onChange={(e) => {
+                        const [start, end] = (e.value as (Date | null)[] | null) ?? [null, null];
+                        setForm((p) => ({
+                          ...p,
+                          published_at: start ? toDateInputValue(start) : "",
+                          unpublished_at: end ? toDateInputValue(end) : "",
+                        }));
+                      }}
+                      selectionMode="range"
+                      readOnlyInput
+                      dateFormat="dd/mm/yy"
+                      locale="es"
+                      showButtonBar
+                      minDate={new Date(`${today}T00:00:00`)}
+                      placeholder="Seleccioná el rango de fechas"
+                      className="license-filter-dropdown"
+                      panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                    />
+                  </div>
+                  {touched && (!form.published_at || !form.unpublished_at) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                 </div>
                 <div className="col-12 mb-3">
                   <label className="profile-field-label">Descripción (máx 300) *</label>
@@ -403,6 +448,16 @@ export default function ShortsPage() {
                       placeholder="Buscar short por título…"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="license-filter-input-wrap license-filter-input-wrap--active">
+                    <i className="pi pi-sort-alt license-filter-icon" />
+                    <Dropdown
+                      value={sortBy}
+                      options={SORT_OPTIONS}
+                      onChange={(e) => setSortBy(e.value)}
+                      className="license-filter-dropdown"
+                      panelClassName="license-filter-dropdown-panel"
                     />
                   </div>
                 </div>
