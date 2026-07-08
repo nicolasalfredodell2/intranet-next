@@ -57,6 +57,7 @@ export default function AreasPage() {
   const [form, setForm] = useState<AreaForm>({ title: "", description: "" });
   const [touched, setTouched] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   const [areaToDelete, setAreaToDelete] = useState<any>(null);
@@ -169,7 +170,10 @@ export default function AreasPage() {
   const filtered = (searchTerm
     ? areas.filter((a) => a.title?.toLowerCase().includes(searchTerm.toLowerCase()))
     : areas
-  ).slice().sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "", "es", { sensitivity: "base" }));
+  ).slice().sort((a, b) => {
+    const cmp = (a.title ?? "").localeCompare(b.title ?? "", "es", { sensitivity: "base" });
+    return sortDir === "asc" ? cmp : -cmp;
+  });
 
   const modifyDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -329,6 +333,16 @@ export default function AreasPage() {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setSortDir((p) => (p === "asc" ? "desc" : "asc"))}
+                    title={sortDir === "asc" ? "Orden alfabético A-Z" : "Orden alfabético Z-A"}
+                    className="d-flex align-items-center"
+                    style={{ gap: "5px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", padding: "6px 12px", fontSize: "0.78rem", fontWeight: 600, color: "#64748b", cursor: "pointer", whiteSpace: "nowrap" }}
+                  >
+                    <i className={`pi ${sortDir === "asc" ? "pi-sort-alpha-down" : "pi-sort-alpha-up"}`} style={{ fontSize: "0.8rem" }} />
+                    {sortDir === "asc" ? "A-Z" : "Z-A"}
+                  </button>
                 </div>
                 {searchTerm && (
                   <button type="button" className="license-filter-clear" onClick={() => setSearchTerm("")}>
