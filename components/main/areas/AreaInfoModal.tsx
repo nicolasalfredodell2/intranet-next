@@ -200,7 +200,6 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
         draggable={false}
         resizable={false}
         closable={false}
-        dismissableMask
         style={{ width: "80vw" }}
         onHide={onClose}
         footer={loading ? undefined : dialogFooter}
