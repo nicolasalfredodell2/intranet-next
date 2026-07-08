@@ -5,9 +5,23 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
+import { Calendar } from "primereact/calendar";
+import { addLocale } from "primereact/api";
 import { ProgressBar } from "primereact/progressbar";
 import { listBanners, createBanner, modificateBanner, deleteBanner, deleteBannerImage } from "@/lib/services/banners.service";
 import { getAllNotes } from "@/lib/services/notes.service";
+
+addLocale("es", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  now: "Ahora",
+  clear: "Limpiar",
+});
 
 const MAX_SIZE = 5 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -16,6 +30,13 @@ const URL_PATTERN = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?(\
 function getToday(): string {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+}
+
+function toDateInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 function formatDateForInput(s: string | null): string {
@@ -100,8 +121,6 @@ export default function BannersPage() {
   const [isDeletingHoriz, setIsDeletingHoriz] = useState(false);
   const [isDeletingVert, setIsDeletingVert] = useState(false);
 
-  const minUnpublished = form.published_at || today;
-  const maxPublished = form.unpublished_at || "";
 
   useEffect(() => {
     loadBanners();
@@ -320,28 +339,34 @@ export default function BannersPage() {
                   />
                   {touched && !form.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                 </div>
-                <div className="col-6 col-md-3 mb-3">
-                  <label className="profile-field-label">Fecha desde *</label>
-                  <input
-                    className="profile-input"
-                    type="date"
-                    min={today}
-                    max={maxPublished}
-                    value={form.published_at}
-                    onChange={(e) => setForm((p) => ({ ...p, published_at: e.target.value }))}
-                  />
-                  {touched && !form.published_at && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
-                </div>
-                <div className="col-6 col-md-3 mb-3">
-                  <label className="profile-field-label">Fecha hasta *</label>
-                  <input
-                    className="profile-input"
-                    type="date"
-                    min={minUnpublished}
-                    value={form.unpublished_at}
-                    onChange={(e) => setForm((p) => ({ ...p, unpublished_at: e.target.value }))}
-                  />
-                  {touched && !form.unpublished_at && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Vigencia (desde - hasta) *</label>
+                  <div className={`license-filter-input-wrap${form.published_at || form.unpublished_at ? " license-filter-input-wrap--active" : ""}`}>
+                    <i className="pi pi-calendar license-filter-icon" />
+                    <Calendar
+                      value={form.published_at
+                        ? [new Date(`${form.published_at}T00:00:00`), form.unpublished_at ? new Date(`${form.unpublished_at}T00:00:00`) : null]
+                        : null}
+                      onChange={(e) => {
+                        const [start, end] = (e.value as (Date | null)[] | null) ?? [null, null];
+                        setForm((p) => ({
+                          ...p,
+                          published_at: start ? toDateInputValue(start) : "",
+                          unpublished_at: end ? toDateInputValue(end) : "",
+                        }));
+                      }}
+                      selectionMode="range"
+                      readOnlyInput
+                      dateFormat="dd/mm/yy"
+                      locale="es"
+                      showButtonBar
+                      minDate={new Date(`${today}T00:00:00`)}
+                      placeholder="Seleccioná el rango de fechas"
+                      className="license-filter-dropdown"
+                      panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                    />
+                  </div>
+                  {touched && (!form.published_at || !form.unpublished_at) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                 </div>
               </div>
 
