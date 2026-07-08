@@ -2,7 +2,10 @@
 
 import { useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
-import { Extension, Node, mergeAttributes, ResizableNodeView } from "@tiptap/core";
+import { Extension, Node as TiptapNode, mergeAttributes, ResizableNodeView } from "@tiptap/core";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import nspell from "nspell";
 import { useEditor, EditorContent, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -88,7 +91,7 @@ declare module "@tiptap/core" {
   }
 }
 
-const Video = Node.create<VideoOptions>({
+const Video = TiptapNode.create<VideoOptions>({
   name: "video",
   group: "block",
   atom: true,
@@ -181,7 +184,7 @@ function getVideoEmbedUrl(url: string): string | null {
   return null;
 }
 
-const VideoEmbed = Node.create<VideoEmbedOptions>({
+const VideoEmbed = TiptapNode.create<VideoEmbedOptions>({
   name: "videoEmbed",
   group: "block",
   atom: true,
@@ -333,6 +336,152 @@ const Indent = Extension.create({
         return applied;
       },
     };
+  },
+});
+
+let spanishSpellerPromise: Promise<ReturnType<typeof nspell>> | null = null;
+
+function loadSpanishSpeller() {
+  if (!spanishSpellerPromise) {
+    spanishSpellerPromise = Promise.all([
+      fetch("/dictionaries/es.aff").then((r) => r.text()),
+      fetch("/dictionaries/es.dic").then((r) => r.text()),
+    ]).then(([aff, dic]) => nspell(aff, dic));
+  }
+  return spanishSpellerPromise;
+}
+
+const WORD_PATTERN = /[A-Za-zÀ-ÖØ-öø-ÿ]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿ]+)?/g;
+
+let activeSpellcheckMenu: HTMLDivElement | null = null;
+let activeSpellcheckMenuCleanup: (() => void) | null = null;
+
+function closeSpellcheckMenu() {
+  if (activeSpellcheckMenuCleanup) {
+    activeSpellcheckMenuCleanup();
+    activeSpellcheckMenuCleanup = null;
+  }
+  if (activeSpellcheckMenu) {
+    activeSpellcheckMenu.remove();
+    activeSpellcheckMenu = null;
+  }
+}
+
+function showSpellcheckMenu(x: number, y: number, suggestions: string[], onPick: (word: string) => void) {
+  closeSpellcheckMenu();
+
+  const menu = document.createElement("div");
+  menu.className = "rich-text-editor-spellcheck-menu";
+  menu.style.left = `${x}px`;
+  menu.style.top = `${y}px`;
+
+  if (suggestions.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "rich-text-editor-spellcheck-menu-empty";
+    empty.textContent = "Sin sugerencias";
+    menu.appendChild(empty);
+  } else {
+    suggestions.slice(0, 6).forEach((suggestion) => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "rich-text-editor-spellcheck-menu-item";
+      item.textContent = suggestion;
+      item.onclick = () => {
+        onPick(suggestion);
+        closeSpellcheckMenu();
+      };
+      menu.appendChild(item);
+    });
+  }
+
+  document.body.appendChild(menu);
+  activeSpellcheckMenu = menu;
+
+  const handleOutsideClick = (e: MouseEvent) => {
+    if (!menu.contains(e.target as Node)) closeSpellcheckMenu();
+  };
+  window.addEventListener("mousedown", handleOutsideClick);
+  activeSpellcheckMenuCleanup = () => window.removeEventListener("mousedown", handleOutsideClick);
+}
+
+const spellcheckPluginKey = new PluginKey<DecorationSet>("spellcheckEs");
+
+function buildSpellcheckDecorations(doc: import("@tiptap/pm/model").Node, speller: ReturnType<typeof nspell>): DecorationSet {
+  const decorations: Decoration[] = [];
+  doc.descendants((node, pos) => {
+    if (!node.isText || !node.text) return;
+    const text = node.text;
+    let match: RegExpExecArray | null;
+    WORD_PATTERN.lastIndex = 0;
+    while ((match = WORD_PATTERN.exec(text))) {
+      const word = match[0];
+      if (word.length < 2) continue;
+      if (!speller.correct(word)) {
+        const from = pos + match.index;
+        const to = from + word.length;
+        decorations.push(Decoration.inline(from, to, { class: "rich-text-editor-spellcheck-error" }));
+      }
+    }
+  });
+  return DecorationSet.create(doc, decorations);
+}
+
+const SpellcheckEs = Extension.create({
+  name: "spellcheckEs",
+  addProseMirrorPlugins() {
+    let speller: ReturnType<typeof nspell> | null = null;
+
+    return [
+      new Plugin({
+        key: spellcheckPluginKey,
+        state: {
+          init: () => DecorationSet.empty,
+          apply(tr, old) {
+            if (!speller) return old;
+            if (!tr.docChanged && !tr.getMeta(spellcheckPluginKey)) return old;
+            return buildSpellcheckDecorations(tr.doc, speller);
+          },
+        },
+        props: {
+          decorations(state) {
+            return spellcheckPluginKey.getState(state);
+          },
+          handleDOMEvents: {
+            contextmenu(view, event) {
+              if (!speller) return false;
+              const coords = view.posAtCoords({ left: event.clientX, top: event.clientY });
+              if (!coords) return false;
+              const decorations = spellcheckPluginKey.getState(view.state);
+              const found = decorations?.find(coords.pos, coords.pos) ?? [];
+              if (found.length === 0) return false;
+
+              event.preventDefault();
+              const { from, to } = found[0];
+              const word = view.state.doc.textBetween(from, to);
+              const suggestions = speller!.suggest(word);
+              showSpellcheckMenu(event.clientX, event.clientY, suggestions, (chosen) => {
+                view.dispatch(view.state.tr.insertText(chosen, from, to));
+              });
+              return true;
+            },
+          },
+        },
+        view(editorView) {
+          let destroyed = false;
+          loadSpanishSpeller().then((loaded) => {
+            if (destroyed) return;
+            speller = loaded;
+            editorView.dispatch(editorView.state.tr.setMeta(spellcheckPluginKey, true));
+          });
+          return {
+            destroy() {
+              destroyed = true;
+              closeSpellcheckMenu();
+            },
+          };
+        },
+      }),
+    ];
   },
 });
 
@@ -883,6 +1032,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
       TaskItem.configure({ nested: true }),
       Placeholder.configure({ placeholder: placeholder ?? "Escribí el contenido acá…" }),
       CharacterCount,
+      SpellcheckEs,
     ],
     content,
     onUpdate: ({ editor }) => onChange(editor.getHTML()),

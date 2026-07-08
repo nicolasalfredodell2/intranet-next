@@ -1830,6 +1830,47 @@ input[disabled] {
   text-align: right;
 }
 
+.rich-text-editor-spellcheck-error {
+  text-decoration: underline wavy #dc3545;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 2px;
+}
+
+.rich-text-editor-spellcheck-menu {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  font-size: 0.85rem;
+  min-width: 140px;
+  padding: 4px;
+  position: fixed;
+  z-index: 10000;
+}
+
+.rich-text-editor-spellcheck-menu-item {
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: #1e293b;
+  cursor: pointer;
+  display: block;
+  padding: 6px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.rich-text-editor-spellcheck-menu-item:hover {
+  background: rgba(74, 108, 247, 0.1);
+  color: #4a6cf7;
+}
+
+.rich-text-editor-spellcheck-menu-empty {
+  color: #94a3b8;
+  font-style: italic;
+  padding: 6px 10px;
+}
+
 /* Section sub-labels within a card */
 .profile-section-sub {
   color: #94a3b8;
