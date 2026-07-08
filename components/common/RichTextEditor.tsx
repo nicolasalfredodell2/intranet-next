@@ -851,6 +851,12 @@ function Toolbar({ editor }: { editor: Editor }) {
 export default function RichTextEditor({ content, onChange, placeholder }: RichTextEditorProps) {
   const editor = useEditor({
     immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        spellcheck: "true",
+        lang: "es",
+      },
+    },
     extensions: [
       StarterKit,
       TextAlign.configure({ types: ["heading", "paragraph"], alignments: ["left", "center", "right", "justify"] }),
