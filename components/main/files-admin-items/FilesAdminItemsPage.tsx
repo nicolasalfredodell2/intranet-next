@@ -62,10 +62,16 @@ export default function FilesAdminItemsPage() {
   const [catForm, setCatForm] = useState({ name: "", description: "" });
   const [catTouched, setCatTouched] = useState(false);
   const [catToEdit, setCatToEdit] = useState<any>(null);
+  const [modifyCatForm, setModifyCatForm] = useState({ name: "", description: "" });
+  const [modifyCatTouched, setModifyCatTouched] = useState(false);
+  const [loadingModifyCat, setLoadingModifyCat] = useState(false);
   const [catToDelete, setCatToDelete] = useState<any>(null);
   const [loadingDeleteCat, setLoadingDeleteCat] = useState(false);
 
   const [subToEdit, setSubToEdit] = useState<any>(null);
+  const [modifySubForm, setModifySubForm] = useState<{ name: string; description: string; item_id: any }>({ name: "", description: "", item_id: "" });
+  const [modifySubTouched, setModifySubTouched] = useState(false);
+  const [loadingModifySub, setLoadingModifySub] = useState(false);
   const [subToDelete, setSubToDelete] = useState<any>(null);
   const [loadingDeleteSub, setLoadingDeleteSub] = useState(false);
 
@@ -91,7 +97,6 @@ export default function FilesAdminItemsPage() {
 
   function limpiarCatForm() {
     setCatForm({ name: "", description: "" });
-    setCatToEdit(null);
     setCatTouched(false);
   }
 
@@ -101,27 +106,41 @@ export default function FilesAdminItemsPage() {
     if (!catForm.name || !catForm.description) return;
     setLoadingAction(true);
     try {
-      if (catToEdit) {
-        await updateFileCategory({ ...catForm, id: catToEdit.id, order: "1" });
-        setItems((p) => p.map((c) => c.id === catToEdit.id ? { ...c, ...catForm } : c));
-        toast.current?.show({ severity: "success", summary: "Categoría modificada" });
-      } else {
-        const resp = await createFileCategory({ ...catForm, order: "1" });
-        const newCat = { ...resp.data, subitems: [] };
-        setItems((p) => [...p, newCat].sort((a, b) => a.name.localeCompare(b.name)));
-        toast.current?.show({ severity: "success", summary: "Categoría creada" });
-      }
+      const resp = await createFileCategory({ ...catForm, order: "1" });
+      const newCat = { ...resp.data, subitems: [] };
+      setItems((p) => [...p, newCat].sort((a, b) => a.name.localeCompare(b.name)));
+      toast.current?.show({ severity: "success", summary: "Categoría creada" });
       limpiarCatForm();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
     } finally { setLoadingAction(false); }
   }
 
-  function editCategory(cat: any) {
+  async function handleModifyCatSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setModifyCatTouched(true);
+    if (!modifyCatForm.name || !modifyCatForm.description || !catToEdit) return;
+    setLoadingModifyCat(true);
+    try {
+      await updateFileCategory({ ...modifyCatForm, id: catToEdit.id, order: "1" });
+      setItems((p) => p.map((c) => c.id === catToEdit.id ? { ...c, ...modifyCatForm } : c));
+      toast.current?.show({ severity: "success", summary: "Categoría modificada" });
+      cerrarModificarCat();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
+    } finally { setLoadingModifyCat(false); }
+  }
+
+  function abrirModificarCat(cat: any) {
     setCatToEdit(cat);
-    setCatForm({ name: cat.name, description: cat.description });
-    setCatTouched(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setModifyCatForm({ name: cat.name, description: cat.description });
+    setModifyCatTouched(false);
+  }
+
+  function cerrarModificarCat() {
+    setCatToEdit(null);
+    setModifyCatForm({ name: "", description: "" });
+    setModifyCatTouched(false);
   }
 
   function toggleExpanded(id: string) {
@@ -143,14 +162,18 @@ export default function FilesAdminItemsPage() {
   function limpiarNewSubForm() {
     setNewSubForm({ name: "", description: "", item_id: "" });
     setNewSubTouched(false);
-    setSubToEdit(null);
   }
 
-  function editSubcategory(sub: any, cat: any) {
+  function abrirModificarSub(sub: any, cat: any) {
     setSubToEdit({ ...sub, item_id: cat.id });
-    setNewSubForm({ name: sub.name, description: sub.description, item_id: cat.id });
-    setNewSubTouched(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setModifySubForm({ name: sub.name, description: sub.description, item_id: cat.id });
+    setModifySubTouched(false);
+  }
+
+  function cerrarModificarSub() {
+    setSubToEdit(null);
+    setModifySubForm({ name: "", description: "", item_id: "" });
+    setModifySubTouched(false);
   }
 
   async function handleSubSubmit(e: React.FormEvent) {
@@ -159,26 +182,35 @@ export default function FilesAdminItemsPage() {
     if (!newSubForm.name || !newSubForm.description || !newSubForm.item_id) return;
     setLoadingAction(true);
     try {
-      if (subToEdit) {
-        await updateFileSubcategory({ name: newSubForm.name, description: newSubForm.description, id: subToEdit.id, item_id: newSubForm.item_id, order: "1" });
-        setItems((p) => p.map((cat) => ({
-          ...cat,
-          subitems: cat.subitems.map((s: any) => s.id === subToEdit.id ? { ...s, name: newSubForm.name, description: newSubForm.description } : s),
-        })));
-        toast.current?.show({ severity: "success", summary: "Subcategoría modificada" });
-      } else {
-        const resp = await createFileSubcategory({ name: newSubForm.name, description: newSubForm.description, item_id: newSubForm.item_id, order: "1" });
-        const newSub = resp.data ?? resp;
-        setItems((p) => p.map((cat) => cat.id === newSubForm.item_id
-          ? { ...cat, subitems: [...cat.subitems, newSub].sort((a: any, b: any) => a.name.localeCompare(b.name)) }
-          : cat
-        ));
-        toast.current?.show({ severity: "success", summary: "Subcategoría creada" });
-      }
+      const resp = await createFileSubcategory({ name: newSubForm.name, description: newSubForm.description, item_id: newSubForm.item_id, order: "1" });
+      const newSub = resp.data ?? resp;
+      setItems((p) => p.map((cat) => cat.id === newSubForm.item_id
+        ? { ...cat, subitems: [...cat.subitems, newSub].sort((a: any, b: any) => a.name.localeCompare(b.name)) }
+        : cat
+      ));
+      toast.current?.show({ severity: "success", summary: "Subcategoría creada" });
       limpiarNewSubForm();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
     } finally { setLoadingAction(false); }
+  }
+
+  async function handleModifySubSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setModifySubTouched(true);
+    if (!modifySubForm.name || !modifySubForm.description || !modifySubForm.item_id || !subToEdit) return;
+    setLoadingModifySub(true);
+    try {
+      await updateFileSubcategory({ name: modifySubForm.name, description: modifySubForm.description, id: subToEdit.id, item_id: modifySubForm.item_id, order: "1" });
+      setItems((p) => p.map((cat) => ({
+        ...cat,
+        subitems: cat.subitems.map((s: any) => s.id === subToEdit.id ? { ...s, name: modifySubForm.name, description: modifySubForm.description } : s),
+      })));
+      toast.current?.show({ severity: "success", summary: "Subcategoría modificada" });
+      cerrarModificarSub();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
+    } finally { setLoadingModifySub(false); }
   }
 
   async function handleDeleteSub() {
@@ -206,6 +238,30 @@ export default function FilesAdminItemsPage() {
   const filtered = search
     ? items.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
     : items;
+
+  const modifyCatHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar categoría</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{catToEdit?.name}</small>
+      </div>
+    </div>
+  );
+
+  const modifySubHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar subcategoría</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{subToEdit?.name}</small>
+      </div>
+    </div>
+  );
 
   const catDeleteHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -272,19 +328,15 @@ export default function FilesAdminItemsPage() {
           </div>
         </div>
 
-        {/* Create / modify form card */}
+        {/* Create category form card */}
         <div className="card profile-card mt-4">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: catToEdit ? "#eff6ff" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className={`pi ${catToEdit ? "pi-pencil" : "pi-plus-circle"}`} style={{ color: catToEdit ? "#3b82f6" : "#059669", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
-                {catToEdit ? "Modificar categoría" : "Nueva categoría"}
-              </h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
-                {catToEdit ? catToEdit.name : "Completá los datos para crear una categoría"}
-              </small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva categoría</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear una categoría</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
@@ -322,9 +374,7 @@ export default function FilesAdminItemsPage() {
                   style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
                 >
                   <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                  {catToEdit
-                    ? (loadingAction ? "Modificando..." : "Modificar")
-                    : (loadingAction ? "Creando..." : "Crear categoría")}
+                  {loadingAction ? "Creando..." : "Crear categoría"}
                 </button>
                 <button
                   type="button"
@@ -342,19 +392,15 @@ export default function FilesAdminItemsPage() {
           </div>
         </div>
 
-        {/* Create / modify subcategory form card */}
+        {/* Create subcategory form card */}
         <div className="card profile-card mt-4">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: subToEdit ? "#eff6ff" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className={`pi ${subToEdit ? "pi-pencil" : "pi-plus-circle"}`} style={{ color: subToEdit ? "#3b82f6" : "#059669", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
-                {subToEdit ? "Modificar subcategoría" : "Nueva subcategoría"}
-              </h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
-                {subToEdit ? subToEdit.name : "Completá los datos para crear una subcategoría"}
-              </small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva subcategoría</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear una subcategoría</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
@@ -413,9 +459,7 @@ export default function FilesAdminItemsPage() {
                   style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
                 >
                   <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                  {subToEdit
-                    ? (loadingAction ? "Modificando..." : "Modificar")
-                    : (loadingAction ? "Creando..." : "Crear subcategoría")}
+                  {loadingAction ? "Creando..." : "Crear subcategoría"}
                 </button>
                 <button
                   type="button"
@@ -498,7 +542,7 @@ export default function FilesAdminItemsPage() {
                       </div>
                       <div className="d-flex align-items-center" style={{ gap: "6px", flexShrink: 0 }}>
                         <Tooltip label="Modificar">
-                          <button type="button" onClick={() => editCategory(cat)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
+                          <button type="button" onClick={() => abrirModificarCat(cat)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
                             <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
                           </button>
                         </Tooltip>
@@ -541,7 +585,7 @@ export default function FilesAdminItemsPage() {
                                 <Tooltip label="Modificar">
                                   <button
                                     type="button"
-                                    onClick={() => editSubcategory(sub, cat)}
+                                    onClick={() => abrirModificarSub(sub, cat)}
                                     style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}
                                   >
                                     <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
@@ -585,6 +629,153 @@ export default function FilesAdminItemsPage() {
           </div>
         </div>
       </div>
+
+      {/* Modify category dialog */}
+      <Dialog
+        header={modifyCatHeader}
+        visible={!!catToEdit}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        style={{ width: "min(520px, 94vw)" }}
+        onHide={cerrarModificarCat}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="modify-cat-form"
+                disabled={loadingModifyCat}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingModifyCat ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingModifyCat ? "Modificando..." : "Modificar"}
+              </button>
+              <button
+                type="button"
+                disabled={loadingModifyCat}
+                onClick={cerrarModificarCat}
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingModifyCat && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="modify-cat-form" onSubmit={handleModifyCatSubmit} noValidate>
+          <div className="row">
+            <div className="col-12 mb-3">
+              <label className="profile-field-label">Nombre *</label>
+              <input
+                className="profile-input"
+                type="text"
+                value={modifyCatForm.name}
+                onChange={(e) => setModifyCatForm((p) => ({ ...p, name: e.target.value }))}
+              />
+              {modifyCatTouched && !modifyCatForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 mb-3">
+              <label className="profile-field-label">Descripción *</label>
+              <input
+                className="profile-input"
+                type="text"
+                value={modifyCatForm.description}
+                onChange={(e) => setModifyCatForm((p) => ({ ...p, description: e.target.value }))}
+              />
+              {modifyCatTouched && !modifyCatForm.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Modify subcategory dialog */}
+      <Dialog
+        header={modifySubHeader}
+        visible={!!subToEdit}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        style={{ width: "min(520px, 94vw)" }}
+        onHide={cerrarModificarSub}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="modify-sub-form"
+                disabled={loadingModifySub}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingModifySub ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingModifySub ? "Modificando..." : "Modificar"}
+              </button>
+              <button
+                type="button"
+                disabled={loadingModifySub}
+                onClick={cerrarModificarSub}
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingModifySub && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="modify-sub-form" onSubmit={handleModifySubSubmit} noValidate>
+          <div className="row">
+            <div className="col-12 mb-3">
+              <label className="profile-field-label">Nombre *</label>
+              <input
+                className="profile-input"
+                type="text"
+                value={modifySubForm.name}
+                onChange={(e) => setModifySubForm((p) => ({ ...p, name: e.target.value }))}
+              />
+              {modifySubTouched && !modifySubForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 mb-3">
+              <label className="profile-field-label">Descripción *</label>
+              <input
+                className="profile-input"
+                type="text"
+                value={modifySubForm.description}
+                onChange={(e) => setModifySubForm((p) => ({ ...p, description: e.target.value }))}
+              />
+              {modifySubTouched && !modifySubForm.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 mb-3">
+              <label className="profile-field-label">Categoría *</label>
+              <div
+                className={`license-filter-input-wrap${modifySubForm.item_id ? " license-filter-input-wrap--active" : ""}`}
+                style={{ padding: "9px 13px", border: "1.5px solid #e2e8f0" }}
+              >
+                <i className="pi pi-folder license-filter-icon" />
+                <Dropdown
+                  value={modifySubForm.item_id || null}
+                  options={items}
+                  optionLabel="name"
+                  optionValue="id"
+                  onChange={(e) => setModifySubForm((p) => ({ ...p, item_id: e.value ?? "" }))}
+                  placeholder="Seleccioná una categoría"
+                  className="license-filter-dropdown"
+                  panelClassName="license-filter-dropdown-panel"
+                  emptyMessage="Sin categorías"
+                />
+              </div>
+              {modifySubTouched && !modifySubForm.item_id && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+          </div>
+        </form>
+      </Dialog>
 
       {/* Users dialog */}
       <Dialog
