@@ -98,17 +98,17 @@ export default function FilesAdminUploadPage() {
   const [loadingDelete, setLoadingDelete] = useState(false);
 
   useEffect(() => {
-    loadUsers();
-  }, []);
-
-  useEffect(() => {
     const t = setTimeout(() => loadUsers(), 1000);
     return () => clearTimeout(t);
   }, [userSearch]);
 
   async function loadUsers() {
+    if (!userSearch.trim()) {
+      setUsers([]);
+      return;
+    }
     setLoadingUsers(true);
-    try { setUsers(await searchUsers(userSearch || " ")); } catch { toast.current?.show({ severity: "error", summary: "No se pudo cargar los usuarios" }); }
+    try { setUsers(await searchUsers(userSearch)); } catch { toast.current?.show({ severity: "error", summary: "No se pudo cargar los usuarios" }); }
     finally { setLoadingUsers(false); }
   }
 
@@ -246,12 +246,12 @@ export default function FilesAdminUploadPage() {
         {/* Header card */}
         <div className="card profile-card">
           <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-cloud-upload" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eef1ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-id-card" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Carga de archivos por usuario</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Subí, visualizá y eliminá archivos del legajo de un agente</small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificación de legajos</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Gestion de legajos por agente</small>
             </div>
           </div>
         </div>
@@ -292,8 +292,8 @@ export default function FilesAdminUploadPage() {
                   <SkeletonUsers />
                 ) : users.length === 0 ? (
                   <div className="text-center py-4 animated fadeIn" style={{ color: "#94a3b8", fontSize: "0.88rem" }}>
-                    <i className="pi pi-users mb-2" style={{ fontSize: "1.5rem", display: "block", opacity: 0.4 }} />
-                    Sin resultados
+                    <i className="pi pi-search mb-2" style={{ fontSize: "1.5rem", display: "block", opacity: 0.4 }} />
+                    {userSearch.trim() ? "Sin resultados para tu búsqueda." : "Escribí un nombre o apellido para buscar."}
                   </div>
                 ) : (
                   <div className="fadeIn animated" style={{ maxHeight: 420, overflowY: "auto", padding: "2px" }}>
