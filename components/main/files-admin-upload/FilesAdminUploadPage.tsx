@@ -554,7 +554,6 @@ export default function FilesAdminUploadPage() {
             <label className="profile-field-label">Archivo *</label>
             <input
               type="file"
-              multiple
               className="form-control-file"
               onChange={(e) => {
                 const files = Array.from(e.target.files ?? []);
