@@ -6,14 +6,12 @@ import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { getAreaInfo, createAreaInfo, modificateAreaInfo, deleteAreaInfoImage, deleteAreaInfoVideo } from "@/lib/services/areas.service";
+import RichTextEditor from "@/components/common/RichTextEditor";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg"];
-
-declare function initEditorTinymce(): void;
-declare const tinymce: any;
 
 interface AreaInfoForm { title: string; introduction: string; text: string; }
 
@@ -24,8 +22,6 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
   const [infoArea, setInfoArea] = useState<any>(null);
   const [form, setForm] = useState<AreaInfoForm>({ title: "", introduction: "", text: "" });
   const [touched, setTouched] = useState(false);
-  const [editorReady, setEditorReady] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [imagesFiles, setImagesFiles] = useState<File[]>([]);
   const [videosFiles, setVideosFiles] = useState<File[]>([]);
@@ -38,36 +34,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const t = setTimeout(() => {
-      try {
-        (window as any).initEditorTinymce?.();
-        setEditorReady(true);
-      } catch { /* retry not needed, editor script already loaded globally */ }
-    }, 200);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    if (!editorReady) return;
-    loadInfo();
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      try {
-        if (tinymce.activeEditor) tinymce.EditorManager.execCommand("mceRemoveEditor", true, "mymce");
-      } catch { /* ignore */ }
-    };
-  }, [editorReady]);
-
-  function startInterval() {
-    intervalRef.current = setInterval(() => {
-      try {
-        const content = tinymce.get("mymce")?.getContent?.();
-        if (content !== undefined) setForm((p) => ({ ...p, text: content }));
-      } catch { /* editor not ready */ }
-    }, 1000);
-  }
+  useEffect(() => { loadInfo(); }, []);
 
   async function loadInfo() {
     setLoading(true);
@@ -80,10 +47,6 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
         setExistingImages(info.images ?? []);
         setExistingVideos(info.videos ?? []);
       }
-      setTimeout(() => {
-        try { if (info?.text) tinymce.activeEditor?.setContent(info.text); } catch { /* ignore */ }
-        startInterval();
-      }, 1500);
     } catch {
       toast.current?.show({ severity: "error", summary: "No se pudo cargar la información del area" });
     } finally {
@@ -152,18 +115,14 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
   async function handleSubmit() {
     setTouched(true);
 
-    let text = "";
-    try { text = tinymce.get("mymce")?.getContent() ?? ""; } catch { /* ignore */ }
-    setForm((p) => ({ ...p, text }));
-
-    if (!form.title || !form.introduction || !text) return;
+    if (!form.title || !form.introduction || !form.text) return;
 
     setLoadingAction(true);
     const fd = new FormData();
     fd.append("area_id", area.id);
     fd.append("title", form.title);
     fd.append("introduction", form.introduction);
-    fd.append("text", text);
+    fd.append("text", form.text);
     imagesFiles.forEach((f) => fd.append("images_files[]", f, f.name));
     videosFiles.forEach((f) => fd.append("videos_files[]", f, f.name));
 
@@ -224,7 +183,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
           className="btn btn-light text-muted ml-auto"
           style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
         >
-          Cancelar
+          Volver
         </button>
       </div>
       {loadingAction && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
@@ -242,7 +201,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
         resizable={false}
         closable={false}
         dismissableMask
-        style={{ width: "min(760px, 94vw)" }}
+        style={{ width: "80vw" }}
         onHide={onClose}
         footer={loading ? undefined : dialogFooter}
       >
@@ -287,7 +246,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
 
             <div className="mb-3">
               <label className="profile-field-label">Texto *</label>
-              <textarea id="mymce" />
+              <RichTextEditor content={form.text} onChange={(html) => setForm((p) => ({ ...p, text: html }))} />
               {touched && !form.text && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
 
