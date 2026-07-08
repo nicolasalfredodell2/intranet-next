@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Dialog } from "primereact/dialog";
 import { useEditor, EditorContent, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -44,6 +45,11 @@ function ToolbarButton({
 function Toolbar({ editor }: { editor: Editor }) {
   const [textColor, setTextColor] = useState("#1e293b");
   const [highlightColor, setHighlightColor] = useState("#fef08a");
+  const [showImageDialog, setShowImageDialog] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
+  const [imageWidth, setImageWidth] = useState("");
+  const [imageHeight, setImageHeight] = useState("");
 
   const state = useEditorState({
     editor,
@@ -86,13 +92,32 @@ function Toolbar({ editor }: { editor: Editor }) {
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   }
 
-  function addImage() {
-    const url = window.prompt("URL de la imagen");
-    if (!url) return;
-    editor.chain().focus().setImage({ src: url }).run();
+  function openImageDialog() {
+    setImageUrl("");
+    setImagePreview("");
+    setImageWidth("");
+    setImageHeight("");
+    setShowImageDialog(true);
+  }
+
+  function handleImageFileChange(file: File | null) {
+    if (!file) { setImagePreview(""); return; }
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function confirmInsertImage() {
+    const src = imagePreview || imageUrl.trim();
+    if (!src) return;
+    const width = imageWidth ? Number(imageWidth) : undefined;
+    const height = imageHeight ? Number(imageHeight) : undefined;
+    editor.chain().focus().setImage({ src, width, height }).run();
+    setShowImageDialog(false);
   }
 
   return (
+    <>
     <div className="rich-text-editor-toolbar">
       <ToolbarButton title="Deshacer" disabled={!state.canUndo} onClick={() => editor.chain().focus().undo().run()}>
         <i className="pi pi-undo" />
@@ -195,7 +220,7 @@ function Toolbar({ editor }: { editor: Editor }) {
       <ToolbarButton title="Enlace" active={state.link} onClick={setLink}>
         <i className="pi pi-link" />
       </ToolbarButton>
-      <ToolbarButton title="Imagen" onClick={addImage}>
+      <ToolbarButton title="Imagen" onClick={openImageDialog}>
         <i className="pi pi-image" />
       </ToolbarButton>
       <ToolbarButton title="Insertar tabla" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
@@ -223,6 +248,96 @@ function Toolbar({ editor }: { editor: Editor }) {
         </>
       )}
     </div>
+
+    <Dialog
+      header="Insertar imagen"
+      visible={showImageDialog}
+      modal
+      draggable={false}
+      resizable={false}
+      closable={false}
+      dismissableMask
+      style={{ width: "min(460px, 92vw)" }}
+      onHide={() => setShowImageDialog(false)}
+      footer={
+        <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+          <button
+            type="button"
+            disabled={!imageUrl.trim() && !imagePreview}
+            onClick={confirmInsertImage}
+            className="btn btn-primary d-flex align-items-center"
+            style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+          >
+            <i className="pi pi-check" style={{ fontSize: "0.78rem" }} />
+            Insertar
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowImageDialog(false)}
+            className="btn btn-light text-muted ml-auto"
+            style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+          >
+            Volver
+          </button>
+        </div>
+      }
+    >
+      <div className="mb-3">
+        <label className="profile-field-label">URL de la imagen</label>
+        <input
+          className="profile-input"
+          type="text"
+          placeholder="https://…"
+          value={imageUrl}
+          onChange={(e) => { setImageUrl(e.target.value); setImagePreview(""); }}
+        />
+      </div>
+      <div className="mb-3">
+        <label className="profile-field-label">O subí un archivo desde tu PC</label>
+        <input
+          type="file"
+          accept="image/*"
+          className="form-control-file"
+          onChange={(e) => handleImageFileChange(e.target.files?.[0] ?? null)}
+        />
+      </div>
+      <div className="row">
+        <div className="col-6 mb-3">
+          <label className="profile-field-label">Ancho (px)</label>
+          <input
+            className="profile-input"
+            type="number"
+            min={1}
+            placeholder="Auto"
+            value={imageWidth}
+            onChange={(e) => setImageWidth(e.target.value)}
+          />
+        </div>
+        <div className="col-6 mb-3">
+          <label className="profile-field-label">Alto (px)</label>
+          <input
+            className="profile-input"
+            type="number"
+            min={1}
+            placeholder="Auto"
+            value={imageHeight}
+            onChange={(e) => setImageHeight(e.target.value)}
+          />
+        </div>
+      </div>
+      {(imagePreview || imageUrl.trim()) && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imagePreview || imageUrl.trim()}
+          alt="Vista previa"
+          style={{ maxWidth: "100%", maxHeight: 160, borderRadius: 8, border: "1px solid #e2e8f0" }}
+        />
+      )}
+      <p style={{ fontSize: "0.72rem", color: "#94a3b8", marginTop: "8px", marginBottom: 0 }}>
+        También podés arrastrar los bordes de la imagen dentro del editor para redimensionarla.
+      </p>
+    </Dialog>
+    </>
   );
 }
 
@@ -233,7 +348,10 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
     extensions: [
       StarterKit,
       TextAlign.configure({ types: ["heading", "paragraph"], alignments: ["left", "center", "right", "justify"] }),
-      Image,
+      Image.configure({
+        allowBase64: true,
+        resize: { enabled: true, minWidth: 40, minHeight: 40 },
+      }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
