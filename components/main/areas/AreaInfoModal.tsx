@@ -226,6 +226,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
                 <input
                   className="profile-input"
                   type="text"
+                  maxLength={100}
                   value={form.title}
                   onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
                 />
@@ -236,6 +237,7 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
                 <input
                   className="profile-input"
                   type="text"
+                  maxLength={250}
                   value={form.introduction}
                   onChange={(e) => setForm((p) => ({ ...p, introduction: e.target.value }))}
                 />

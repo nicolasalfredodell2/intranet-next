@@ -261,6 +261,7 @@ export default function AreasPage() {
                   <input
                     className="profile-input"
                     type="text"
+                    maxLength={100}
                     value={form.title}
                     onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
                   />
@@ -271,6 +272,7 @@ export default function AreasPage() {
                   <textarea
                     className="profile-input"
                     rows={2}
+                    maxLength={250}
                     value={form.description}
                     onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                   />
@@ -484,6 +486,7 @@ export default function AreasPage() {
             <input
               className="profile-input"
               type="text"
+              maxLength={100}
               value={modifyForm.title}
               onChange={(e) => setModifyForm((p) => ({ ...p, title: e.target.value }))}
             />
@@ -494,6 +497,7 @@ export default function AreasPage() {
             <textarea
               className="profile-input"
               rows={3}
+              maxLength={250}
               value={modifyForm.description}
               onChange={(e) => setModifyForm((p) => ({ ...p, description: e.target.value }))}
             />
