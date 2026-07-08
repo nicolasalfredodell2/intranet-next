@@ -25,6 +25,10 @@ function getInitial(name: string): string {
   return (name ?? "?")[0].toUpperCase();
 }
 
+function sanitizeSearchInput(value: string): string {
+  return value.replace(/[^a-zA-ZÀ-ÿ ]/g, "").slice(0, 20);
+}
+
 function SkeletonList() {
   return (
     <div style={{ padding: "4px 0" }}>
@@ -92,7 +96,8 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
     }
   }
 
-  function handleSearchChange(value: string) {
+  function handleSearchChange(rawValue: string) {
+    const value = sanitizeSearchInput(rawValue);
     setSearch(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!value.trim()) { setSearchResults([]); return; }
@@ -219,6 +224,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
           value={search}
           onChange={(e) => handleSearchChange(e.target.value)}
           autoComplete="off"
+          maxLength={20}
           disabled={loading}
         />
         {search && (
