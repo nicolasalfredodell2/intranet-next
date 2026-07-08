@@ -76,14 +76,18 @@ interface FormErrors {
   location?: string;
 }
 
+function sanitizeNameInput(value: string): string {
+  return value.replace(/[^a-zA-ZÀ-ÿ ]/g, "").slice(0, 50);
+}
+
 function validateForm(f: ProfileForm): FormErrors {
   const errors: FormErrors = {};
   if (!f.name) errors.name = "* Campo obligatorio";
-  else if (f.name.length > 25) errors.name = "* El nombre debe tener menos de 25 caracteres";
+  else if (f.name.length > 50) errors.name = "* El nombre debe tener menos de 50 caracteres";
   else if (!/^[a-zA-ZÀ-ÿ ]*$/.test(f.name)) errors.name = "* Ingrese un nombre válido";
 
   if (!f.lastname) errors.lastname = "* Campo obligatorio";
-  else if (f.lastname.length > 35) errors.lastname = "* El apellido debe tener menos de 35 caracteres";
+  else if (f.lastname.length > 50) errors.lastname = "* El apellido debe tener menos de 50 caracteres";
   else if (!/^[a-zA-ZÀ-ÿ ]*$/.test(f.lastname)) errors.lastname = "* Ingrese un apellido válido";
 
   if (!f.datebirth) errors.datebirth = "* Campo obligatorio";
@@ -450,9 +454,10 @@ export default function ProfilePage() {
                         <input
                           className="profile-input"
                           value={form.name}
-                          onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                          onChange={(e) => setForm((p) => ({ ...p, name: sanitizeNameInput(e.target.value) }))}
                           onBlur={() => setTouched((p) => ({ ...p, name: true }))}
                           autoComplete="off"
+                          maxLength={50}
                           disabled={loading}
                         />
                         {touched.name && errors.name && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>{errors.name}</small>}
@@ -462,9 +467,10 @@ export default function ProfilePage() {
                         <input
                           className="profile-input"
                           value={form.lastname}
-                          onChange={(e) => setForm((p) => ({ ...p, lastname: e.target.value }))}
+                          onChange={(e) => setForm((p) => ({ ...p, lastname: sanitizeNameInput(e.target.value) }))}
                           onBlur={() => setTouched((p) => ({ ...p, lastname: true }))}
                           autoComplete="off"
+                          maxLength={50}
                           disabled={loading}
                         />
                         {touched.lastname && errors.lastname && <small className="text-danger animated fadeIn" style={{ fontSize: "0.73rem", marginTop: "4px", display: "block" }}>{errors.lastname}</small>}
