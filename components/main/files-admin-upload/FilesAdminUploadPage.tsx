@@ -575,7 +575,11 @@ export default function FilesAdminUploadPage() {
               <input
                 type="file"
                 className="form-control-file"
-                onChange={(e) => setUploadFiles(Array.from(e.target.files ?? []))}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  setUploadFiles(files);
+                  if (files[0]) previewLocalFile(files[0]);
+                }}
               />
               {uploadFiles[0] && (
                 <Tooltip label="Previsualizar">
