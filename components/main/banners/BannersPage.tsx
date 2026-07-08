@@ -92,6 +92,29 @@ function SkeletonCards() {
   );
 }
 
+function FileDropzone({ label, file, onFile, onClear }: { label: string; file: File | null; onFile: (f: File) => void; onClear: () => void }) {
+  const [drag, setDrag] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className={`dropzone-area${drag ? " drag-over" : ""} text-center`}
+      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+      onDragLeave={() => setDrag(false)}
+      onDrop={(e) => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
+      onClick={() => !file && ref.current?.click()}
+    >
+      <small className="text-muted">{label}</small>
+      <input ref={ref} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }} />
+      {file && (
+        <div className="mt-2 position-relative d-inline-block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={URL.createObjectURL(file)} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
+          <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BannersPage() {
   const toast = useRef<Toast>(null);
   const today = getToday();
@@ -117,6 +140,16 @@ export default function BannersPage() {
 
   const [fileHorizontal, setFileHorizontal] = useState<File | null>(null);
   const [fileVertical, setFileVertical] = useState<File | null>(null);
+
+  const [modifyForm, setModifyForm] = useState({
+    name: "", published_at: "", unpublished_at: "",
+    is_internal: false, is_external: false,
+    external_url: "", note_id: "",
+  });
+  const [modifyTouched, setModifyTouched] = useState(false);
+  const [loadingModify, setLoadingModify] = useState(false);
+  const [modifyFileHorizontal, setModifyFileHorizontal] = useState<File | null>(null);
+  const [modifyFileVertical, setModifyFileVertical] = useState<File | null>(null);
   const [fileHorizModif, setFileHorizModif] = useState<any>(null);
   const [fileVertModif, setFileVertModif] = useState<any>(null);
   const [isDeletingHoriz, setIsDeletingHoriz] = useState(false);
@@ -150,6 +183,18 @@ export default function BannersPage() {
     setFileVertical(f);
   }
 
+  function handleModifyFileHoriz(f: File) {
+    if (!ACCEPTED.includes(f.type)) { toast.current?.show({ severity: "info", summary: `${f.name} no es válido.` }); return; }
+    if (f.size > MAX_SIZE) { toast.current?.show({ severity: "info", summary: `${f.name} pesa más de 5MB.` }); return; }
+    setModifyFileHorizontal(f);
+  }
+
+  function handleModifyFileVert(f: File) {
+    if (!ACCEPTED.includes(f.type)) { toast.current?.show({ severity: "info", summary: `${f.name} no es válido.` }); return; }
+    if (f.size > MAX_SIZE) { toast.current?.show({ severity: "info", summary: `${f.name} pesa más de 5MB.` }); return; }
+    setModifyFileVertical(f);
+  }
+
   async function handleDeleteImage(tipo: "horizontal" | "vertical") {
     if (!bannerParaModificar) return;
     const imageId = tipo === "horizontal" ? fileHorizModif?.id : fileVertModif?.id;
@@ -163,17 +208,17 @@ export default function BannersPage() {
     finally { if (tipo === "horizontal") setIsDeletingHoriz(false); else setIsDeletingVert(false); }
   }
 
-  function isValid(): boolean {
-    if (!form.name || !form.published_at || !form.unpublished_at) return false;
-    if (form.is_external && form.external_url && !URL_PATTERN.test(form.external_url)) return false;
+  function isValid(f: typeof form): boolean {
+    if (!f.name || !f.published_at || !f.unpublished_at) return false;
+    if (f.is_external && f.external_url && !URL_PATTERN.test(f.external_url)) return false;
     return true;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched(true);
-    if (!isValid()) return;
-    if (!bannerParaModificar && (!fileHorizontal || !fileVertical)) {
+    if (!isValid(form)) return;
+    if (!fileHorizontal || !fileVertical) {
       toast.current?.show({ severity: "info", summary: "Debe agregar ambas imágenes (horizontal y vertical)" });
       return;
     }
@@ -184,21 +229,13 @@ export default function BannersPage() {
     fd.append("unpublished_at", form.unpublished_at);
     if (form.external_url) fd.append("external_url", form.external_url);
     if (form.note_id) fd.append("note_id", form.note_id);
-    if (fileHorizontal) fd.append("img_horizontal", fileHorizontal, fileHorizontal.name);
-    if (fileVertical) fd.append("img_vertical", fileVertical, fileVertical.name);
+    fd.append("img_horizontal", fileHorizontal, fileHorizontal.name);
+    fd.append("img_vertical", fileVertical, fileVertical.name);
 
     try {
-      if (bannerParaModificar) {
-        const resp = await modificateBanner(fd, bannerParaModificar.id);
-        setBanners((prev) => prev.map((b) => b.id === bannerParaModificar.id ? resp.banner ?? b : b));
-        if (resp.image_horizontal) setFileHorizModif({ path_url: resp.image_horizontal.path_url, id: resp.image_horizontal.id });
-        if (resp.image_vertical) setFileVertModif({ path_url: resp.image_vertical.path_url, id: resp.image_vertical.id });
-        toast.current?.show({ severity: "success", summary: "Banner modificado" });
-      } else {
-        const resp = await createBanner(fd);
-        setBanners((prev) => [...prev, resp.banner]);
-        toast.current?.show({ severity: "success", summary: "Banner creado" });
-      }
+      const resp = await createBanner(fd);
+      setBanners((prev) => [...prev, resp.banner]);
+      toast.current?.show({ severity: "success", summary: "Banner creado" });
       limpiar();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
@@ -207,9 +244,14 @@ export default function BannersPage() {
     }
   }
 
-  function llenarFormulario(banner: any) {
+  function limpiar() {
+    setForm({ name: "", published_at: "", unpublished_at: "", is_internal: false, is_external: false, external_url: "", note_id: "" });
+    setFileHorizontal(null); setFileVertical(null); setTouched(false);
+  }
+
+  function abrirModificar(banner: any) {
     setBannerParaModificar(banner);
-    setForm({
+    setModifyForm({
       name: banner.name ?? "",
       published_at: formatDateForInput(banner.published_at),
       unpublished_at: formatDateForInput(banner.unpublished_at),
@@ -220,14 +262,45 @@ export default function BannersPage() {
     });
     setFileHorizModif(banner.image_horizontal ? { path_url: banner.image_horizontal_url, id: banner.image_horizontal.id } : null);
     setFileVertModif(banner.image_vertical ? { path_url: banner.image_vertical_url, id: banner.image_vertical.id } : null);
-    setTouched(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setModifyFileHorizontal(null);
+    setModifyFileVertical(null);
+    setModifyTouched(false);
   }
 
-  function limpiar() {
-    setForm({ name: "", published_at: "", unpublished_at: "", is_internal: false, is_external: false, external_url: "", note_id: "" });
-    setFileHorizontal(null); setFileVertical(null); setFileHorizModif(null); setFileVertModif(null);
-    setBannerParaModificar(null); setTouched(false);
+  function cerrarModificar() {
+    setBannerParaModificar(null);
+    setModifyForm({ name: "", published_at: "", unpublished_at: "", is_internal: false, is_external: false, external_url: "", note_id: "" });
+    setModifyFileHorizontal(null);
+    setModifyFileVertical(null);
+    setFileHorizModif(null);
+    setFileVertModif(null);
+    setModifyTouched(false);
+  }
+
+  async function handleModifySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setModifyTouched(true);
+    if (!isValid(modifyForm) || !bannerParaModificar) return;
+    setLoadingModify(true);
+    const fd = new FormData();
+    fd.append("name", modifyForm.name);
+    fd.append("published_at", modifyForm.published_at);
+    fd.append("unpublished_at", modifyForm.unpublished_at);
+    if (modifyForm.external_url) fd.append("external_url", modifyForm.external_url);
+    if (modifyForm.note_id) fd.append("note_id", modifyForm.note_id);
+    if (modifyFileHorizontal) fd.append("img_horizontal", modifyFileHorizontal, modifyFileHorizontal.name);
+    if (modifyFileVertical) fd.append("img_vertical", modifyFileVertical, modifyFileVertical.name);
+
+    try {
+      const resp = await modificateBanner(fd, bannerParaModificar.id);
+      setBanners((prev) => prev.map((b) => b.id === bannerParaModificar.id ? resp.banner ?? b : b));
+      toast.current?.show({ severity: "success", summary: "Banner modificado" });
+      cerrarModificar();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
+    } finally {
+      setLoadingModify(false);
+    }
   }
 
   async function handleDeleteConfirm() {
@@ -265,27 +338,17 @@ export default function BannersPage() {
     }
   });
 
-  const FileDropzone = ({ label, file, onFile, onClear }: { label: string; file: File | null; onFile: (f: File) => void; onClear: () => void }) => {
-    const [drag, setDrag] = useState(false);
-    const ref = useRef<HTMLInputElement>(null);
-    return (
-      <div className={`dropzone-area${drag ? " drag-over" : ""} text-center`}
-        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
-        onDragLeave={() => setDrag(false)}
-        onDrop={(e) => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
-        onClick={() => !file && ref.current?.click()}
-      >
-        <small className="text-muted">{label}</small>
-        <input ref={ref} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }} />
-        {file && (
-          <div className="mt-2 position-relative d-inline-block">
-            <img src={URL.createObjectURL(file)} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
-            <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
-          </div>
-        )}
+  const modifyDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
       </div>
-    );
-  };
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar banner</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{bannerParaModificar?.name}</small>
+      </div>
+    </div>
+  );
 
   const deleteDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -328,19 +391,15 @@ export default function BannersPage() {
           </div>
         </div>
 
-        {/* Create / modify form card */}
+        {/* Create form card */}
         <div className="card profile-card mt-4">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: bannerParaModificar ? "#eff6ff" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className={`pi ${bannerParaModificar ? "pi-pencil" : "pi-plus-circle"}`} style={{ color: bannerParaModificar ? "#3b82f6" : "#059669", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
-                {bannerParaModificar ? "Modificar banner" : "Nuevo banner"}
-              </h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
-                {bannerParaModificar ? bannerParaModificar.name : "Completá los datos para crear un banner"}
-              </small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nuevo banner</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear un banner</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
@@ -393,24 +452,10 @@ export default function BannersPage() {
               <div className="row mb-3">
                 <div className="col-12 col-md-6">
                   <label className="profile-field-label">Imagen horizontal</label>
-                  {bannerParaModificar && fileHorizModif && (
-                    <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
-                      <img src={`${fileHorizModif.path_url}`} alt="" style={{ width: 80, height: 50, objectFit: "cover", borderRadius: 4 }} />
-                      {!isDeletingHoriz && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("horizontal")}>Quitar</button>}
-                      {isDeletingHoriz && <i className="pi pi-spin pi-spinner" />}
-                    </div>
-                  )}
                   <FileDropzone label="Arrastre o haga click para subir imagen horizontal" file={fileHorizontal} onFile={handleFileHoriz} onClear={() => setFileHorizontal(null)} />
                 </div>
                 <div className="col-12 col-md-6">
                   <label className="profile-field-label">Imagen vertical</label>
-                  {bannerParaModificar && fileVertModif && (
-                    <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
-                      <img src={`${fileVertModif.path_url}`} alt="" style={{ width: 50, height: 80, objectFit: "cover", borderRadius: 4 }} />
-                      {!isDeletingVert && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("vertical")}>Quitar</button>}
-                      {isDeletingVert && <i className="pi pi-spin pi-spinner" />}
-                    </div>
-                  )}
                   <FileDropzone label="Arrastre o haga click para subir imagen vertical" file={fileVertical} onFile={handleFileVert} onClear={() => setFileVertical(null)} />
                 </div>
               </div>
@@ -467,9 +512,7 @@ export default function BannersPage() {
                   style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
                 >
                   <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                  {bannerParaModificar
-                    ? (loading ? "Modificando..." : "Modificar")
-                    : (loading ? "Creando..." : "Crear banner")}
+                  {loading ? "Creando..." : "Crear banner"}
                 </button>
                 <button
                   type="button"
@@ -606,7 +649,7 @@ export default function BannersPage() {
                         <Tooltip label="Modificar">
                           <button
                             type="button"
-                            onClick={() => llenarFormulario(banner)}
+                            onClick={() => abrirModificar(banner)}
                             style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#3b82f6" }}
                           >
                             <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
@@ -683,6 +726,157 @@ export default function BannersPage() {
             )}
           </div>
         )}
+      </Dialog>
+
+      {/* Modify banner dialog */}
+      <Dialog
+        header={modifyDialogHeader}
+        visible={!!bannerParaModificar}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        style={{ width: "min(720px, 94vw)" }}
+        onHide={cerrarModificar}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="modify-banner-form"
+                disabled={loadingModify}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingModify ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingModify ? "Modificando..." : "Modificar"}
+              </button>
+              <button
+                type="button"
+                disabled={loadingModify}
+                onClick={cerrarModificar}
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingModify && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="modify-banner-form" onSubmit={handleModifySubmit} noValidate>
+          <div className="row">
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Nombre *</label>
+              <input
+                className="profile-input"
+                type="text"
+                maxLength={100}
+                value={modifyForm.name}
+                onChange={(e) => setModifyForm((p) => ({ ...p, name: e.target.value }))}
+              />
+              {modifyTouched && !modifyForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Vigencia (desde - hasta) *</label>
+              <div className={`license-filter-input-wrap${modifyForm.published_at || modifyForm.unpublished_at ? " license-filter-input-wrap--active" : ""}`}>
+                <i className="pi pi-calendar license-filter-icon" />
+                <Calendar
+                  value={modifyForm.published_at
+                    ? [new Date(`${modifyForm.published_at}T00:00:00`), modifyForm.unpublished_at ? new Date(`${modifyForm.unpublished_at}T00:00:00`) : null]
+                    : null}
+                  onChange={(e) => {
+                    const [start, end] = (e.value as (Date | null)[] | null) ?? [null, null];
+                    setModifyForm((p) => ({
+                      ...p,
+                      published_at: start ? toDateInputValue(start) : "",
+                      unpublished_at: end ? toDateInputValue(end) : "",
+                    }));
+                  }}
+                  selectionMode="range"
+                  readOnlyInput
+                  dateFormat="dd/mm/yy"
+                  locale="es"
+                  showButtonBar
+                  placeholder="Seleccioná el rango de fechas"
+                  className="license-filter-dropdown"
+                  panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                />
+              </div>
+              {modifyTouched && (!modifyForm.published_at || !modifyForm.unpublished_at) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+          </div>
+
+          <div className="row mb-3">
+            <div className="col-12 col-md-6">
+              <label className="profile-field-label">Imagen horizontal</label>
+              {fileHorizModif && (
+                <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
+                  <img src={`${fileHorizModif.path_url}`} alt="" style={{ width: 80, height: 50, objectFit: "cover", borderRadius: 4 }} />
+                  {!isDeletingHoriz && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("horizontal")}>Quitar</button>}
+                  {isDeletingHoriz && <i className="pi pi-spin pi-spinner" />}
+                </div>
+              )}
+              <FileDropzone label="Arrastre o haga click para subir imagen horizontal" file={modifyFileHorizontal} onFile={handleModifyFileHoriz} onClear={() => setModifyFileHorizontal(null)} />
+            </div>
+            <div className="col-12 col-md-6">
+              <label className="profile-field-label">Imagen vertical</label>
+              {fileVertModif && (
+                <div className="mb-2 d-flex align-items-center" style={{ gap: "8px" }}>
+                  <img src={`${fileVertModif.path_url}`} alt="" style={{ width: 50, height: 80, objectFit: "cover", borderRadius: 4 }} />
+                  {!isDeletingVert && <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage("vertical")}>Quitar</button>}
+                  {isDeletingVert && <i className="pi pi-spin pi-spinner" />}
+                </div>
+              )}
+              <FileDropzone label="Arrastre o haga click para subir imagen vertical" file={modifyFileVertical} onFile={handleModifyFileVert} onClear={() => setModifyFileVertical(null)} />
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-12">
+              <div className="d-flex" style={{ gap: "16px" }}>
+                <div className="form-check">
+                  <input className="form-check-input" type="checkbox" id="chkModifyInternal" checked={modifyForm.is_internal}
+                    onChange={(e) => setModifyForm((p) => ({ ...p, is_internal: e.target.checked, is_external: e.target.checked ? false : p.is_external, external_url: e.target.checked ? "" : p.external_url, note_id: e.target.checked ? p.note_id : "" }))} />
+                  <label className="form-check-label" htmlFor="chkModifyInternal">Nota Interna</label>
+                </div>
+                <div className="form-check">
+                  <input className="form-check-input" type="checkbox" id="chkModifyExternal" checked={modifyForm.is_external}
+                    onChange={(e) => setModifyForm((p) => ({ ...p, is_external: e.target.checked, is_internal: e.target.checked ? false : p.is_internal, note_id: e.target.checked ? "" : p.note_id, external_url: e.target.checked ? p.external_url : "" }))} />
+                  <label className="form-check-label" htmlFor="chkModifyExternal">URL Externa</label>
+                </div>
+              </div>
+            </div>
+            {modifyForm.is_internal && (
+              <div className="col-12 col-md-6 mt-2 fadeIn animated">
+                <label className="profile-field-label">Nota</label>
+                <div className={`license-filter-input-wrap${modifyForm.note_id ? " license-filter-input-wrap--active" : ""}`}>
+                  <i className="pi pi-file license-filter-icon" />
+                  <Dropdown
+                    value={modifyForm.note_id || null}
+                    options={notes}
+                    optionLabel="title"
+                    optionValue="id"
+                    onChange={(e) => setModifyForm((p) => ({ ...p, note_id: e.value ?? "" }))}
+                    placeholder="Seleccioná una nota"
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel"
+                    showClear={!!modifyForm.note_id}
+                    emptyMessage="Sin notas"
+                  />
+                </div>
+              </div>
+            )}
+            {modifyForm.is_external && (
+              <div className="col-12 col-md-6 mt-2 fadeIn animated">
+                <label className="profile-field-label">URL Externa</label>
+                <input className="profile-input" type="text" placeholder="https://..." value={modifyForm.external_url} onChange={(e) => setModifyForm((p) => ({ ...p, external_url: e.target.value }))} />
+                {modifyTouched && modifyForm.is_external && modifyForm.external_url && !URL_PATTERN.test(modifyForm.external_url) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* URL no válida</small>}
+              </div>
+            )}
+          </div>
+        </form>
       </Dialog>
 
       {/* Delete confirmation dialog */}
