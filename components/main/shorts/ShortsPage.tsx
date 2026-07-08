@@ -93,6 +93,32 @@ function SkeletonCards() {
   );
 }
 
+function FileDropzone({ label, file, accept, onFile, onClear, showPreview }: { label: string; file: File | null; accept: string; onFile: (f: File) => void; onClear: () => void; showPreview?: boolean }) {
+  const [drag, setDrag] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div className={`dropzone-area${drag ? " drag-over" : ""} text-center`}
+      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+      onDragLeave={() => setDrag(false)}
+      onDrop={(e) => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
+      onClick={() => !file && ref.current?.click()}
+    >
+      <small className="text-muted">{label}</small>
+      <input ref={ref} type="file" accept={accept} style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }} />
+      {file && (
+        <div className="mt-2 position-relative d-inline-block">
+          {showPreview ? (
+            <img src={URL.createObjectURL(file)} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
+          ) : (
+            <small className="text-success d-block">{file.name}</small>
+          )}
+          <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ShortsPage() {
   const toast = useRef<Toast>(null);
   const today = getToday();
@@ -113,6 +139,12 @@ export default function ShortsPage() {
   const [form, setForm] = useState({ title: "", description: "", published_at: "", unpublished_at: "" });
   const [imgFile, setImgFile] = useState<File | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+
+  const [modifyForm, setModifyForm] = useState({ title: "", description: "", published_at: "", unpublished_at: "" });
+  const [modifyTouched, setModifyTouched] = useState(false);
+  const [loadingModify, setLoadingModify] = useState(false);
+  const [modifyImgFile, setModifyImgFile] = useState<File | null>(null);
+  const [modifyVideoFile, setModifyVideoFile] = useState<File | null>(null);
   const [imgModif, setImgModif] = useState<any>(null);
   const [videoModif, setVideoModif] = useState<any>(null);
 
@@ -137,17 +169,29 @@ export default function ShortsPage() {
     setVideoFile(f);
   }
 
-  function isValid(): boolean {
-    if (!form.title || !form.description || !form.published_at || !form.unpublished_at) return false;
-    if (form.description.length > 300 || form.title.length > 50) return false;
+  function handleModifyImg(f: File) {
+    if (!IMG_TYPES.includes(f.type)) { toast.current?.show({ severity: "info", summary: `${f.name} no es una imagen válida.` }); return; }
+    if (f.size > IMG_MAX) { toast.current?.show({ severity: "info", summary: `${f.name} pesa más de 5MB.` }); return; }
+    setModifyImgFile(f);
+  }
+
+  function handleModifyVideo(f: File) {
+    if (!VIDEO_TYPES.includes(f.type)) { toast.current?.show({ severity: "info", summary: `${f.name} no es un video válido.` }); return; }
+    if (f.size > VIDEO_MAX) { toast.current?.show({ severity: "info", summary: `${f.name} supera el tamaño máximo de ${VIDEO_LABEL}.` }); return; }
+    setModifyVideoFile(f);
+  }
+
+  function isValid(f: typeof form): boolean {
+    if (!f.title || !f.description || !f.published_at || !f.unpublished_at) return false;
+    if (f.description.length > 300 || f.title.length > 50) return false;
     return true;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched(true);
-    if (!isValid()) return;
-    if (!shortParaModificar && (!imgFile || !videoFile)) {
+    if (!isValid(form)) return;
+    if (!imgFile || !videoFile) {
       if (!imgFile) toast.current?.show({ severity: "info", summary: "Debe agregar una imagen" });
       if (!videoFile) toast.current?.show({ severity: "info", summary: "Debe agregar un video" });
       return;
@@ -158,20 +202,13 @@ export default function ShortsPage() {
     fd.append("description", form.description);
     fd.append("published_at", form.published_at);
     fd.append("unpublished_at", form.unpublished_at);
-    if (imgFile) fd.append("image", imgFile, imgFile.name);
-    if (videoFile) fd.append("video", videoFile, videoFile.name);
+    fd.append("image", imgFile, imgFile.name);
+    fd.append("video", videoFile, videoFile.name);
 
     try {
-      if (shortParaModificar) {
-        const resp = await modificateShort(fd, shortParaModificar.id);
-        setShorts((prev) => prev.map((s) => s.id === shortParaModificar.id ? resp ?? s : s));
-        if (resp?.image_url) setImgModif({ image_url: resp.image_url });
-        toast.current?.show({ severity: "success", summary: "Short modificado" });
-      } else {
-        const resp = await createShort(fd);
-        setShorts((prev) => [...prev, resp.data ?? resp]);
-        toast.current?.show({ severity: "success", summary: "Short creado" });
-      }
+      const resp = await createShort(fd);
+      setShorts((prev) => [...prev, resp.data ?? resp]);
+      toast.current?.show({ severity: "success", summary: "Short creado" });
       limpiar();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
@@ -180,19 +217,52 @@ export default function ShortsPage() {
     }
   }
 
-  function llenarFormulario(short: any) {
+  async function handleModifySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setModifyTouched(true);
+    if (!isValid(modifyForm) || !shortParaModificar) return;
+    setLoadingModify(true);
+    const fd = new FormData();
+    fd.append("title", modifyForm.title);
+    fd.append("description", modifyForm.description);
+    fd.append("published_at", modifyForm.published_at);
+    fd.append("unpublished_at", modifyForm.unpublished_at);
+    if (modifyImgFile) fd.append("image", modifyImgFile, modifyImgFile.name);
+    if (modifyVideoFile) fd.append("video", modifyVideoFile, modifyVideoFile.name);
+
+    try {
+      const resp = await modificateShort(fd, shortParaModificar.id);
+      setShorts((prev) => prev.map((s) => s.id === shortParaModificar.id ? resp ?? s : s));
+      toast.current?.show({ severity: "success", summary: "Short modificado" });
+      cerrarModificar();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
+    } finally {
+      setLoadingModify(false);
+    }
+  }
+
+  function abrirModificar(short: any) {
     setShortParaModificar(short);
-    setForm({ title: short.title ?? "", description: short.description ?? "", published_at: formatDateForInput(short.published_at), unpublished_at: formatDateForInput(short.unpublished_at) });
+    setModifyForm({ title: short.title ?? "", description: short.description ?? "", published_at: formatDateForInput(short.published_at), unpublished_at: formatDateForInput(short.unpublished_at) });
     setImgModif(short.image_url ? { image_url: short.image_url } : null);
     setVideoModif(short.video_url ? { video_url: short.video_url } : null);
-    setTouched(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setModifyImgFile(null);
+    setModifyVideoFile(null);
+    setModifyTouched(false);
+  }
+
+  function cerrarModificar() {
+    setShortParaModificar(null);
+    setModifyForm({ title: "", description: "", published_at: "", unpublished_at: "" });
+    setImgModif(null); setVideoModif(null);
+    setModifyImgFile(null); setModifyVideoFile(null);
+    setModifyTouched(false);
   }
 
   function limpiar() {
     setForm({ title: "", description: "", published_at: "", unpublished_at: "" });
-    setImgFile(null); setVideoFile(null); setImgModif(null); setVideoModif(null);
-    setShortParaModificar(null); setTouched(false);
+    setImgFile(null); setVideoFile(null); setTouched(false);
   }
 
   function toggleMedia(id: string) {
@@ -234,32 +304,6 @@ export default function ShortsPage() {
     }
   });
 
-  const FileDropzone = ({ label, file, accept, onFile, onClear, showPreview }: { label: string; file: File | null; accept: string; onFile: (f: File) => void; onClear: () => void; showPreview?: boolean }) => {
-    const [drag, setDrag] = useState(false);
-    const ref = useRef<HTMLInputElement>(null);
-    return (
-      <div className={`dropzone-area${drag ? " drag-over" : ""} text-center`}
-        onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
-        onDragLeave={() => setDrag(false)}
-        onDrop={(e) => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
-        onClick={() => !file && ref.current?.click()}
-      >
-        <small className="text-muted">{label}</small>
-        <input ref={ref} type="file" accept={accept} style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }} />
-        {file && (
-          <div className="mt-2 position-relative d-inline-block">
-            {showPreview ? (
-              <img src={URL.createObjectURL(file)} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
-            ) : (
-              <small className="text-success d-block">{file.name}</small>
-            )}
-            <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={(e) => { e.stopPropagation(); onClear(); }}>×</button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   const deleteDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
       <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -268,6 +312,18 @@ export default function ShortsPage() {
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar short</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
+      </div>
+    </div>
+  );
+
+  const modifyDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar short</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{shortParaModificar?.title}</small>
       </div>
     </div>
   );
@@ -301,19 +357,15 @@ export default function ShortsPage() {
           </div>
         </div>
 
-        {/* Create / modify form card */}
+        {/* Create form card */}
         <div className="card profile-card mt-4">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: shortParaModificar ? "#eff6ff" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className={`pi ${shortParaModificar ? "pi-pencil" : "pi-plus-circle"}`} style={{ color: shortParaModificar ? "#3b82f6" : "#059669", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
-                {shortParaModificar ? "Modificar short" : "Nuevo short"}
-              </h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
-                {shortParaModificar ? shortParaModificar.title : "Completá los datos para crear un short"}
-              </small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nuevo short</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear un short</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
@@ -377,18 +429,10 @@ export default function ShortsPage() {
               <div className="row mb-3">
                 <div className="col-12 col-md-6">
                   <label className="profile-field-label">Imagen (máx 5MB)</label>
-                  {shortParaModificar && imgModif && (
-                    <div className="mb-2">
-                      <img src={`${imgModif.image_url}`} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
-                    </div>
-                  )}
                   <FileDropzone label="Arrastre o haga click para subir imagen" accept="image/*" file={imgFile} onFile={handleImg} onClear={() => setImgFile(null)} showPreview />
                 </div>
                 <div className="col-12 col-md-6">
                   <label className="profile-field-label">Video (máx {VIDEO_LABEL})</label>
-                  {shortParaModificar && videoModif && (
-                    <small className="text-muted d-block mb-2">Video previo guardado</small>
-                  )}
                   <FileDropzone label="Arrastre o haga click para subir video" accept="video/*" file={videoFile} onFile={handleVideo} onClear={() => setVideoFile(null)} />
                 </div>
               </div>
@@ -401,9 +445,7 @@ export default function ShortsPage() {
                   style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
                 >
                   <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                  {shortParaModificar
-                    ? (loading ? "Modificando..." : "Modificar")
-                    : (loading ? "Creando..." : "Crear short")}
+                  {loading ? "Creando..." : "Crear short"}
                 </button>
                 <button
                   type="button"
@@ -569,7 +611,7 @@ export default function ShortsPage() {
                           <Tooltip label="Modificar">
                             <button
                               type="button"
-                              onClick={() => llenarFormulario(short)}
+                              onClick={() => abrirModificar(short)}
                               style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#3b82f6" }}
                             >
                               <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
@@ -609,6 +651,118 @@ export default function ShortsPage() {
           </div>
         </div>
       </div>
+
+      {/* Modify short dialog */}
+      <Dialog
+        header={modifyDialogHeader}
+        visible={!!shortParaModificar}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        style={{ width: "min(720px, 94vw)" }}
+        onHide={cerrarModificar}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="modify-short-form"
+                disabled={loadingModify}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingModify ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingModify ? "Modificando..." : "Modificar"}
+              </button>
+              <button
+                type="button"
+                disabled={loadingModify}
+                onClick={cerrarModificar}
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingModify && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="modify-short-form" onSubmit={handleModifySubmit} noValidate>
+          <div className="row">
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Título (máx 50) *</label>
+              <input
+                className="profile-input"
+                type="text"
+                maxLength={50}
+                value={modifyForm.title}
+                onChange={(e) => setModifyForm((p) => ({ ...p, title: e.target.value }))}
+              />
+              {modifyTouched && !modifyForm.title && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Vigencia (desde - hasta) *</label>
+              <div className={`license-filter-input-wrap${modifyForm.published_at || modifyForm.unpublished_at ? " license-filter-input-wrap--active" : ""}`}>
+                <i className="pi pi-calendar license-filter-icon" />
+                <Calendar
+                  value={modifyForm.published_at
+                    ? [new Date(`${modifyForm.published_at}T00:00:00`), modifyForm.unpublished_at ? new Date(`${modifyForm.unpublished_at}T00:00:00`) : null]
+                    : null}
+                  onChange={(e) => {
+                    const [start, end] = (e.value as (Date | null)[] | null) ?? [null, null];
+                    setModifyForm((p) => ({
+                      ...p,
+                      published_at: start ? toDateInputValue(start) : "",
+                      unpublished_at: end ? toDateInputValue(end) : "",
+                    }));
+                  }}
+                  selectionMode="range"
+                  readOnlyInput
+                  dateFormat="dd/mm/yy"
+                  locale="es"
+                  showButtonBar
+                  placeholder="Seleccioná el rango de fechas"
+                  className="license-filter-dropdown"
+                  panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                />
+              </div>
+              {modifyTouched && (!modifyForm.published_at || !modifyForm.unpublished_at) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 mb-3">
+              <label className="profile-field-label">Descripción (máx 300) *</label>
+              <textarea
+                className="profile-input"
+                maxLength={300}
+                rows={3}
+                value={modifyForm.description}
+                onChange={(e) => setModifyForm((p) => ({ ...p, description: e.target.value }))}
+              />
+              {modifyTouched && !modifyForm.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+          </div>
+
+          <div className="row mb-3">
+            <div className="col-12 col-md-6">
+              <label className="profile-field-label">Imagen (máx 5MB)</label>
+              {imgModif && (
+                <div className="mb-2">
+                  <img src={`${imgModif.image_url}`} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
+                </div>
+              )}
+              <FileDropzone label="Arrastre o haga click para subir imagen" accept="image/*" file={modifyImgFile} onFile={handleModifyImg} onClear={() => setModifyImgFile(null)} showPreview />
+            </div>
+            <div className="col-12 col-md-6">
+              <label className="profile-field-label">Video (máx {VIDEO_LABEL})</label>
+              {videoModif && (
+                <small className="text-muted d-block mb-2">Video previo guardado</small>
+              )}
+              <FileDropzone label="Arrastre o haga click para subir video" accept="video/*" file={modifyVideoFile} onFile={handleModifyVideo} onClear={() => setModifyVideoFile(null)} />
+            </div>
+          </div>
+        </form>
+      </Dialog>
 
       {/* Image preview dialog */}
       <Dialog
