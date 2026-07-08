@@ -363,9 +363,9 @@ export default function FilesAdminItemsPage() {
                 </div>
                 <div className="col-12 col-md-6 mb-3">
                   <label className="profile-field-label">Descripción *</label>
-                  <input
+                  <textarea
                     className="profile-input"
-                    type="text"
+                    rows={2}
                     value={catForm.description}
                     onChange={(e) => setCatForm((p) => ({ ...p, description: e.target.value }))}
                   />
@@ -427,9 +427,9 @@ export default function FilesAdminItemsPage() {
                 </div>
                 <div className="col-12 col-md-4 mb-3">
                   <label className="profile-field-label">Descripción *</label>
-                  <input
+                  <textarea
                     className="profile-input"
-                    type="text"
+                    rows={2}
                     value={newSubForm.description}
                     onChange={(e) => setNewSubForm((p) => ({ ...p, description: e.target.value }))}
                   />
@@ -688,9 +688,9 @@ export default function FilesAdminItemsPage() {
             </div>
             <div className="col-12 mb-3">
               <label className="profile-field-label">Descripción *</label>
-              <input
+              <textarea
                 className="profile-input"
-                type="text"
+                rows={2}
                 value={modifyCatForm.description}
                 onChange={(e) => setModifyCatForm((p) => ({ ...p, description: e.target.value }))}
               />
@@ -751,9 +751,9 @@ export default function FilesAdminItemsPage() {
             </div>
             <div className="col-12 mb-3">
               <label className="profile-field-label">Descripción *</label>
-              <input
+              <textarea
                 className="profile-input"
-                type="text"
+                rows={2}
                 value={modifySubForm.description}
                 onChange={(e) => setModifySubForm((p) => ({ ...p, description: e.target.value }))}
               />
