@@ -871,16 +871,18 @@ function Toolbar({ editor }: { editor: Editor }) {
         </div>
       </div>
       {(imagePreview || imageUrl.trim()) && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={imagePreview || imageUrl.trim()}
-          alt="Vista previa"
-          onLoad={(e) => {
-            setImageWidth(String(e.currentTarget.naturalWidth));
-            setImageHeight(String(e.currentTarget.naturalHeight));
-          }}
-          style={{ maxWidth: "100%", maxHeight: 160, borderRadius: 8, border: "1px solid #e2e8f0" }}
-        />
+        <div className="text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imagePreview || imageUrl.trim()}
+            alt="Vista previa"
+            onLoad={(e) => {
+              setImageWidth(String(e.currentTarget.naturalWidth));
+              setImageHeight(String(e.currentTarget.naturalHeight));
+            }}
+            style={{ maxWidth: "100%", maxHeight: 160, borderRadius: 8, border: "1px solid #e2e8f0" }}
+          />
+        </div>
       )}
       <p style={{ fontSize: "0.72rem", color: "#94a3b8", marginTop: "8px", marginBottom: 0 }}>
         También podés arrastrar los bordes de la imagen dentro del editor para redimensionarla.
