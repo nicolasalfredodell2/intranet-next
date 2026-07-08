@@ -202,10 +202,17 @@ export default function FilesAdminItemsPage() {
     setLoadingModifySub(true);
     try {
       await updateFileSubcategory({ name: modifySubForm.name, description: modifySubForm.description, id: subToEdit.id, item_id: modifySubForm.item_id, order: "1" });
-      setItems((p) => p.map((cat) => ({
-        ...cat,
-        subitems: cat.subitems.map((s: any) => s.id === subToEdit.id ? { ...s, name: modifySubForm.name, description: modifySubForm.description } : s),
-      })));
+      setItems((p) => p.map((cat) => {
+        if (cat.id === subToEdit.item_id && cat.id !== modifySubForm.item_id) {
+          return { ...cat, subitems: cat.subitems.filter((s: any) => s.id !== subToEdit.id) };
+        }
+        if (cat.id === modifySubForm.item_id) {
+          const updatedSub = { ...subToEdit, name: modifySubForm.name, description: modifySubForm.description };
+          const withoutSub = cat.subitems.filter((s: any) => s.id !== subToEdit.id);
+          return { ...cat, subitems: [...withoutSub, updatedSub].sort((a: any, b: any) => a.name.localeCompare(b.name)) };
+        }
+        return cat;
+      }));
       toast.current?.show({ severity: "success", summary: "Subcategoría modificada" });
       cerrarModificarSub();
     } catch (err: any) {
