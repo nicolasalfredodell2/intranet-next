@@ -218,7 +218,7 @@ export default function NavbarLateral() {
                     </a>
                     <ul className={`collapse${openMenus["legajo"] ? " show" : ""}`}>
                       <li><Link className="nav-toggler" href="/main/files-admin-items" onClick={onNavClick}>Categorías y subcategorias</Link></li>
-                      <li><Link className="nav-toggler" href="/main/files-admin-upload" onClick={onNavClick}>Archivos</Link></li>
+                      <li><Link className="nav-toggler" href="/main/files-admin-upload" onClick={onNavClick}>Modificación de legajos</Link></li>
                     </ul>
                   </li>
 
