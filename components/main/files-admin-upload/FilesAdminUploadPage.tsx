@@ -464,6 +464,25 @@ export default function FilesAdminUploadPage() {
         </div>
       </div>
 
+      {/* File preview sidebar */}
+      <Sidebar
+        visible={!!previewFile}
+        position="right"
+        showCloseIcon
+        onHide={closePreview}
+        baseZIndex={3000}
+        style={{ width: "min(560px, 92vw)" }}
+        header={previewSidebarHeader}
+      >
+        {previewFile?.type === "image" && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
+        )}
+        {previewFile?.type === "pdf" && (
+          <iframe src={previewFile.url} title={previewFile.name} style={{ width: "100%", height: "calc(100vh - 120px)", border: "none" }} />
+        )}
+      </Sidebar>
+
       {/* Upload dialog */}
       <Dialog
         header={uploadDialogHeader}
@@ -565,27 +584,6 @@ export default function FilesAdminUploadPage() {
           </div>
         </form>
       </Dialog>
-
-      {/* File preview sidebar */}
-      <Sidebar
-        visible={!!previewFile}
-        position="right"
-        modal={false}
-        showCloseIcon={!showUpload}
-        closeOnEscape={!showUpload}
-        onHide={() => { if (!showUpload) closePreview(); }}
-        baseZIndex={2000}
-        style={{ width: "min(560px, 92vw)" }}
-        header={previewSidebarHeader}
-      >
-        {previewFile?.type === "image" && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
-        )}
-        {previewFile?.type === "pdf" && (
-          <iframe src={previewFile.url} title={previewFile.name} style={{ width: "100%", height: "calc(100vh - 120px)", border: "none" }} />
-        )}
-      </Sidebar>
 
       {/* Delete dialog */}
       <Dialog
