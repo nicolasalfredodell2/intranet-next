@@ -1728,6 +1728,42 @@ input[disabled] {
   padding: 6px 10px;
 }
 
+.rich-text-editor-image-handle {
+  background: #4a6cf7;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  height: 10px;
+  position: absolute;
+  width: 10px;
+  z-index: 10;
+}
+
+.rich-text-editor-image-handle[data-resize-handle="top-left"] {
+  cursor: nwse-resize;
+  margin: -5px 0 0 -5px;
+}
+
+.rich-text-editor-image-handle[data-resize-handle="top-right"] {
+  cursor: nesw-resize;
+  margin: -5px -5px 0 0;
+}
+
+.rich-text-editor-image-handle[data-resize-handle="bottom-left"] {
+  cursor: nesw-resize;
+  margin: 0 0 -5px -5px;
+}
+
+.rich-text-editor-image-handle[data-resize-handle="bottom-right"] {
+  cursor: nwse-resize;
+  margin: 0 -5px -5px 0;
+}
+
+.rich-text-editor-image-resizing {
+  outline: 2px dashed #4a6cf7;
+  outline-offset: 2px;
+}
+
 .rich-text-editor-content .ProseMirror ul[data-type="taskList"] {
   list-style: none;
   padding-left: 4px;

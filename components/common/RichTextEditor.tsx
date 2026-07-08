@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
+import { mergeAttributes, ResizableNodeView } from "@tiptap/core";
 import { useEditor, EditorContent, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import TextAlign from "@tiptap/extension-text-align";
@@ -18,6 +19,61 @@ import Placeholder from "@tiptap/extension-placeholder";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import CharacterCount from "@tiptap/extension-character-count";
+
+const ResizableImage = Image.extend({
+  addNodeView() {
+    if (!this.options.resize || !this.options.resize.enabled || typeof document === "undefined") {
+      return null;
+    }
+    const { directions, minWidth, minHeight, alwaysPreserveAspectRatio } = this.options.resize;
+    return ({ node, getPos, HTMLAttributes, editor }) => {
+      const el = document.createElement("img");
+      el.draggable = false;
+      const mergedAttributes = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes);
+      Object.entries(mergedAttributes).forEach(([key, value]) => {
+        if (value != null && key !== "width" && key !== "height") {
+          el.setAttribute(key, String(value));
+        }
+      });
+      if (mergedAttributes.src != null) el.src = mergedAttributes.src;
+
+      const nodeView = new ResizableNodeView({
+        element: el,
+        editor,
+        node,
+        getPos,
+        onResize: (width, height) => {
+          el.style.width = `${width}px`;
+          el.style.height = `${height}px`;
+        },
+        onCommit: (width, height) => {
+          const pos = getPos();
+          if (pos === undefined) return;
+          editor.chain().setNodeSelection(pos).updateAttributes(this.name, { width, height }).run();
+        },
+        onUpdate: (updatedNode) => updatedNode.type === node.type,
+        options: {
+          directions,
+          min: { width: minWidth, height: minHeight },
+          preserveAspectRatio: alwaysPreserveAspectRatio === true,
+          className: {
+            handle: "rich-text-editor-image-handle",
+            resizing: "rich-text-editor-image-resizing",
+          },
+        },
+      });
+
+      const dom = nodeView.dom;
+      dom.style.visibility = "hidden";
+      dom.style.pointerEvents = "none";
+      el.onload = () => {
+        dom.style.visibility = "";
+        dom.style.pointerEvents = "";
+      };
+      return nodeView;
+    };
+  },
+});
 
 interface RichTextEditorProps {
   content: string;
@@ -50,6 +106,7 @@ function Toolbar({ editor }: { editor: Editor }) {
   const [imagePreview, setImagePreview] = useState("");
   const [imageWidth, setImageWidth] = useState("");
   const [imageHeight, setImageHeight] = useState("");
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
 
   const state = useEditorState({
     editor,
@@ -100,8 +157,24 @@ function Toolbar({ editor }: { editor: Editor }) {
     setShowImageDialog(true);
   }
 
+  function handleImageUrlChange(value: string) {
+    setImageUrl(value);
+    if (value.trim()) {
+      setImagePreview("");
+      if (imageFileInputRef.current) imageFileInputRef.current.value = "";
+    } else if (!imagePreview) {
+      setImageWidth("");
+      setImageHeight("");
+    }
+  }
+
   function handleImageFileChange(file: File | null) {
-    if (!file) { setImagePreview(""); return; }
+    if (!file) {
+      setImagePreview("");
+      if (!imageUrl.trim()) { setImageWidth(""); setImageHeight(""); }
+      return;
+    }
+    setImageUrl("");
     const reader = new FileReader();
     reader.onload = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
@@ -288,12 +361,13 @@ function Toolbar({ editor }: { editor: Editor }) {
           type="text"
           placeholder="https://…"
           value={imageUrl}
-          onChange={(e) => { setImageUrl(e.target.value); setImagePreview(""); }}
+          onChange={(e) => handleImageUrlChange(e.target.value)}
         />
       </div>
       <div className="mb-3">
         <label className="profile-field-label">O subí un archivo desde tu PC</label>
         <input
+          ref={imageFileInputRef}
           type="file"
           accept="image/*"
           className="form-control-file"
@@ -351,7 +425,7 @@ export default function RichTextEditor({ content, onChange, placeholder }: RichT
     extensions: [
       StarterKit,
       TextAlign.configure({ types: ["heading", "paragraph"], alignments: ["left", "center", "right", "justify"] }),
-      Image.configure({
+      ResizableImage.configure({
         allowBase64: true,
         resize: { enabled: true, minWidth: 40, minHeight: 40 },
       }),
