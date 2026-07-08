@@ -31,6 +31,7 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
 }
 
 interface AreaForm { title: string; description: string; }
+interface AreaItem { id: string; title: string; description: string; }
 
 function SkeletonCards() {
   return (
@@ -55,7 +56,6 @@ export default function AreasPage() {
   const [loadingAction, setLoadingAction] = useState(false);
   const [form, setForm] = useState<AreaForm>({ title: "", description: "" });
   const [touched, setTouched] = useState(false);
-  const [areaParaModificar, setAreaParaModificar] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
@@ -64,6 +64,11 @@ export default function AreasPage() {
   const [areaToDisable, setAreaToDisable] = useState<any>(null);
   const [loadingDisable, setLoadingDisable] = useState(false);
   const [areaForInfo, setAreaForInfo] = useState<any>(null);
+
+  const [areaToModify, setAreaToModify] = useState<AreaItem | null>(null);
+  const [modifyForm, setModifyForm] = useState<AreaForm>({ title: "", description: "" });
+  const [modifyTouched, setModifyTouched] = useState(false);
+  const [loadingModify, setLoadingModify] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -85,17 +90,10 @@ export default function AreasPage() {
     if (!form.title || !form.description) return;
     setLoadingAction(true);
     try {
-      if (areaParaModificar) {
-        const resp = await modificateArea(form, areaParaModificar.id);
-        setAreas((prev) => prev.map((a) => a.id === areaParaModificar.id ? resp.data : a));
-        toast.current?.show({ severity: "success", summary: "Area modificada" });
-      } else {
-        const resp = await createArea(form);
-        setAreas((prev) => [...prev, resp.data]);
-        toast.current?.show({ severity: "success", summary: "Area creada" });
-      }
+      const resp = await createArea(form);
+      setAreas((prev) => [...prev, resp.data]);
+      toast.current?.show({ severity: "success", summary: "Area creada" });
       setForm({ title: "", description: "" });
-      setAreaParaModificar(null);
       setTouched(false);
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
@@ -104,17 +102,38 @@ export default function AreasPage() {
     }
   }
 
-  function llenarFormulario(area: any) {
-    setAreaParaModificar(area);
-    setForm({ title: area.title, description: area.description });
-    setTouched(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
   function limpiar() {
     setForm({ title: "", description: "" });
-    setAreaParaModificar(null);
     setTouched(false);
+  }
+
+  function abrirModificar(area: AreaItem) {
+    setAreaToModify(area);
+    setModifyForm({ title: area.title, description: area.description });
+    setModifyTouched(false);
+  }
+
+  function cerrarModificar() {
+    setAreaToModify(null);
+    setModifyForm({ title: "", description: "" });
+    setModifyTouched(false);
+  }
+
+  async function handleModifySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setModifyTouched(true);
+    if (!modifyForm.title || !modifyForm.description || !areaToModify) return;
+    setLoadingModify(true);
+    try {
+      const resp = await modificateArea(modifyForm, areaToModify.id);
+      setAreas((prev) => prev.map((a) => a.id === areaToModify.id ? resp.data : a));
+      toast.current?.show({ severity: "success", summary: "Area modificada" });
+      cerrarModificar();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
+    } finally {
+      setLoadingModify(false);
+    }
   }
 
   async function confirmarEliminacion() {
@@ -151,6 +170,18 @@ export default function AreasPage() {
     ? areas.filter((a) => a.title?.toLowerCase().includes(searchTerm.toLowerCase()))
     : areas
   ).slice().sort((a, b) => (a.title ?? "").localeCompare(b.title ?? "", "es", { sensitivity: "base" }));
+
+  const modifyDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar área</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{areaToModify?.title}</small>
+      </div>
+    </div>
+  );
 
   const deleteDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -205,19 +236,15 @@ export default function AreasPage() {
           </div>
         </div>
 
-        {/* Create / modify form card */}
+        {/* Create form card */}
         <div className="card profile-card mt-4">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: areaParaModificar ? "#eff6ff" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className={`pi ${areaParaModificar ? "pi-pencil" : "pi-plus-circle"}`} style={{ color: areaParaModificar ? "#3b82f6" : "#059669", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
-                {areaParaModificar ? "Modificar área" : "Nueva área"}
-              </h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
-                {areaParaModificar ? areaParaModificar.title : "Completá los datos para crear un área"}
-              </small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva área</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear un área</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
@@ -255,9 +282,7 @@ export default function AreasPage() {
                   style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
                 >
                   <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                  {areaParaModificar
-                    ? (loadingAction ? "Modificando..." : "Modificar")
-                    : (loadingAction ? "Creando..." : "Crear área")}
+                  {loadingAction ? "Creando..." : "Crear área"}
                 </button>
                 <button
                   type="button"
@@ -352,7 +377,7 @@ export default function AreasPage() {
                         <Tooltip label="Modificar">
                           <button
                             type="button"
-                            onClick={() => llenarFormulario(area)}
+                            onClick={() => abrirModificar(area)}
                             style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#3b82f6" }}
                           >
                             <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
@@ -400,6 +425,68 @@ export default function AreasPage() {
           </div>
         </div>
       </div>
+
+      {/* Modify area dialog */}
+      <Dialog
+        header={modifyDialogHeader}
+        visible={!!areaToModify}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(480px, 92vw)" }}
+        onHide={cerrarModificar}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="modify-area-form"
+                disabled={loadingModify}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingModify ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingModify ? "Modificando..." : "Modificar"}
+              </button>
+              <button
+                disabled={loadingModify}
+                onClick={cerrarModificar}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingModify && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="modify-area-form" onSubmit={handleModifySubmit} noValidate>
+          <div className="mb-3">
+            <label className="profile-field-label">Título *</label>
+            <input
+              className="profile-input"
+              type="text"
+              value={modifyForm.title}
+              onChange={(e) => setModifyForm((p) => ({ ...p, title: e.target.value }))}
+            />
+            {modifyTouched && !modifyForm.title && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+          <div className="mb-1">
+            <label className="profile-field-label">Descripción *</label>
+            <input
+              className="profile-input"
+              type="text"
+              value={modifyForm.description}
+              onChange={(e) => setModifyForm((p) => ({ ...p, description: e.target.value }))}
+            />
+            {modifyTouched && !modifyForm.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+        </form>
+      </Dialog>
 
       {/* Delete confirmation dialog */}
       <Dialog
