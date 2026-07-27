@@ -31,14 +31,40 @@ export async function modificateProfileUser(data: {
   return res.json();
 }
 
-export async function saveImageProfile(formData: FormData): Promise<any> {
-  const res = await fetch(`${API}people/upload-avatar`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: formData,
+export async function saveImageProfile(
+  formData: FormData,
+  onProgress?: (percent: number) => void
+): Promise<any> {
+  const token =
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("token") || localStorage.getItem("token")
+      : null;
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API}people/upload-avatar`);
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(xhr.responseText ? JSON.parse(xhr.responseText) : null);
+        } catch {
+          resolve(null);
+        }
+      } else {
+        reject(new Error("Error al subir imagen"));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Error al subir imagen"));
+    xhr.send(formData);
   });
-  if (!res.ok) throw new Error("Error al subir imagen");
-  return res.json();
 }
 
 export async function setBosses(bosses: { cuil: string }[]): Promise<any> {

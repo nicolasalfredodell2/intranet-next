@@ -145,6 +145,34 @@ function CardSectionHeader({ icon, iconBg, iconColor, title, subtitle, action }:
   );
 }
 
+function AvatarProgressRing({ progress, size = 190 }: { progress: number; size?: number }) {
+  const strokeWidth = 4;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (progress / 100) * circumference;
+  return (
+    <svg
+      width={size}
+      height={size}
+      style={{ position: "absolute", top: -7, left: -7, transform: "rotate(-90deg)", pointerEvents: "none" }}
+    >
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth={strokeWidth} />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="#22c55e"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        style={{ transition: "stroke-dashoffset 0.2s ease" }}
+      />
+    </svg>
+  );
+}
+
 function FieldSkeleton() {
   return (
     <div className="mb-3">
@@ -165,6 +193,7 @@ export default function ProfilePage() {
   const [touched, setTouched] = useState<Partial<Record<keyof ProfileForm, boolean>>>({});
   const [loading, setLoading] = useState(false);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [showModalBosses, setShowModalBosses] = useState(false);
   const [isOpenDialogQR, setIsOpenDialogQR] = useState(false);
   const [qrValue, setQrValue] = useState("");
@@ -234,16 +263,18 @@ export default function ProfilePage() {
       return;
     }
     setIsLoadingImage(true);
+    setUploadProgress(0);
     try {
       const formData = new FormData();
       formData.append("file", file, file.name);
-      const resp = await saveImageProfile(formData);
+      const resp = await saveImageProfile(formData, setUploadProgress);
       setUser((prev: any) => ({ ...prev, avatar: resp.avatar }));
       toast.current?.show({ severity: "success", summary: "Imagen de perfil actualizada." });
     } catch {
       toast.current?.show({ severity: "error", summary: "Hubo un error al subir la imagen." });
     } finally {
       setIsLoadingImage(false);
+      setUploadProgress(0);
       if (avatarInputRef.current) avatarInputRef.current.value = "";
     }
   }
@@ -338,6 +369,7 @@ export default function ProfilePage() {
                           ? <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.6rem" }} />
                           : <><i className="pi pi-camera mb-1" style={{ fontSize: "1.4rem" }} />Cambiar foto</>}
                       </div>
+                      {isLoadingImage && <AvatarProgressRing progress={uploadProgress} />}
                     </div>
 
                     {/* Name + función */}
