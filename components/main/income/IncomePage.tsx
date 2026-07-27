@@ -103,7 +103,20 @@ export default function IncomePage() {
       )}
 
       {/* Workday timeline chart */}
-      {!loading && <TimeclockTimelineChart groups={groups} workingHours={workingHours} />}
+      {!loading && groups.length > 0 && <TimeclockTimelineChart groups={groups} workingHours={workingHours} />}
+
+      {/* Empty state */}
+      {!loading && !error && groups.length === 0 && (
+        <div className="card profile-card mt-4 fadeIn animated">
+          <div className="d-flex flex-column align-items-center text-center" style={{ padding: "32px 20px" }}>
+            <div style={{ width: 48, height: 48, borderRadius: "14px", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+              <i className="pi pi-inbox" style={{ color: "#94a3b8", fontSize: "1.3rem" }} />
+            </div>
+            <h5 className="mb-1 font-weight-bold" style={{ fontSize: "0.92rem", color: "#1e293b" }}>Sin fichadas</h5>
+            <small style={{ color: "#94a3b8", fontSize: "0.8rem" }}>No tenés fichadas registradas en los últimos 7 días</small>
+          </div>
+        </div>
+      )}
 
       {/* One card per date */}
       {!loading && groups.map((group) => (
