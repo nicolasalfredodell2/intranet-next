@@ -106,8 +106,9 @@ function FileDropzone({ label, file, onFile, onClear }: { label: string; file: F
       onDrop={(e) => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
       onClick={() => !file && ref.current?.click()}
     >
-      <small className="text-muted">{label}</small>
-      <input ref={ref} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }} />
+      <small className="text-muted d-block">{label}</small>
+      <small className="text-muted d-block" style={{ fontSize: "0.7rem" }}><strong>JPG, JPEG, PNG, WEBP o GIF</strong> — <strong>MÁX. 5MB</strong></small>
+      <input ref={ref} type="file" accept={ACCEPTED.join(",")} style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }} />
       {file && (
         <div className="mt-2 position-relative d-inline-block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
