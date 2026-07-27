@@ -26,7 +26,7 @@ const IMG_MAX = 5 * 1024 * 1024;
 const VIDEO_MAX = 52428800; // 50MB
 const VIDEO_LABEL = "50 MB";
 const IMG_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
-const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"];
+const VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg"];
 
 function getToday(): string {
   const d = new Date();
@@ -93,7 +93,7 @@ function SkeletonCards() {
   );
 }
 
-function FileDropzone({ label, file, accept, onFile, onClear, showPreview }: { label: string; file: File | null; accept: string; onFile: (f: File) => void; onClear: () => void; showPreview?: boolean }) {
+function FileDropzone({ label, file, accept, hint, onFile, onClear, showPreview }: { label: string; file: File | null; accept: string; hint?: React.ReactNode; onFile: (f: File) => void; onClear: () => void; showPreview?: boolean }) {
   const [drag, setDrag] = useState(false);
   const ref = useRef<HTMLInputElement>(null);
   return (
@@ -103,7 +103,8 @@ function FileDropzone({ label, file, accept, onFile, onClear, showPreview }: { l
       onDrop={(e) => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
       onClick={() => !file && ref.current?.click()}
     >
-      <small className="text-muted">{label}</small>
+      <small className="text-muted d-block">{label}</small>
+      {hint && <small className="text-muted d-block" style={{ fontSize: "0.7rem" }}>{hint}</small>}
       <input ref={ref} type="file" accept={accept} style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }} />
       {file && (
         <div className="mt-2 position-relative d-inline-block">
@@ -428,12 +429,27 @@ export default function ShortsPage() {
 
               <div className="row mb-3">
                 <div className="col-12 col-md-6">
-                  <label className="profile-field-label">Imagen (máx 5MB)</label>
-                  <FileDropzone label="Arrastre o haga click para subir imagen" accept="image/*" file={imgFile} onFile={handleImg} onClear={() => setImgFile(null)} showPreview />
+                  <label className="profile-field-label">Imagen</label>
+                  <FileDropzone
+                    label="Arrastre o haga click para subir imagen"
+                    accept={IMG_TYPES.join(",")}
+                    hint={<><strong>JPG, JPEG, PNG, WEBP o GIF</strong> — <strong>MÁX. 5MB</strong></>}
+                    file={imgFile}
+                    onFile={handleImg}
+                    onClear={() => setImgFile(null)}
+                    showPreview
+                  />
                 </div>
                 <div className="col-12 col-md-6">
-                  <label className="profile-field-label">Video (máx {VIDEO_LABEL})</label>
-                  <FileDropzone label="Arrastre o haga click para subir video" accept="video/*" file={videoFile} onFile={handleVideo} onClear={() => setVideoFile(null)} />
+                  <label className="profile-field-label">Video</label>
+                  <FileDropzone
+                    label="Arrastre o haga click para subir video"
+                    accept={VIDEO_TYPES.join(",")}
+                    hint={<><strong>MP4, WEBM u OGG</strong> — <strong>MÁX. 50MB</strong></>}
+                    file={videoFile}
+                    onFile={handleVideo}
+                    onClear={() => setVideoFile(null)}
+                  />
                 </div>
               </div>
 
@@ -751,14 +767,29 @@ export default function ShortsPage() {
                   <img src={`${imgModif.image_url}`} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
                 </div>
               )}
-              <FileDropzone label="Arrastre o haga click para subir imagen" accept="image/*" file={modifyImgFile} onFile={handleModifyImg} onClear={() => setModifyImgFile(null)} showPreview />
+              <FileDropzone
+                label="Arrastre o haga click para subir imagen"
+                accept={IMG_TYPES.join(",")}
+                hint={<><strong>JPG, JPEG, PNG, WEBP o GIF</strong> — <strong>MÁX. 5MB</strong></>}
+                file={modifyImgFile}
+                onFile={handleModifyImg}
+                onClear={() => setModifyImgFile(null)}
+                showPreview
+              />
             </div>
             <div className="col-12 col-md-6">
               <label className="profile-field-label">Video (máx {VIDEO_LABEL})</label>
               {videoModif && (
                 <small className="text-muted d-block mb-2">Video previo guardado</small>
               )}
-              <FileDropzone label="Arrastre o haga click para subir video" accept="video/*" file={modifyVideoFile} onFile={handleModifyVideo} onClear={() => setModifyVideoFile(null)} />
+              <FileDropzone
+                label="Arrastre o haga click para subir video"
+                accept={VIDEO_TYPES.join(",")}
+                hint={<><strong>MP4, WEBM u OGG</strong> — <strong>MÁX. 50MB</strong></>}
+                file={modifyVideoFile}
+                onFile={handleModifyVideo}
+                onClear={() => setModifyVideoFile(null)}
+              />
             </div>
           </div>
         </form>
