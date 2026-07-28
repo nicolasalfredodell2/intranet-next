@@ -22,10 +22,10 @@ const MIME_MAP: Record<string, string> = {
 
 const FILE_ICON_MAP: Record<string, { icon: string; color: string }> = {
   pdf: { icon: "mdi-file-pdf-box", color: "#dc3545" },
-  png: { icon: "mdi-file-image-box", color: "#8b5cf6" },
-  jpg: { icon: "mdi-file-image-box", color: "#8b5cf6" },
-  jpeg: { icon: "mdi-file-image-box", color: "#8b5cf6" },
-  gif: { icon: "mdi-file-image-box", color: "#8b5cf6" },
+  png: { icon: "mdi-file-png-box", color: "#8b5cf6" },
+  jpg: { icon: "mdi-file-jpg-box", color: "#8b5cf6" },
+  jpeg: { icon: "mdi-file-jpg-box", color: "#8b5cf6" },
+  gif: { icon: "mdi-file-gif-box", color: "#8b5cf6" },
   xlsx: { icon: "mdi-file-excel-box", color: "#22c55e" },
   xls: { icon: "mdi-file-excel-box", color: "#22c55e" },
   doc: { icon: "mdi-file-word-box", color: "#2563eb" },

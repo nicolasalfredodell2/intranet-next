@@ -5,6 +5,24 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { loadFiles, loadFilePDF } from "@/lib/services/files.service";
 
+const FILE_ICON_MAP: Record<string, { icon: string; color: string }> = {
+  pdf: { icon: "mdi-file-pdf-box", color: "#dc3545" },
+  png: { icon: "mdi-file-png-box", color: "#8b5cf6" },
+  jpg: { icon: "mdi-file-jpg-box", color: "#8b5cf6" },
+  jpeg: { icon: "mdi-file-jpg-box", color: "#8b5cf6" },
+  gif: { icon: "mdi-file-gif-box", color: "#8b5cf6" },
+  xlsx: { icon: "mdi-file-excel-box", color: "#22c55e" },
+  xls: { icon: "mdi-file-excel-box", color: "#22c55e" },
+  doc: { icon: "mdi-file-word-box", color: "#2563eb" },
+  docx: { icon: "mdi-file-word-box", color: "#2563eb" },
+  odt: { icon: "mdi-file-word-box", color: "#2563eb" },
+};
+
+function getFileIcon(name: string): { icon: string; color: string } {
+  const ext = (name ?? "").split(".").pop()?.toLowerCase() ?? "";
+  return FILE_ICON_MAP[ext] ?? { icon: "mdi-file-outline", color: "#94a3b8" };
+}
+
 function SkeletonRows() {
   return (
     <div style={{ padding: "4px 0 8px" }}>
@@ -219,13 +237,14 @@ export default function FilesPage() {
                                     {visibleFiles.map((file: any) => {
                                       const filePath = file.path ?? file.path_url;
                                       const isLoadingThis = loadingPdf === filePath;
+                                      const fileIcon = getFileIcon(file.name ?? file.title ?? filePath);
                                       return (
                                         <div
                                           key={file.id ?? filePath}
                                           className="d-flex align-items-center fadeIn animated"
                                           style={{ padding: "7px 0", borderBottom: "1px solid rgba(0,0,0,0.04)", gap: "10px" }}
                                         >
-                                          <i className="mdi mdi-file-pdf-box" style={{ color: "#dc3545", fontSize: "1.15rem", flexShrink: 0 }} />
+                                          <i className={`mdi ${fileIcon.icon}`} style={{ color: fileIcon.color, fontSize: "1.15rem", flexShrink: 0 }} />
                                           <span style={{ flex: 1, fontSize: "0.84rem", color: "#374151", lineHeight: 1.3 }}>
                                             {file.name ?? file.title}
                                           </span>
