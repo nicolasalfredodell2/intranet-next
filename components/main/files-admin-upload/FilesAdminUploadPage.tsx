@@ -20,6 +20,24 @@ const MIME_MAP: Record<string, string> = {
   odt: "application/vnd.oasis.opendocument.text",
 };
 
+const FILE_ICON_MAP: Record<string, { icon: string; color: string }> = {
+  pdf: { icon: "mdi-file-pdf-box", color: "#dc3545" },
+  png: { icon: "mdi-file-image-box", color: "#8b5cf6" },
+  jpg: { icon: "mdi-file-image-box", color: "#8b5cf6" },
+  jpeg: { icon: "mdi-file-image-box", color: "#8b5cf6" },
+  gif: { icon: "mdi-file-image-box", color: "#8b5cf6" },
+  xlsx: { icon: "mdi-file-excel-box", color: "#22c55e" },
+  xls: { icon: "mdi-file-excel-box", color: "#22c55e" },
+  doc: { icon: "mdi-file-word-box", color: "#2563eb" },
+  docx: { icon: "mdi-file-word-box", color: "#2563eb" },
+  odt: { icon: "mdi-file-word-box", color: "#2563eb" },
+};
+
+function getFileIcon(name: string): { icon: string; color: string } {
+  const ext = (name ?? "").split(".").pop()?.toLowerCase() ?? "";
+  return FILE_ICON_MAP[ext] ?? { icon: "mdi-file-outline", color: "#94a3b8" };
+}
+
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   return (
@@ -427,14 +445,16 @@ export default function FilesAdminUploadPage() {
                                 <i className="pi pi-folder-open" style={{ fontSize: "0.72rem", marginRight: "6px", color: "#3b82f6" }} />
                                 {sub.name}
                               </p>
-                              {(sub.data ?? []).map((file: any) => (
+                              {(sub.data ?? []).map((file: any) => {
+                                const fileIcon = getFileIcon(file.name ?? file.path);
+                                return (
                                 <div
                                   key={file.id}
                                   className="d-flex align-items-center justify-content-between"
                                   style={{ padding: "8px 12px", borderRadius: "10px", background: "#f8fafc", border: "1px solid #e2e8f0", marginBottom: "6px" }}
                                 >
                                   <span className="d-flex align-items-center" style={{ gap: "6px", fontSize: "0.82rem", color: "#374151", minWidth: 0 }}>
-                                    <i className="pi pi-file" style={{ fontSize: "0.78rem", color: "#94a3b8", flexShrink: 0 }} />
+                                    <i className={`mdi ${fileIcon.icon}`} style={{ fontSize: "0.95rem", color: fileIcon.color, flexShrink: 0 }} />
                                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</span>
                                   </span>
                                   <div className="d-flex align-items-center" style={{ gap: "6px", flexShrink: 0 }}>
@@ -450,7 +470,8 @@ export default function FilesAdminUploadPage() {
                                     </Tooltip>
                                   </div>
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           ))}
                         </div>
