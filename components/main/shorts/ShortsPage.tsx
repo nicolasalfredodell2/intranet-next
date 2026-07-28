@@ -761,7 +761,7 @@ export default function ShortsPage() {
 
           <div className="row mb-3">
             <div className="col-12 col-md-6">
-              <label className="profile-field-label">Imagen (máx 5MB)</label>
+              <label className="profile-field-label">Imagen</label>
               {imgModif && (
                 <div className="mb-2">
                   <img src={`${imgModif.image_url}`} alt="" style={{ width: 80, height: 60, objectFit: "cover", borderRadius: 4 }} />
@@ -778,7 +778,7 @@ export default function ShortsPage() {
               />
             </div>
             <div className="col-12 col-md-6">
-              <label className="profile-field-label">Video (máx {VIDEO_LABEL})</label>
+              <label className="profile-field-label">Video</label>
               {videoModif && (
                 <small className="text-muted d-block mb-2">Video previo guardado</small>
               )}
