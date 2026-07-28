@@ -203,7 +203,7 @@ export default function FilesAdminUploadPage() {
     if (loadingFile) return;
     setLoadingFile(file.id);
     const ext = (file.path ?? "").split(".").pop()?.toLowerCase() ?? "pdf";
-    const name = file.path?.split("/").pop() ?? "archivo";
+    const name = file.name ?? "archivo";
     try {
       const buffer = await loadFilePDF(file.path);
       const mime = MIME_MAP[ext] ?? "application/octet-stream";
@@ -435,7 +435,7 @@ export default function FilesAdminUploadPage() {
                                 >
                                   <span className="d-flex align-items-center" style={{ gap: "6px", fontSize: "0.82rem", color: "#374151", minWidth: 0 }}>
                                     <i className="pi pi-file" style={{ fontSize: "0.78rem", color: "#94a3b8", flexShrink: 0 }} />
-                                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.path?.split("/").pop()}</span>
+                                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</span>
                                   </span>
                                   <div className="d-flex align-items-center" style={{ gap: "6px", flexShrink: 0 }}>
                                     <Tooltip label="Ver archivo">
@@ -637,7 +637,7 @@ export default function FilesAdminUploadPage() {
         }
       >
         <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
-          Está a punto de eliminar el archivo <strong>{fileToDelete?.path?.split("/").pop()}</strong>.
+          Está a punto de eliminar el archivo <strong>{fileToDelete?.name}</strong>.
         </p>
       </Dialog>
     </>
