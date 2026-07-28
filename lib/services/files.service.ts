@@ -1,5 +1,5 @@
 const API = process.env.NEXT_PUBLIC_API_URL!;
-const FILE_SERVICE_API = process.env.NEXT_PUBLIC_FILE_SERVICE_URL!;
+const FILE_SERVICE_API = process.env.NEXT_PUBLIC_API_URL_FILES!;
 
 function authHeaders(): HeadersInit {
   const token =
