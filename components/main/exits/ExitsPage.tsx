@@ -921,9 +921,9 @@ export default function ExitsPage() {
                                   <button
                                     type="button"
                                     onClick={() => openPdfExit(item)}
-                                    style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
+                                    style={{ background: "none", border: "none", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
                                   >
-                                    <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "pi pi-file-pdf"} style={{ fontSize: "1rem" }} />
+                                    <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "mdi mdi-file-pdf-box"} style={{ fontSize: "1.2rem", color: loadingActionOpenPdfExit === item.id ? undefined : "#dc3545" }} />
                                   </button>
                                 </Tooltip>
                               )}
@@ -1135,9 +1135,9 @@ export default function ExitsPage() {
                                       <button
                                         type="button"
                                         onClick={() => openPdfExit(item)}
-                                        style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
+                                        style={{ background: "none", border: "none", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
                                       >
-                                        <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "pi pi-file-pdf"} style={{ fontSize: "1rem" }} />
+                                        <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "mdi mdi-file-pdf-box"} style={{ fontSize: "1.2rem", color: loadingActionOpenPdfExit === item.id ? undefined : "#dc3545" }} />
                                       </button>
                                     </Tooltip>
                                   )}

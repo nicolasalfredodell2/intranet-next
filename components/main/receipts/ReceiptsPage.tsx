@@ -425,9 +425,9 @@ export default function ReceiptsPage() {
                                 type="button"
                                 disabled={!!loadingAction}
                                 onClick={() => openPDF(receiptData)}
-                                style={{ background: "none", border: "1.5px solid #e2e8f0", borderRadius: "8px", padding: "4px 10px", cursor: loadingAction ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#4a6cf7" }}
+                                style={{ background: "none", border: "none", borderRadius: "8px", padding: "4px 10px", cursor: loadingAction ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#4a6cf7" }}
                               >
-                                <i className={loadingAction === receiptData.idn ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "1rem" }} />
+                                <i className={loadingAction === receiptData.idn ? "pi pi-spin pi-spinner" : "mdi mdi-file-pdf-box"} style={{ fontSize: "1.2rem", color: loadingAction === receiptData.idn ? undefined : "#dc3545" }} />
                               </button>
                             </Tooltip>
                           </div>
