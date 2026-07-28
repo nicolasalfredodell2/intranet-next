@@ -3,7 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
+import { Sidebar } from "primereact/sidebar";
 import { loadFiles, loadFilePDF } from "@/lib/services/files.service";
+
+const MIME_MAP: Record<string, string> = {
+  pdf: "application/pdf",
+  png: "image/png",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  gif: "image/gif",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  odt: "application/vnd.oasis.opendocument.text",
+};
 
 const FILE_ICON_MAP: Record<string, { icon: string; color: string }> = {
   pdf: { icon: "mdi-file-pdf-box", color: "#dc3545" },
@@ -39,7 +50,8 @@ export default function FilesPage() {
   const [loading, setLoading] = useState(false);
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
-  const [loadingPdf, setLoadingPdf] = useState<string | null>(null);
+  const [loadingFile, setLoadingFile] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
   const [search, setSearch] = useState("");
 
   useEffect(() => { load(); }, []);
@@ -67,18 +79,41 @@ export default function FilesPage() {
     }
   }
 
-  async function handleOpenPdf(path: string) {
-    if (loadingPdf) return;
-    setLoadingPdf(path);
+  async function handleViewFile(file: any) {
+    if (loadingFile) return;
+    const filePath = file.path ?? file.path_url;
+    setLoadingFile(file.id ?? filePath);
+    const ext = (filePath ?? "").split(".").pop()?.toLowerCase() ?? "pdf";
+    const name = file.name ?? file.title ?? "archivo";
     try {
-      const buffer = await loadFilePDF(path);
-      const blob = new Blob([buffer], { type: "application/pdf" });
-      window.open(URL.createObjectURL(blob));
+      const buffer = await loadFilePDF(filePath);
+      const mime = MIME_MAP[ext] ?? "application/octet-stream";
+      const blob = new Blob([buffer], { type: mime });
+      const url = URL.createObjectURL(blob);
+      if (ext === "odt") {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (ext === "pdf") {
+        setPreviewFile({ url, type: "pdf", name });
+      } else if (["png", "jpg", "jpeg", "gif"].includes(ext)) {
+        setPreviewFile({ url, type: "image", name });
+      } else {
+        window.open(url);
+      }
     } catch {
-      toast.current?.show({ severity: "error", summary: "No se pudo abrir el archivo PDF" });
+      toast.current?.show({ severity: "error", summary: "No se pudo abrir el archivo" });
     } finally {
-      setLoadingPdf(null);
+      setLoadingFile(null);
     }
+  }
+
+  function closePreview() {
+    if (previewFile) URL.revokeObjectURL(previewFile.url);
+    setPreviewFile(null);
   }
 
   function toggleCategory(key: string) {
@@ -90,6 +125,21 @@ export default function FilesPage() {
   }
 
   const categories: any[] = fileData ?? [];
+
+  const previewNameParts = previewFile?.name.split(".") ?? [];
+  const previewExt = previewNameParts.length > 1 ? previewNameParts.pop() : null;
+  const previewNameNoExt = previewNameParts.join(".");
+
+  const previewSidebarHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
+      <span style={{ fontWeight: 700, fontSize: "0.93rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{previewNameNoExt}</span>
+      {previewExt && (
+        <span style={{ background: "#eff6ff", color: "#3b82f6", borderRadius: "20px", padding: "2px 10px", fontSize: "0.72rem", fontWeight: 700, flexShrink: 0 }}>
+          {previewExt.toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
 
   function matchesSearch(file: any) {
     if (!search) return true;
@@ -236,7 +286,7 @@ export default function FilesPage() {
                                     )}
                                     {visibleFiles.map((file: any) => {
                                       const filePath = file.path ?? file.path_url;
-                                      const isLoadingThis = loadingPdf === filePath;
+                                      const isLoadingThis = loadingFile === (file.id ?? filePath);
                                       const fileIcon = getFileIcon(file.name ?? file.title ?? filePath);
                                       return (
                                         <div
@@ -250,10 +300,10 @@ export default function FilesPage() {
                                           </span>
                                           <button
                                             type="button"
-                                            disabled={!!loadingPdf}
-                                            onClick={() => handleOpenPdf(filePath)}
-                                            style={{ background: "none", border: "none", padding: "4px 8px", cursor: loadingPdf ? "not-allowed" : "pointer", borderRadius: "6px", display: "flex", alignItems: "center", gap: "4px", color: isLoadingThis ? "#94a3b8" : "#4a6cf7", fontSize: "0.78rem", fontWeight: 600, flexShrink: 0 }}
-                                            title="Ver PDF"
+                                            disabled={!!loadingFile}
+                                            onClick={() => handleViewFile(file)}
+                                            style={{ background: "none", border: "none", padding: "4px 8px", cursor: loadingFile ? "not-allowed" : "pointer", borderRadius: "6px", display: "flex", alignItems: "center", gap: "4px", color: isLoadingThis ? "#94a3b8" : "#4a6cf7", fontSize: "0.78rem", fontWeight: 600, flexShrink: 0 }}
+                                            title="Ver archivo"
                                           >
                                             <i className={isLoadingThis ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "0.85rem" }} />
                                             {isLoadingThis ? "Abriendo…" : "Ver"}
@@ -286,6 +336,25 @@ export default function FilesPage() {
           </div>
         </div>
       </div>
+
+      {/* File preview sidebar */}
+      <Sidebar
+        visible={!!previewFile}
+        position="right"
+        showCloseIcon
+        onHide={closePreview}
+        baseZIndex={3000}
+        style={{ width: "min(560px, 92vw)" }}
+        header={previewSidebarHeader}
+      >
+        {previewFile?.type === "image" && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
+        )}
+        {previewFile?.type === "pdf" && (
+          <iframe src={previewFile.url} title={previewFile.name} style={{ width: "100%", height: "calc(100vh - 120px)", border: "none" }} />
+        )}
+      </Sidebar>
     </>
   );
 }
