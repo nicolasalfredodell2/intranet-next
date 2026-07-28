@@ -33,8 +33,19 @@ export default function FilesPage() {
   async function load() {
     setLoading(true);
     try {
-      const data = await loadFiles();
-      setFileData(data);
+      const raw = await loadFiles();
+      const arr = Array.isArray(raw) ? raw : (raw.data ?? []);
+      const tempItems: any[] = [];
+      arr.forEach((item: any) => {
+        const subitem = item.sub_item;
+        if (!subitem) return;
+        subitem.files = (subitem.data ?? []).reverse();
+        delete subitem.data;
+        const existing = tempItems.find((t: any) => t.name === item.name);
+        if (existing) { existing.subcategories.push(subitem); }
+        else { tempItems.push({ ...item, subcategories: [subitem] }); }
+      });
+      setFileData(tempItems);
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudo cargar los archivos", detail: err.message });
     } finally {
@@ -64,7 +75,7 @@ export default function FilesPage() {
     setOpenSubcategories((p) => ({ ...p, [id]: !p[id] }));
   }
 
-  const categories: any[] = fileData?.categories ?? fileData?.data ?? [];
+  const categories: any[] = fileData ?? [];
 
   function matchesSearch(file: any) {
     if (!search) return true;
