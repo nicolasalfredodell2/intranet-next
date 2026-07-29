@@ -224,13 +224,13 @@ export default function NotesPage() {
                 <label className="profile-field-label">Imágenes {!isModify && "*"}</label>
 
                 {isModify && filesModificate.length > 0 && (
-                  <div className="d-flex flex-wrap align-items-center mb-2" style={{ gap: "10px" }}>
+                  <div className="d-flex flex-wrap justify-content-center align-items-center mb-2" style={{ gap: "12px" }}>
                     {filesModificate.map((image, idx) => (
-                      <div key={idx} className="d-flex align-items-center" style={{ gap: "8px" }}>
+                      <div key={idx} className="d-flex flex-column align-items-center" style={{ gap: "8px" }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           className="rounded border"
-                          style={{ width: 80, height: 80, objectFit: "cover" }}
+                          style={{ width: 260, height: "auto" }}
                           src={image.path_url ? `${API_URL}${image.path_url}` : "/assets/img/news/no-image.png"}
                           alt="Imagen noticia"
                         />
