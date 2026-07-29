@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
 import { Paginator } from "primereact/paginator";
 import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
@@ -10,6 +12,42 @@ import Link from "next/link";
 import { getNotes, deleteNote } from "@/lib/services/notes.service";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  return (
+    <span
+      style={{ display: "inline-flex" }}
+      onMouseEnter={(e) => {
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setPos({ top: r.top, left: r.left + r.width / 2 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && (
+        <div style={{ position: "fixed", top: pos.top - 10, left: pos.left, transform: "translateX(-50%) translateY(-100%)", background: "#1e293b", color: "#fff", padding: "5px 11px", borderRadius: "7px", fontSize: "0.71rem", fontWeight: 500, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 9999, boxShadow: "0 4px 14px rgba(0,0,0,0.18)", letterSpacing: "0.01em" }}>
+          {label}
+          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", borderWidth: "5px", borderStyle: "solid", borderColor: "#1e293b transparent transparent transparent" }} />
+        </div>
+      )}
+    </span>
+  );
+}
+
+function SkeletonRows() {
+  return (
+    <div style={{ padding: "4px 0 8px" }}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="license-skeleton-row">
+          {[15, 30, 30, 10, 15].map((w, j) => (
+            <div key={j} className="license-skeleton-cell" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function NotesListPage() {
   const toast = useRef<Toast>(null);
@@ -35,6 +73,7 @@ export default function NotesListPage() {
       setTo(resp.to ?? 0);
       setPage(p);
     } catch {
+      toast.current?.show({ severity: "error", summary: "No se pudieron cargar las notas" });
       setNotes([]);
     } finally {
       setLoading(false);
@@ -42,7 +81,6 @@ export default function NotesListPage() {
   }
 
   function pageChange(e: any) {
-    setNotes([]);
     setFrom(e.first + 1);
     chargeNotes(e.page + 1);
   }
@@ -62,14 +100,15 @@ export default function NotesListPage() {
     }
   }
 
-  const deleteFooter = (
-    <div>
-      <button disabled={loadingDelete} onClick={handleDeleteConfirm} className="btn btn-danger waves-effect">
-        {loadingDelete && <i className="mr-1 pi pi-spin pi-spinner" />}
-        {loadingDelete ? "Eliminando" : "Eliminar"}
-      </button>
-      <button disabled={loadingDelete} onClick={() => setNoteToDelete(null)} className="btn btn-default ml-2">Cancelar</button>
-      {loadingDelete && <ProgressBar mode="indeterminate" style={{ height: "6px" }} className="mt-2" />}
+  const deleteDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-trash" style={{ color: "#dc3545", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar nota</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
+      </div>
     </div>
   );
 
@@ -77,91 +116,169 @@ export default function NotesListPage() {
     <>
       <AppToast ref={toast} position="bottom-center" />
 
-      <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Listado de notas</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Listado de notas</li>
-            </ol>
-          </div>
-        </div>
+      <div className="animated fadeIn">
 
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-body">
-                <div className="animated fadeIn row">
-                  <div className="col-12">
-                    <table className="table table-sm table-striped p-datatable-sm">
-                      <thead>
-                        <tr>
-                          <th>IMAGEN</th>
-                          <th>TÍTULO</th>
-                          <th>SUBTÍTULO</th>
-                          <th>LIKES <i className="mdi mdi-thumb-up text-primary" /></th>
-                          <th>ACCIONES</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {notes.map((note) => (
-                          <tr key={note.id}>
-                            <td>
-                              <img
-                                style={{ width: 60, height: 45, objectFit: "cover", borderRadius: 4 }}
-                                alt={note.title}
-                                src={note.images?.length > 0 && note.images[0].path_url ? `${API_URL}${note.images[0].path_url}` : "/assets/img/news/no-image.png"}
-                              />
-                            </td>
-                            <td><small>{note.title}</small></td>
-                            <td><small>{(note.subtitle?.length > 100 ? note.subtitle.slice(0, 100) + "..." : note.subtitle)}</small></td>
-                            <td>{note.likes_count}</td>
-                            <td className="text-nowrap text-center">
-                              <Link href={`/main/notes/${note.id}`} title="Editar">
-                                <i className="fa-regular fa-pen-to-square mr-2 text-info" />
-                              </Link>
-                              <i className="fa-regular fa-circle-xmark text-danger pointer" onClick={() => setNoteToDelete(note)} title="Eliminar" />
-                            </td>
-                          </tr>
-                        ))}
-                        {!loading && notes.length === 0 && (
-                          <tr><td colSpan={5} className="text-center">No hay notas.</td></tr>
-                        )}
-                        {loading && (
-                          <tr><td colSpan={5} className="text-center"><i className="pi pi-spin pi-spinner" /> Cargando notas.</td></tr>
-                        )}
-                      </tbody>
-                    </table>
+        {/* Main card */}
+        <div className="card profile-card license-main-card">
 
-                    <Paginator
-                      rows={perPage}
-                      totalRecords={total}
-                      onPageChange={pageChange}
-                      pageLinkSize={3}
-                      showCurrentPageReport
-                      currentPageReportTemplate={`${from} al ${to} de ${total} noticias`}
-                    />
-                  </div>
-                </div>
-              </div>
+          {/* Header */}
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-file-edit" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
             </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Notas</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Listado de notas</small>
+            </div>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => chargeNotes(page)}
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+              Recargar
+            </button>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body">
+            {loading ? (
+              <SkeletonRows />
+            ) : (
+              <div className="animated fadeIn">
+                <DataTable
+                  value={notes}
+                  className="p-datatable-sm license-table"
+                  emptyMessage={
+                    <div className="license-empty">
+                      <i className="pi pi-inbox" />
+                      <p>No hay notas.</p>
+                    </div>
+                  }
+                >
+                  <Column
+                    header="IMAGEN"
+                    style={{ width: "8%" }}
+                    body={(note) => (
+                      note.images?.length > 0 && note.images[0].path_url ? (
+                        <img
+                          src={`${API_URL}${note.images[0].path_url}`}
+                          alt={note.title}
+                          style={{ width: 150, height: 78, objectFit: "cover", borderRadius: 8, display: "block" }}
+                        />
+                      ) : (
+                        <div style={{ width: 110, height: 78, borderRadius: 8, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <i className="pi pi-image" style={{ color: "#cbd5e1", fontSize: "1.4rem" }} />
+                        </div>
+                      )
+                    )}
+                  />
+                  <Column
+                    header="TÍTULO"
+                    style={{ width: "25%" }}
+                    body={(note) => <span className="license-cell-primary">{note.title}</span>}
+                  />
+                  <Column
+                    header="SUBTÍTULO"
+                    style={{ width: "32%" }}
+                    body={(note) => (
+                      <span className="license-cell-secondary">
+                        {note.subtitle?.length > 100 ? `${note.subtitle.slice(0, 100)}...` : note.subtitle}
+                      </span>
+                    )}
+                  />
+                  <Column
+                    header={<span>LIKES <i className="mdi mdi-thumb-up text-primary" /></span>}
+                    style={{ width: "10%", textAlign: "left" }}
+                    body={(note) => <span className="license-cell-primary">{note.likes_count}</span>}
+                  />
+                  <Column
+                    header=""
+                    style={{ width: "15%", textAlign: "center" }}
+                    body={(note) => (
+                      <div className="d-flex align-items-center justify-content-center" style={{ gap: "6px" }}>
+                        <Tooltip label="Editar">
+                          <Link href={`/main/notes/${note.id}`} className="license-action-btn">
+                            <i className="pi pi-pencil" />
+                          </Link>
+                        </Tooltip>
+                        <Tooltip label="Eliminar">
+                          <button
+                            type="button"
+                            onClick={() => setNoteToDelete(note)}
+                            style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545", height: "30px" }}
+                          >
+                            <i className="pi pi-trash" />
+                          </button>
+                        </Tooltip>
+                      </div>
+                    )}
+                  />
+                </DataTable>
+
+                <Paginator
+                  className="mt-2"
+                  first={from - 1}
+                  rows={perPage}
+                  totalRecords={total}
+                  onPageChange={pageChange}
+                  pageLinkSize={3}
+                  leftContent={
+                    <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500 }}>
+                      {from} al {to} de {total} notas
+                    </span>
+                  }
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
 
+      {/* Delete confirmation dialog */}
       <Dialog
-        header={`¿Eliminar nota '${noteToDelete?.title}'?`}
+        header={deleteDialogHeader}
         visible={!!noteToDelete}
         modal
         draggable={false}
         resizable={false}
-        style={{ width: "40vw" }}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(420px, 92vw)" }}
         onHide={() => setNoteToDelete(null)}
-        footer={deleteFooter}
-      />
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                disabled={loadingDelete}
+                onClick={handleDeleteConfirm}
+                type="button"
+                className="btn btn-danger d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingDelete ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
+                {loadingDelete ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+              <button
+                disabled={loadingDelete}
+                onClick={() => setNoteToDelete(null)}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingDelete && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
+          Está a punto de eliminar la nota <strong>{noteToDelete?.title}</strong>.
+        </p>
+      </Dialog>
     </>
   );
 }

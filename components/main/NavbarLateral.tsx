@@ -231,7 +231,7 @@ export default function NavbarLateral() {
                         </a>
                         <ul className={`collapse${openMenus["notas"] ? " show" : ""}`}>
                           <li><Link className="nav-toggler" href="/main/notes-config" onClick={onNavClick}>Configuración de notas</Link></li>
-                          <li><Link className="nav-toggler" href="/main/notes-list" onClick={onNavClick}>Lista notas</Link></li>
+                          <li><Link className="nav-toggler" href="/main/noteslist" onClick={onNavClick}>Lista notas</Link></li>
                           <li><Link className="nav-toggler" href="/main/notes" onClick={onNavClick}>Subir nota</Link></li>
                         </ul>
                       </li>
