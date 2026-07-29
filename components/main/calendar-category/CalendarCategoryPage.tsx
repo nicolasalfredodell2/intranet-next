@@ -3,26 +3,82 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
+import { Dialog } from "primereact/dialog";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
 import { ProgressBar } from "primereact/progressbar";
 import { getCalendarCategories, createCalendarCategory, updateCalendarCategory, deleteCalendarCategory } from "@/lib/services/calendar-category.service";
+
+function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  return (
+    <span
+      style={{ display: "inline-flex" }}
+      onMouseEnter={(e) => {
+        const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setPos({ top: r.top, left: r.left + r.width / 2 });
+      }}
+      onMouseLeave={() => setPos(null)}
+    >
+      {children}
+      {pos && (
+        <div style={{ position: "fixed", top: pos.top - 10, left: pos.left, transform: "translateX(-50%) translateY(-100%)", background: "#1e293b", color: "#fff", padding: "5px 11px", borderRadius: "7px", fontSize: "0.71rem", fontWeight: 500, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 9999, boxShadow: "0 4px 14px rgba(0,0,0,0.18)", letterSpacing: "0.01em" }}>
+          {label}
+          <div style={{ position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)", borderWidth: "5px", borderStyle: "solid", borderColor: "#1e293b transparent transparent transparent" }} />
+        </div>
+      )}
+    </span>
+  );
+}
+
+interface CategoryForm { name: string; colour: string; }
+interface CategoryItem { id: number; name: string; colour: string; }
+
+function SkeletonRows() {
+  return (
+    <div style={{ padding: "4px 0 8px" }}>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="license-skeleton-row">
+          {[8, 62, 20].map((w, j) => (
+            <div key={j} className="license-skeleton-cell" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const DEFAULT_COLOUR = "#2196f3";
 
 export default function CalendarCategoryPage() {
   const toast = useRef<Toast>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
-  const [form, setForm] = useState({ name: "", colour: "#2196f3" });
+  const [form, setForm] = useState<CategoryForm>({ name: "", colour: DEFAULT_COLOUR });
   const [touched, setTouched] = useState(false);
-  const [categoryToEdit, setCategoryToEdit] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+
+  const [categoryToModify, setCategoryToModify] = useState<CategoryItem | null>(null);
+  const [modifyForm, setModifyForm] = useState<CategoryForm>({ name: "", colour: DEFAULT_COLOUR });
+  const [modifyTouched, setModifyTouched] = useState(false);
+  const [loadingModify, setLoadingModify] = useState(false);
 
   useEffect(() => { load(); }, []);
 
   async function load() {
+    if (loading) return;
     setLoading(true);
-    try { setCategories(await getCalendarCategories()); } catch { toast.current?.show({ severity: "error", summary: "No se pudo cargar las categorías" }); }
-    finally { setLoading(false); }
+    try {
+      setCategories(await getCalendarCategories());
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se pudo cargar las categorías" });
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -31,29 +87,52 @@ export default function CalendarCategoryPage() {
     if (!form.name || !form.colour) return;
     setLoadingAction(true);
     try {
-      if (categoryToEdit) {
-        const resp = await updateCalendarCategory(form, categoryToEdit.id);
-        setCategories((prev) => prev.map((c) => c.id === categoryToEdit.id ? resp.category ?? { ...c, ...form } : c));
-        toast.current?.show({ severity: "success", summary: "Categoría modificada" });
-      } else {
-        const resp = await createCalendarCategory(form);
-        setCategories((prev) => [...prev, resp.category ?? resp]);
-        toast.current?.show({ severity: "success", summary: "Categoría creada" });
-      }
+      const resp = await createCalendarCategory(form);
+      setCategories((prev) => [...prev, resp.category ?? resp.important_date_category ?? resp]);
+      toast.current?.show({ severity: "success", summary: "Categoría creada" });
       limpiar();
     } catch (err: any) {
-      toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
+      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
     } finally {
       setLoadingAction(false);
     }
   }
 
   function limpiar() {
-    setForm({ name: "", colour: "#2196f3" });
-    setCategoryToEdit(null); setTouched(false);
+    setForm({ name: "", colour: DEFAULT_COLOUR });
+    setTouched(false);
   }
 
-  async function handleDelete() {
+  function abrirModificar(category: CategoryItem) {
+    setCategoryToModify(category);
+    setModifyForm({ name: category.name, colour: category.colour });
+    setModifyTouched(false);
+  }
+
+  function cerrarModificar() {
+    setCategoryToModify(null);
+    setModifyForm({ name: "", colour: DEFAULT_COLOUR });
+    setModifyTouched(false);
+  }
+
+  async function handleModifySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setModifyTouched(true);
+    if (!modifyForm.name || !modifyForm.colour || !categoryToModify) return;
+    setLoadingModify(true);
+    try {
+      const resp = await updateCalendarCategory(modifyForm, categoryToModify.id);
+      setCategories((prev) => prev.map((c) => (c.id === categoryToModify.id ? resp.category ?? resp.important_date_category ?? { ...c, ...modifyForm } : c)));
+      toast.current?.show({ severity: "success", summary: "Categoría modificada" });
+      cerrarModificar();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
+    } finally {
+      setLoadingModify(false);
+    }
+  }
+
+  async function confirmarEliminacion() {
     if (!categoryToDelete) return;
     setLoadingDelete(true);
     try {
@@ -61,112 +140,367 @@ export default function CalendarCategoryPage() {
       setCategories((prev) => prev.filter((c) => c.id !== categoryToDelete.id));
       toast.current?.show({ severity: "success", summary: "Categoría eliminada" });
       setCategoryToDelete(null);
-    } catch { toast.current?.show({ severity: "error", summary: "No se pudo eliminar la categoría" }); }
-    finally { setLoadingDelete(false); }
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se pudo eliminar la categoría" });
+    } finally {
+      setLoadingDelete(false);
+    }
   }
+
+const filtered = searchTerm
+    ? categories.filter((c) => c.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : categories;
+
+  const modifyDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar categoría</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{categoryToModify?.name}</small>
+      </div>
+    </div>
+  );
+
+  const deleteDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-trash" style={{ color: "#dc3545", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar categoría</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
+      </div>
+    </div>
+  );
 
   return (
     <>
       <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Categorías de calendario</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Categorías de calendario</li>
-            </ol>
+
+        {/* Header card */}
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-tags" style={{ color: "#059669", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Categorías de calendario</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Gestión de categorías de eventos importantes</small>
+            </div>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={load}
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+              Recargar
+            </button>
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-12 col-lg-5">
-            <div className="card">
-              <div className="card-header">
-                <h5>{categoryToEdit ? "Modificar categoría" : "Nueva categoría"}</h5>
-              </div>
-              <div className="card-body">
-                <form onSubmit={handleSubmit} noValidate>
-                  <div className="form-group">
-                    <label><small>Nombre *</small></label>
-                    <input type="text" className="form-control" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
-                    {touched && !form.name && <small className="text-danger">* Obligatorio</small>}
-                  </div>
-                  <div className="form-group">
-                    <label><small>Color *</small></label>
-                    <div className="d-flex align-items-center gap-2">
-                      <input type="color" className="form-control form-control-sm" style={{ width: 60, height: 38, padding: 2 }} value={form.colour} onChange={(e) => setForm((p) => ({ ...p, colour: e.target.value }))} />
-                      <input type="text" className="form-control form-control-sm" value={form.colour} onChange={(e) => setForm((p) => ({ ...p, colour: e.target.value }))} placeholder="#2196f3" />
-                    </div>
-                  </div>
-                  <div className="row mt-3">
-                    <div className="col-6">
-                      <button disabled={loadingAction} type="submit" className="btn btn-block btn-info">
-                        {categoryToEdit ? (loadingAction ? "Modificando..." : "Modificar") : (loadingAction ? "Creando..." : "Crear")}
-                      </button>
-                    </div>
-                    <div className="col-6">
-                      <button type="button" className="btn btn-block btn-muted" onClick={limpiar}>Limpiar</button>
-                    </div>
-                  </div>
-                  {loadingAction && <ProgressBar mode="indeterminate" style={{ height: "4px" }} className="mt-2" />}
-                </form>
-              </div>
+        {/* Create form card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva categoría</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear una categoría</small>
             </div>
           </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
-          <div className="col-12 col-lg-7">
-            <div className="card">
-              <div className="card-body">
-                {loading && <ProgressBar mode="indeterminate" style={{ height: "4px" }} />}
-                <table className="table table-sm table-striped">
-                  <thead>
-                    <tr>
-                      <th>COLOR</th>
-                      <th>NOMBRE</th>
-                      <th>ACCIONES</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {categories.map((cat) => (
-                      <tr key={cat.id} className="fadeIn animated">
-                        <td>
-                          <div style={{ width: 24, height: 24, borderRadius: "50%", backgroundColor: cat.colour }} />
-                        </td>
-                        <td>{cat.name}</td>
-                        <td>
-                          <i className="fa-regular fa-pen-to-square text-info pointer mr-2" onClick={() => { setCategoryToEdit(cat); setForm({ name: cat.name, colour: cat.colour }); setTouched(false); }} />
-                          <i className="fa-regular fa-circle-xmark text-danger pointer" onClick={() => setCategoryToDelete(cat)} />
-                        </td>
-                      </tr>
-                    ))}
-                    {!loading && categories.length === 0 && <tr><td colSpan={3} className="text-center text-muted">No hay categorías.</td></tr>}
-                  </tbody>
-                </table>
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
+              <div className="row">
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Nombre *</label>
+                  <input
+                    className="profile-input"
+                    type="text"
+                    maxLength={100}
+                    value={form.name}
+                    onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                  />
+                  {touched && !form.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                </div>
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Color *</label>
+                  <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+                    <input
+                      type="color"
+                      value={form.colour}
+                      onChange={(e) => setForm((p) => ({ ...p, colour: e.target.value }))}
+                      style={{ width: 40, height: 40, padding: 2, border: "1.5px solid #e2e8f0", borderRadius: "8px", cursor: "pointer", flexShrink: 0 }}
+                    />
+                    <input
+                      className="profile-input"
+                      type="text"
+                      placeholder="#2196f3"
+                      value={form.colour}
+                      onChange={(e) => setForm((p) => ({ ...p, colour: e.target.value }))}
+                    />
+                  </div>
+                  {touched && !form.colour && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                </div>
               </div>
+
+              <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
+                <button
+                  disabled={loadingAction}
+                  type="submit"
+                  className="btn btn-primary d-flex align-items-center"
+                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                >
+                  <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                  {loadingAction ? "Creando..." : "Crear categoría"}
+                </button>
+                <button
+                  type="button"
+                  disabled={loadingAction}
+                  onClick={limpiar}
+                  className="btn btn-light text-muted ml-auto"
+                  style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+                >
+                  Limpiar
+                </button>
+              </div>
+
+              {loadingAction && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+            </form>
+          </div>
+        </div>
+
+        {/* List card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-list" style={{ color: "#3b82f6", fontSize: "1rem" }} />
             </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{categories.length} {categories.length === 1 ? "categoría en total" : "categorías totales"}</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+
+            {/* Filter bar */}
+            {(categories.length > 0 || searchTerm) && (
+              <div className="license-filter-bar mb-3">
+                <div className="license-filter-bar-inputs">
+                  <div className={`license-filter-input-wrap${searchTerm ? " license-filter-input-wrap--active" : ""}`}>
+                    <i className="pi pi-search license-filter-icon" />
+                    <input
+                      className="license-filter-input"
+                      style={{ paddingLeft: "32px" }}
+                      placeholder="Buscar categoría por nombre…"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                {searchTerm && (
+                  <button type="button" className="license-filter-clear" onClick={() => setSearchTerm("")}>
+                    <i className="pi pi-times" /> Limpiar
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Loading skeleton */}
+            {loading ? (
+              <SkeletonRows />
+            ) : (
+              <DataTable
+                value={filtered}
+                className="p-datatable-sm license-table"
+                paginator
+                rows={10}
+                rowsPerPageOptions={[10, 15, 20]}
+                paginatorRight={
+                  <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                    {filtered.length} {filtered.length === 1 ? "categoría" : "categorías"}
+                  </span>
+                }
+                emptyMessage={
+                  <div className="license-empty">
+                    <i className="pi pi-inbox" />
+                    <p>
+                      {searchTerm
+                        ? `No se encontraron categorías con el nombre "${searchTerm}".`
+                        : "No hay categorías disponibles para mostrar."}
+                    </p>
+                  </div>
+                }
+              >
+                <Column
+                  header="COLOR"
+                  style={{ width: "10%" }}
+                  body={(category) => (
+                    <span style={{ display: "inline-block", width: 20, height: 20, borderRadius: "50%", background: category.colour, border: "1.5px solid rgba(0,0,0,0.06)" }} />
+                  )}
+                />
+                <Column
+                  field="name"
+                  header="NOMBRE"
+                  sortable
+                  body={(category) => <span className="license-cell-primary">{category.name}</span>}
+                />
+                <Column
+                  header=""
+                  style={{ width: "15%", textAlign: "center" }}
+                  body={(category) => (
+                    <div className="d-flex align-items-center justify-content-center" style={{ gap: "6px" }}>
+                      <Tooltip label="Modificar">
+                        <button
+                          type="button"
+                          onClick={() => abrirModificar(category)}
+                          className="license-action-btn"
+                        >
+                          <i className="pi pi-pencil" />
+                        </button>
+                      </Tooltip>
+                      <Tooltip label="Eliminar">
+                        <button
+                          type="button"
+                          onClick={() => setCategoryToDelete(category)}
+                          style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545", height: "30px" }}
+                        >
+                          <i className="pi pi-trash" />
+                        </button>
+                      </Tooltip>
+                    </div>
+                  )}
+                />
+              </DataTable>
+            )}
           </div>
         </div>
       </div>
 
-      {categoryToDelete && (
-        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 400 }}>
-            <div className="modal-content text-center p-4">
-              <i className="mdi mdi-alert-circle-outline text-danger mb-3" style={{ fontSize: "3rem" }} />
-              <h4>¿Eliminar categoría?</h4>
-              <p><strong>&quot;{categoryToDelete?.name}&quot;</strong></p>
-              <div className="row g-2 mt-3">
-                <div className="col-6"><button disabled={loadingDelete} className="btn btn-light w-100" onClick={() => setCategoryToDelete(null)}>Cancelar</button></div>
-                <div className="col-6"><button disabled={loadingDelete} className="btn btn-danger w-100" onClick={handleDelete}>{loadingDelete ? "..." : "Eliminar"}</button></div>
-              </div>
+      {/* Modify category dialog */}
+      <Dialog
+        header={modifyDialogHeader}
+        visible={!!categoryToModify}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(480px, 92vw)" }}
+        onHide={cerrarModificar}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="modify-category-form"
+                disabled={loadingModify}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingModify ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingModify ? "Modificando..." : "Modificar"}
+              </button>
+              <button
+                disabled={loadingModify}
+                onClick={cerrarModificar}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
             </div>
+            {loadingModify && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
-        </div>
-      )}
+        }
+      >
+        <form id="modify-category-form" onSubmit={handleModifySubmit} noValidate>
+          <div className="mb-3">
+            <label className="profile-field-label">Nombre *</label>
+            <input
+              className="profile-input"
+              type="text"
+              maxLength={100}
+              value={modifyForm.name}
+              onChange={(e) => setModifyForm((p) => ({ ...p, name: e.target.value }))}
+            />
+            {modifyTouched && !modifyForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+          <div className="mb-1">
+            <label className="profile-field-label">Color *</label>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <input
+                type="color"
+                value={modifyForm.colour}
+                onChange={(e) => setModifyForm((p) => ({ ...p, colour: e.target.value }))}
+                style={{ width: 40, height: 40, padding: 2, border: "1.5px solid #e2e8f0", borderRadius: "8px", cursor: "pointer", flexShrink: 0 }}
+              />
+              <input
+                className="profile-input"
+                type="text"
+                placeholder="#2196f3"
+                value={modifyForm.colour}
+                onChange={(e) => setModifyForm((p) => ({ ...p, colour: e.target.value }))}
+              />
+            </div>
+            {modifyTouched && !modifyForm.colour && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        header={deleteDialogHeader}
+        visible={!!categoryToDelete}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(420px, 92vw)" }}
+        onHide={() => setCategoryToDelete(null)}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                disabled={loadingDelete}
+                onClick={confirmarEliminacion}
+                type="button"
+                className="btn btn-danger d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingDelete ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
+                {loadingDelete ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+              <button
+                disabled={loadingDelete}
+                onClick={() => setCategoryToDelete(null)}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingDelete && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
+          Está a punto de eliminar la categoría <strong>{categoryToDelete?.name}</strong>.
+        </p>
+      </Dialog>
     </>
   );
 }
