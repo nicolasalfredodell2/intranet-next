@@ -177,7 +177,7 @@ export default function NotesListPage() {
                   />
                   <Column
                     header="TÍTULO"
-                    style={{ width: "25%" }}
+                    style={{ width: "30%" }}
                     body={(note) => <span className="license-cell-primary">{note.title}</span>}
                   />
                   <Column
@@ -190,7 +190,7 @@ export default function NotesListPage() {
                     )}
                   />
                   <Column
-                    header={<span>LIKES <i className="mdi mdi-thumb-up text-primary" /></span>}
+                    header="LIKES"
                     style={{ width: "10%", textAlign: "left" }}
                     body={(note) => <span className="license-cell-primary">{note.likes_count}</span>}
                   />
