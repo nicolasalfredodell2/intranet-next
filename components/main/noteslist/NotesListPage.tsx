@@ -61,6 +61,8 @@ export default function NotesListPage() {
 
   const [noteToDelete, setNoteToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
+  const [hoveredImage, setHoveredImage] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
 
   useEffect(() => { chargeNotes(); }, []);
 
@@ -163,11 +165,33 @@ export default function NotesListPage() {
                     style={{ width: "8%" }}
                     body={(note) => (
                       note.images?.length > 0 && note.images[0].path_url ? (
-                        <img
-                          src={`${API_URL}${note.images[0].path_url}`}
-                          alt={note.title}
-                          style={{ width: 150, height: 78, objectFit: "cover", borderRadius: 8, display: "block" }}
-                        />
+                        <div
+                          onMouseEnter={() => setHoveredImage(note.id)}
+                          onMouseLeave={() => setHoveredImage(null)}
+                          style={{ position: "relative", width: 150, height: 78, borderRadius: 8, overflow: "hidden" }}
+                        >
+                          <img
+                            src={`${API_URL}${note.images[0].path_url}`}
+                            alt={note.title}
+                            onClick={() => setPreviewImage({ src: `${API_URL}${note.images[0].path_url}`, alt: note.title })}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", cursor: "zoom-in", transition: "opacity 0.15s", opacity: hoveredImage === note.id ? 0.85 : 1 }}
+                          />
+                          <div
+                            onClick={() => setPreviewImage({ src: `${API_URL}${note.images[0].path_url}`, alt: note.title })}
+                            style={{
+                              position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              opacity: hoveredImage === note.id ? 1 : 0,
+                              transition: "opacity 0.15s",
+                              pointerEvents: hoveredImage === note.id ? "auto" : "none",
+                              cursor: "zoom-in",
+                            }}
+                          >
+                            <span style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(30,41,59,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <i className="pi pi-search-plus" style={{ color: "#fff", fontSize: "0.95rem" }} />
+                            </span>
+                          </div>
+                        </div>
                       ) : (
                         <div style={{ width: 110, height: 78, borderRadius: 8, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <i className="pi pi-image" style={{ color: "#cbd5e1", fontSize: "1.4rem" }} />
@@ -278,6 +302,23 @@ export default function NotesListPage() {
         <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
           Está a punto de eliminar la nota <strong>{noteToDelete?.title}</strong>.
         </p>
+      </Dialog>
+
+      {/* Image preview dialog */}
+      <Dialog
+        header="Imagen de la nota"
+        visible={!!previewImage}
+        modal
+        draggable={false}
+        resizable={false}
+        dismissableMask
+        style={{ width: "min(90vw, 900px)" }}
+        onHide={() => setPreviewImage(null)}
+      >
+        {previewImage && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewImage.src} alt={previewImage.alt} style={{ width: "100%", height: "auto", borderRadius: "8px", display: "block" }} />
+        )}
       </Dialog>
     </>
   );
