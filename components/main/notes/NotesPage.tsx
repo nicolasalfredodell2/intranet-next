@@ -31,11 +31,11 @@ function MultiFileDropzone({ files, onFiles, onRemove }: { files: File[]; onFile
       <small className="text-muted d-block" style={{ fontSize: "0.7rem" }}><strong>JPG, JPEG, PNG, WEBP o GIF</strong> — <strong>MÁX. 5MB</strong></small>
       <input ref={ref} type="file" multiple accept={ACCEPTED_TYPES.join(",")} style={{ display: "none" }} onChange={(e) => { if (e.target.files) onFiles(e.target.files); }} />
       {files.length > 0 && (
-        <div className="d-flex flex-wrap mt-2" style={{ gap: "8px" }} onClick={(e) => e.stopPropagation()}>
+        <div className="d-flex flex-wrap justify-content-center mt-2" style={{ gap: "12px" }} onClick={(e) => e.stopPropagation()}>
           {files.map((f, i) => (
             <div key={i} className="position-relative d-inline-block">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={URL.createObjectURL(f)} alt={f.name} style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }} />
+              <img src={URL.createObjectURL(f)} alt={f.name} className="rounded border" style={{ width: 260, height: "auto", display: "block" }} />
               <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={() => onRemove(i)}>×</button>
             </div>
           ))}
