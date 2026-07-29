@@ -26,9 +26,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Intranet",
+  title: "Intranet | Tribunal de Cuentas de Río Negro",
   description: "Intranet",
-  authors: [{ name: "Tribunal de Cuentas de Río Negro - Area Informática" }],
+  authors: [{ name: "Tribunal de Cuentas de Río Negro - Area de Informática" }],
   robots: "noindex",
   themeColor: "#1976d2",
   manifest: "/manifest.json",
