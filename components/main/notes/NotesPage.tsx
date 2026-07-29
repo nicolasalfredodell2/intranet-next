@@ -16,8 +16,9 @@ const ACCEPTED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "i
 
 interface NoteForm { title: string; subtitle: string; description: string; }
 
-function MultiFileDropzone({ files, onFiles, onRemove }: { files: File[]; onFiles: (f: FileList | File[]) => void; onRemove: (i: number) => void }) {
+function MultiFileDropzone({ files, onFiles, onRemove, onPreview }: { files: File[]; onFiles: (f: FileList | File[]) => void; onRemove: (i: number) => void; onPreview: (src: string, alt: string) => void }) {
   const [drag, setDrag] = useState(false);
+  const [hovered, setHovered] = useState<number | null>(null);
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div
@@ -32,13 +33,43 @@ function MultiFileDropzone({ files, onFiles, onRemove }: { files: File[]; onFile
       <input ref={ref} type="file" multiple accept={ACCEPTED_TYPES.join(",")} style={{ display: "none" }} onChange={(e) => { if (e.target.files) onFiles(e.target.files); }} />
       {files.length > 0 && (
         <div className="d-flex flex-wrap justify-content-center mt-2" style={{ gap: "12px" }} onClick={(e) => e.stopPropagation()}>
-          {files.map((f, i) => (
-            <div key={i} className="position-relative d-inline-block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={URL.createObjectURL(f)} alt={f.name} className="rounded border" style={{ width: 260, height: "auto", display: "block" }} />
-              <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={() => onRemove(i)}>×</button>
-            </div>
-          ))}
+          {files.map((f, i) => {
+            const src = URL.createObjectURL(f);
+            return (
+              <div key={i} className="position-relative d-inline-block">
+                <div
+                  onMouseEnter={() => setHovered(i)}
+                  onMouseLeave={() => setHovered(null)}
+                  style={{ position: "relative", width: 260, borderRadius: 8, overflow: "hidden" }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={src}
+                    alt={f.name}
+                    className="rounded border"
+                    style={{ width: 260, height: "auto", display: "block", cursor: "zoom-in", transition: "opacity 0.15s", opacity: hovered === i ? 0.85 : 1 }}
+                    onClick={() => onPreview(src, f.name)}
+                  />
+                  <div
+                    onClick={() => onPreview(src, f.name)}
+                    style={{
+                      position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      opacity: hovered === i ? 1 : 0,
+                      transition: "opacity 0.15s",
+                      pointerEvents: hovered === i ? "auto" : "none",
+                      cursor: "zoom-in",
+                    }}
+                  >
+                    <span style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(30,41,59,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <i className="pi pi-search-plus" style={{ color: "#fff", fontSize: "1.1rem" }} />
+                    </span>
+                  </div>
+                </div>
+                <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={() => onRemove(i)}>×</button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -60,7 +91,7 @@ export default function NotesPage() {
   const [isDeletingImage, setIsDeletingImage] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
   const [hoveredImage, setHoveredImage] = useState<number | null>(null);
-  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string; title: string } | null>(null);
 
   useEffect(() => {
     if (isModify && idNote) loadNote(idNote);
@@ -243,10 +274,10 @@ export default function NotesPage() {
                               style={{ width: 260, height: "auto", display: "block", cursor: "zoom-in", transition: "opacity 0.15s", opacity: hoveredImage === idx ? 0.85 : 1 }}
                               src={src}
                               alt="Imagen noticia"
-                              onClick={() => setPreviewImage({ src, alt: "Imagen noticia" })}
+                              onClick={() => setPreviewImage({ src, alt: "Imagen noticia", title: "Imagen actual de la nota" })}
                             />
                             <div
-                              onClick={() => setPreviewImage({ src, alt: "Imagen noticia" })}
+                              onClick={() => setPreviewImage({ src, alt: "Imagen noticia", title: "Imagen actual de la nota" })}
                               style={{
                                 position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
                                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -275,6 +306,7 @@ export default function NotesPage() {
                   files={files}
                   onFiles={handleFiles}
                   onRemove={(i) => setFiles((p) => p.filter((_, j) => j !== i))}
+                  onPreview={(src, alt) => setPreviewImage({ src, alt, title: "Imagen nueva de la nota" })}
                 />
                 {touched && !isModify && files.length === 0 && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Debe ingresar una imagen</small>}
               </div>
@@ -323,7 +355,7 @@ export default function NotesPage() {
 
       {/* Image preview dialog */}
       <Dialog
-        header="Imagen de la nota"
+        header={previewImage?.title}
         visible={!!previewImage}
         modal
         draggable={false}
