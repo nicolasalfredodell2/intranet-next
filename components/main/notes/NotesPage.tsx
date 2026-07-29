@@ -7,13 +7,11 @@ import { ProgressBar } from "primereact/progressbar";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getNote, createNote, modificateNote, deleteNoteImage } from "@/lib/services/notes.service";
+import RichTextEditor from "@/components/common/RichTextEditor";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
-
-declare function initEditorTinymce(): void;
-declare const tinymce: any;
 
 interface NoteForm { title: string; subtitle: string; description: string; }
 
@@ -55,48 +53,15 @@ export default function NotesPage() {
   const [form, setForm] = useState<NoteForm>({ title: "", subtitle: "", description: "" });
   const [touched, setTouched] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [disabledForWait, setDisabledForWait] = useState(false);
+  const [disabledForWait, setDisabledForWait] = useState(isModify);
   const [files, setFiles] = useState<File[]>([]);
   const [filesModificate, setFilesModificate] = useState<any[]>([]);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
-  const [editorReady, setEditorReady] = useState(false);
-  const intervalRef = useRef<any>(null);
+  const [editorKey, setEditorKey] = useState(0);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const tryInit = () => {
-      try {
-        (window as any).initEditorTinymce?.();
-        setEditorReady(true);
-      } catch { /* retry */ }
-    };
-    const t = setTimeout(tryInit, 200);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    if (!editorReady) return;
-    if (isModify && idNote) {
-      loadNote(idNote);
-    } else {
-      startInterval();
-    }
-    return () => {
-      clearInterval(intervalRef.current);
-      try {
-        if (tinymce.activeEditor) tinymce.EditorManager.execCommand("mceRemoveEditor", true, "mymce");
-      } catch { /* ignore */ }
-    };
-  }, [editorReady]);
-
-  function startInterval() {
-    intervalRef.current = setInterval(() => {
-      try {
-        const content = tinymce.get("mymce")?.getContent?.();
-        if (content !== undefined) setForm((p) => ({ ...p, description: content }));
-      } catch { /* editor not ready */ }
-    }, 1000);
-  }
+    if (isModify && idNote) loadNote(idNote);
+  }, [idNote]);
 
   async function loadNote(id: string) {
     setDisabledForWait(true);
@@ -104,10 +69,7 @@ export default function NotesPage() {
       const resp = await getNote(id);
       setForm({ title: resp.title ?? "", subtitle: resp.subtitle ?? "", description: resp.description ?? "" });
       setFilesModificate(resp.images ?? []);
-      setTimeout(() => {
-        try { tinymce.activeEditor?.setContent(resp.description ?? ""); } catch { /* ignore */ }
-        startInterval();
-      }, 1500);
+      setEditorKey((k) => k + 1);
     } catch {
       toast.current?.show({ severity: "error", summary: "No se pudo cargar la nota" });
     } finally {
@@ -148,18 +110,14 @@ export default function NotesPage() {
     setForm({ title: "", subtitle: "", description: "" });
     setFiles([]);
     setTouched(false);
-    try { tinymce.activeEditor?.setContent(""); } catch { /* ignore */ }
+    setEditorKey((k) => k + 1);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched(true);
 
-    // Get TinyMCE content
-    let description = "";
-    try { description = tinymce.get("mymce")?.getContent() ?? ""; } catch { /* ignore */ }
-    setForm((p) => ({ ...p, description }));
-
+    const description = form.description;
     if (!form.title || !form.subtitle || !description) return;
     if (!isModify && files.length === 0) {
       toast.current?.show({ severity: "info", summary: "No se pudo crear la nota", detail: "Debe ingresar una imagen" });
@@ -235,10 +193,9 @@ export default function NotesPage() {
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-            {isModify && disabledForWait && (
-              <p className="text-muted mb-3"><i className="pi pi-spin pi-spinner mr-1" /> Cargando datos de la nota</p>
-            )}
-
+            {isModify && disabledForWait ? (
+              <p className="text-muted py-3"><i className="pi pi-spin pi-spinner mr-1" /> Cargando datos de la nota</p>
+            ) : (
             <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
               <div className="row">
                 <div className="col-12 col-md-6 mb-3">
@@ -296,39 +253,42 @@ export default function NotesPage() {
 
               <div className="mb-1">
                 <label className="profile-field-label">Descripción *</label>
-                <textarea id="mymce" />
+                <RichTextEditor
+                  key={editorKey}
+                  content={form.description}
+                  onChange={(html) => setForm((p) => ({ ...p, description: html }))}
+                />
                 {touched && !form.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* La descripción es obligatoria</small>}
               </div>
 
-              {!disabledForWait && (
-                <div className="d-flex align-items-center mt-4" style={{ gap: "8px" }}>
+              <div className="d-flex align-items-center mt-4" style={{ gap: "8px" }}>
+                <button
+                  disabled={loading}
+                  type="submit"
+                  className="btn btn-primary d-flex align-items-center"
+                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                >
+                  <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                  {isModify
+                    ? (loading ? "Modificando..." : "Modificar nota")
+                    : (loading ? "Subiendo..." : "Subir nota")}
+                </button>
+                {!isModify && (
                   <button
+                    type="button"
                     disabled={loading}
-                    type="submit"
-                    className="btn btn-primary d-flex align-items-center"
-                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                    onClick={limpiar}
+                    className="btn btn-light text-muted ml-auto"
+                    style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
                   >
-                    <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                    {isModify
-                      ? (loading ? "Modificando..." : "Modificar nota")
-                      : (loading ? "Subiendo..." : "Subir nota")}
+                    Limpiar
                   </button>
-                  {!isModify && (
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={limpiar}
-                      className="btn btn-light text-muted ml-auto"
-                      style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
-                    >
-                      Limpiar
-                    </button>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
 
-              {(loading || disabledForWait) && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+              {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
             </form>
+            )}
           </div>
         </div>
       </div>
