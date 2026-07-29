@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
+import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -58,6 +59,8 @@ export default function NotesPage() {
   const [filesModificate, setFilesModificate] = useState<any[]>([]);
   const [isDeletingImage, setIsDeletingImage] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
+  const [hoveredImage, setHoveredImage] = useState<number | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
 
   useEffect(() => {
     if (isModify && idNote) loadNote(idNote);
@@ -225,20 +228,45 @@ export default function NotesPage() {
 
                 {isModify && filesModificate.length > 0 && (
                   <div className="d-flex flex-wrap justify-content-center align-items-center mb-2" style={{ gap: "12px" }}>
-                    {filesModificate.map((image, idx) => (
-                      <div key={idx} className="d-flex flex-column align-items-center" style={{ gap: "8px" }}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          className="rounded border"
-                          style={{ width: 260, height: "auto" }}
-                          src={image.path_url ? `${API_URL}${image.path_url}` : "/assets/img/news/no-image.png"}
-                          alt="Imagen noticia"
-                        />
-                        {!isDeletingImage && filesModificate.length > 1 && (
-                          <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage(image)}>Quitar</button>
-                        )}
-                      </div>
-                    ))}
+                    {filesModificate.map((image, idx) => {
+                      const src = image.path_url ? `${API_URL}${image.path_url}` : "/assets/img/news/no-image.png";
+                      return (
+                        <div key={idx} className="d-flex flex-column align-items-center" style={{ gap: "8px" }}>
+                          <div
+                            onMouseEnter={() => setHoveredImage(idx)}
+                            onMouseLeave={() => setHoveredImage(null)}
+                            style={{ position: "relative", width: 260, borderRadius: 8, overflow: "hidden" }}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              className="rounded border"
+                              style={{ width: 260, height: "auto", display: "block", cursor: "zoom-in", transition: "opacity 0.15s", opacity: hoveredImage === idx ? 0.85 : 1 }}
+                              src={src}
+                              alt="Imagen noticia"
+                              onClick={() => setPreviewImage({ src, alt: "Imagen noticia" })}
+                            />
+                            <div
+                              onClick={() => setPreviewImage({ src, alt: "Imagen noticia" })}
+                              style={{
+                                position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                opacity: hoveredImage === idx ? 1 : 0,
+                                transition: "opacity 0.15s",
+                                pointerEvents: hoveredImage === idx ? "auto" : "none",
+                                cursor: "zoom-in",
+                              }}
+                            >
+                              <span style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(30,41,59,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                <i className="pi pi-search-plus" style={{ color: "#fff", fontSize: "1.1rem" }} />
+                              </span>
+                            </div>
+                          </div>
+                          {!isDeletingImage && filesModificate.length > 1 && (
+                            <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage(image)}>Quitar</button>
+                          )}
+                        </div>
+                      );
+                    })}
                     {isDeletingImage && <i className="pi pi-spin pi-spinner" />}
                   </div>
                 )}
@@ -292,6 +320,23 @@ export default function NotesPage() {
           </div>
         </div>
       </div>
+
+      {/* Image preview dialog */}
+      <Dialog
+        header="Imagen de la nota"
+        visible={!!previewImage}
+        modal
+        draggable={false}
+        resizable={false}
+        dismissableMask
+        style={{ width: "min(90vw, 900px)" }}
+        onHide={() => setPreviewImage(null)}
+      >
+        {previewImage && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewImage.src} alt={previewImage.alt} style={{ width: "100%", height: "auto", borderRadius: "8px", display: "block" }} />
+        )}
+      </Dialog>
     </>
   );
 }
