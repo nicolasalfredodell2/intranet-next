@@ -168,10 +168,10 @@ export default function NotesPage() {
 
     try {
       if (isModify) {
-        const resp = await modificateNote(fd, idNote!);
+        await modificateNote(fd, idNote!);
         toast.current?.show({ severity: "success", summary: "Nota modificada" });
         setFiles([]);
-        if (resp.image) setFilesModificate([{ path_url: resp.image.path_url }]);
+        await loadNote(idNote!);
       } else {
         await createNote(fd);
         toast.current?.show({ severity: "success", summary: "Nota creada" });
