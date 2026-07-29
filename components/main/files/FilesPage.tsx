@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Sidebar } from "primereact/sidebar";
+import { Dropdown } from "primereact/dropdown";
 import { loadFiles, loadFilePDF } from "@/lib/services/files.service";
+
+interface Filters {
+  categoria: string;
+  subcategoria: string;
+}
 
 const MIME_MAP: Record<string, string> = {
   pdf: "application/pdf",
@@ -52,7 +58,7 @@ export default function FilesPage() {
   const [openSubcategories, setOpenSubcategories] = useState<Record<string, boolean>>({});
   const [loadingFile, setLoadingFile] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
-  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<Filters>({ categoria: "", subcategoria: "" });
 
   useEffect(() => { load(); }, []);
 
@@ -141,17 +147,30 @@ export default function FilesPage() {
     </div>
   );
 
-  function matchesSearch(file: any) {
-    if (!search) return true;
-    return (file.name ?? file.title ?? "").toLowerCase().includes(search.toLowerCase());
+  const hasFilters = Object.values(filters).some(Boolean);
+
+  function categoryMatches(cat: any) {
+    return (
+      (!filters.categoria || cat.name === filters.categoria) &&
+      (!filters.subcategoria || cat.subcategories?.some((sub: any) => sub.name === filters.subcategoria))
+    );
   }
 
-  function categoryHasResults(cat: any) {
-    if (!search) return true;
-    return cat.subcategories?.some((sub: any) => sub.files?.some(matchesSearch)) ?? false;
+  function visibleSubcategories(cat: any) {
+    return (cat.subcategories ?? []).filter((sub: any) => !filters.subcategoria || sub.name === filters.subcategoria);
   }
 
-  const visibleCategories = categories.filter(categoryHasResults);
+  const visibleCategories = categories.filter(categoryMatches);
+
+  const categoriaOptions = [...new Set(categories.map((c) => c.name).filter(Boolean))].sort() as string[];
+  const subcategoriaOptions = [
+    ...new Set(categories.flatMap((c) => (c.subcategories ?? []).map((s: any) => s.name)).filter(Boolean)),
+  ].sort() as string[];
+
+  const filterFields: { field: keyof Filters; placeholder: string; icon: string; options: string[] }[] = [
+    { field: "categoria", placeholder: "Categoría", icon: "pi-folder", options: categoriaOptions },
+    { field: "subcategoria", placeholder: "Subcategoría", icon: "pi-folder-open", options: subcategoriaOptions },
+  ];
 
   return (
     <>
@@ -190,20 +209,32 @@ export default function FilesPage() {
             ) : (
               <div className="animated fadeIn">
 
-                {/* Search */}
-                <div className="bosses-search-wrap mb-3" style={{ maxWidth: 420 }}>
-                  <i className="pi pi-search bosses-search-icon" />
-                  <input
-                    className="profile-input"
-                    style={{ paddingLeft: "36px", paddingRight: search ? "40px" : "13px" }}
-                    placeholder="Buscar archivo…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    autoComplete="off"
-                  />
-                  {search && (
-                    <button type="button" className="bosses-search-clear" onClick={() => setSearch("")}>
-                      <i className="pi pi-times" style={{ fontSize: "0.72rem" }} />
+                {/* Filter bar */}
+                <div className="license-filter-bar">
+                  <div className="license-filter-bar-inputs">
+                    {filterFields.map(({ field, placeholder, icon, options }) => (
+                      <div key={field} className={`license-filter-input-wrap${filters[field] ? " license-filter-input-wrap--active" : ""}`}>
+                        <i className={`pi ${icon} license-filter-icon`} />
+                        <Dropdown
+                          value={filters[field] || null}
+                          options={options}
+                          onChange={(e) => setFilters((p) => ({ ...p, [field]: e.value ?? "" }))}
+                          placeholder={placeholder}
+                          className="license-filter-dropdown"
+                          panelClassName="license-filter-dropdown-panel"
+                          showClear={!!filters[field]}
+                          emptyMessage="Sin opciones"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {hasFilters && (
+                    <button
+                      type="button"
+                      className="license-filter-clear"
+                      onClick={() => setFilters({ categoria: "", subcategoria: "" })}
+                    >
+                      <i className="pi pi-times" /> Limpiar
                     </button>
                   )}
                 </div>
@@ -241,13 +272,12 @@ export default function FilesPage() {
 
                       {isOpen && (
                         <div className="fadeIn animated" style={{ background: "#fff", padding: "10px 14px 14px" }}>
-                          {(cat.subcategories ?? []).length === 0 && (
+                          {visibleSubcategories(cat).length === 0 && (
                             <p style={{ color: "#94a3b8", fontSize: "0.85rem", margin: 0 }}>No hay subcategorías.</p>
                           )}
 
-                          {(cat.subcategories ?? []).map((sub: any) => {
-                            const visibleFiles = (sub.files ?? []).filter(matchesSearch);
-                            if (search && visibleFiles.length === 0) return null;
+                          {visibleSubcategories(cat).map((sub: any) => {
+                            const visibleFiles = sub.files ?? [];
                             const subKey = `${catKey}::${sub.id ?? sub.name}`;
                             const isSubOpen = openSubcategories[subKey];
                             return (
@@ -327,7 +357,7 @@ export default function FilesPage() {
                   <div className="license-empty">
                     <i className="pi pi-inbox" />
                     <p>
-                      {search ? `No se encontraron archivos con "${search}".` : "No tenés archivos digitales asignados."}
+                      {hasFilters ? "No hay archivos con los filtros aplicados." : "No tenés archivos digitales asignados."}
                     </p>
                   </div>
                 )}
