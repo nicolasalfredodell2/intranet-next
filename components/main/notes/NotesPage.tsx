@@ -5,6 +5,7 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { getNote, createNote, modificateNote, deleteNoteImage } from "@/lib/services/notes.service";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -15,6 +16,35 @@ declare function initEditorTinymce(): void;
 declare const tinymce: any;
 
 interface NoteForm { title: string; subtitle: string; description: string; }
+
+function MultiFileDropzone({ files, onFiles, onRemove }: { files: File[]; onFiles: (f: FileList | File[]) => void; onRemove: (i: number) => void }) {
+  const [drag, setDrag] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div
+      className={`dropzone-area${drag ? " drag-over" : ""} text-center`}
+      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+      onDragLeave={() => setDrag(false)}
+      onDrop={(e) => { e.preventDefault(); setDrag(false); onFiles(e.dataTransfer.files); }}
+      onClick={() => ref.current?.click()}
+    >
+      <small className="text-muted d-block">Arrastre o haga click para subir imágenes</small>
+      <small className="text-muted d-block" style={{ fontSize: "0.7rem" }}><strong>JPG, JPEG, PNG, WEBP o GIF</strong> — <strong>MÁX. 5MB</strong></small>
+      <input ref={ref} type="file" multiple accept={ACCEPTED_TYPES.join(",")} style={{ display: "none" }} onChange={(e) => { if (e.target.files) onFiles(e.target.files); }} />
+      {files.length > 0 && (
+        <div className="d-flex flex-wrap mt-2" style={{ gap: "8px" }} onClick={(e) => e.stopPropagation()}>
+          {files.map((f, i) => (
+            <div key={i} className="position-relative d-inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={URL.createObjectURL(f)} alt={f.name} style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }} />
+              <button type="button" className="btn btn-danger btn-sm rounded-circle position-absolute" style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }} onClick={() => onRemove(i)}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function NotesPage() {
   const toast = useRef<Toast>(null);
@@ -31,8 +61,6 @@ export default function NotesPage() {
   const [isDeletingImage, setIsDeletingImage] = useState(false);
   const [editorReady, setEditorReady] = useState(false);
   const intervalRef = useRef<any>(null);
-  const [dragOver, setDragOver] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -116,6 +144,13 @@ export default function NotesPage() {
     }
   }
 
+  function limpiar() {
+    setForm({ title: "", subtitle: "", description: "" });
+    setFiles([]);
+    setTouched(false);
+    try { tinymce.activeEditor?.setContent(""); } catch { /* ignore */ }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched(true);
@@ -148,10 +183,7 @@ export default function NotesPage() {
       } else {
         await createNote(fd);
         toast.current?.show({ severity: "success", summary: "Nota creada" });
-        setFiles([]);
-        setForm({ title: "", subtitle: "", description: "" });
-        setTouched(false);
-        try { tinymce.activeEditor?.setContent(""); } catch { /* ignore */ }
+        limpiar();
       }
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
@@ -165,158 +197,138 @@ export default function NotesPage() {
       <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">{isModify ? "Modificación de nota" : "Subida de nota"}</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">{isModify ? "Modificación de nota" : "Subida de nota"}</li>
-            </ol>
+
+        {/* Header card */}
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-file-edit" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Notas</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{isModify ? "Modificación de nota" : "Subida de nota"}</small>
+            </div>
+            <Link
+              href="/main/noteslist"
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className="pi pi-list" style={{ fontSize: "0.78rem" }} />
+              Ver listado
+            </Link>
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-body">
-                {isModify && disabledForWait && (
-                  <p className="text-muted"><i className="pi pi-spin pi-spinner mr-1" /> Cargando datos de la nota</p>
+        {/* Form card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className={isModify ? "pi pi-pencil" : "pi pi-plus-circle"} style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>{isModify ? "Modificar nota" : "Nueva nota"}</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
+                {isModify ? "Actualizá los datos de la nota" : "Completá los datos para publicar una nota"}
+              </small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            {isModify && disabledForWait && (
+              <p className="text-muted mb-3"><i className="pi pi-spin pi-spinner mr-1" /> Cargando datos de la nota</p>
+            )}
+
+            <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
+              <div className="row">
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Título *</label>
+                  <input
+                    className="profile-input"
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                  />
+                  {touched && !form.title && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* El título es obligatorio</small>}
+                </div>
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Subtítulo *</label>
+                  <input
+                    className="profile-input"
+                    type="text"
+                    value={form.subtitle}
+                    onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
+                  />
+                  {touched && !form.subtitle && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* El subtítulo es obligatorio</small>}
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="profile-field-label">Imágenes {!isModify && "*"}</label>
+
+                {isModify && filesModificate.length > 0 && (
+                  <div className="d-flex flex-wrap align-items-center mb-2" style={{ gap: "10px" }}>
+                    {filesModificate.map((image, idx) => (
+                      <div key={idx} className="d-flex align-items-center" style={{ gap: "8px" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          className="rounded border"
+                          style={{ width: 80, height: 80, objectFit: "cover" }}
+                          src={image.path_url ? `${API_URL}${image.path_url}` : "/assets/img/news/no-image.png"}
+                          alt="Imagen noticia"
+                        />
+                        {!isDeletingImage && filesModificate.length > 1 && (
+                          <button type="button" className="btn btn-sm btn-danger" onClick={() => handleDeleteImage(image)}>Quitar</button>
+                        )}
+                      </div>
+                    ))}
+                    {isDeletingImage && <i className="pi pi-spin pi-spinner" />}
+                  </div>
                 )}
 
-                <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
-                  <div className="fadeIn animated form-group">
-                    <label className="col-md-12"><small>TÍTULO</small></label>
-                    <div className="col-md-12">
-                      <input
-                        type="text"
-                        className="form-control form-control-line form-control-sm"
-                        value={form.title}
-                        onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                      />
-                      {touched && !form.title && <small className="text-danger animated fadeIn">* El título es obligatorio</small>}
-                    </div>
-                  </div>
-
-                  <div className="fadeIn animated form-group">
-                    <label className="col-md-12"><small>SUBTÍTULO</small></label>
-                    <div className="col-md-12">
-                      <input
-                        type="text"
-                        className="form-control form-control-line form-control-sm"
-                        value={form.subtitle}
-                        onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))}
-                      />
-                      {touched && !form.subtitle && <small className="text-danger animated fadeIn">* El subtítulo es obligatorio</small>}
-                    </div>
-                  </div>
-
-                  <div className="fadeIn animated form-group">
-                    <label className="col-md-12"><small>IMÁGEN</small></label>
-                    <div className="row px-3">
-                      {isModify && filesModificate.length > 0 && (
-                        <div className="col-12 fadeIn animated text-center mb-2">
-                          <small>{filesModificate.length > 1 ? "(Imágenes previas)" : "(Imagen previa)"}</small>
-                          <br />
-                          {filesModificate.map((image, idx) => (
-                            <div key={idx} className="position-relative d-inline-block m-2">
-                              <img
-                                className="rounded border"
-                                style={{ width: 120, height: 120, objectFit: "cover" }}
-                                src={image.path_url ? `${API_URL}${image.path_url}` : "/assets/img/news/no-image.png"}
-                                alt="Imagen noticia"
-                              />
-                              {filesModificate.length > 1 && !isDeletingImage && (
-                                <button
-                                  type="button"
-                                  className="btn btn-danger btn-sm rounded-circle position-absolute shadow animated fadeIn"
-                                  style={{ top: 5, right: 5, width: 30, height: 30, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-                                  onClick={() => {
-                                    const img = { ...image, showConfirm: !image.showConfirm };
-                                    setFilesModificate((prev) => prev.map((i, j) => j === idx ? img : i));
-                                  }}
-                                  title="Eliminar imagen"
-                                >
-                                  <i className="mdi mdi-close" />
-                                </button>
-                              )}
-                              {image.showConfirm && !isDeletingImage && (
-                                <div className="shadow animated fadeIn">
-                                  <div className="btn-group btn-group-sm mt-1">
-                                    <button type="button" className="btn btn-danger px-2" onClick={() => handleDeleteImage(image)}>Sí</button>
-                                    <button type="button" className="btn btn-secondary px-2" onClick={() => setFilesModificate((prev) => prev.map((i, j) => j === idx ? { ...i, showConfirm: false } : i))}>No</button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="col-12">
-                        <div
-                          className={`dropzone-area${dragOver ? " drag-over" : ""}`}
-                          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                          onDragLeave={() => setDragOver(false)}
-                          onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          <p className="text-center text-muted mb-2">Seleccione o arrastre imágenes</p>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            multiple
-                            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
-                            style={{ display: "none" }}
-                            onChange={(e) => { if (e.target.files) handleFiles(e.target.files); }}
-                          />
-                          {files.length > 0 && (
-                            <div className="d-flex flex-wrap gap-2 mt-2">
-                              {files.map((f, i) => (
-                                <div key={i} className="position-relative d-inline-block">
-                                  <img
-                                    src={URL.createObjectURL(f)}
-                                    alt={f.name}
-                                    style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }}
-                                  />
-                                  <button
-                                    type="button"
-                                    className="btn btn-danger btn-sm rounded-circle position-absolute"
-                                    style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }}
-                                    onClick={(e) => { e.stopPropagation(); setFiles((p) => p.filter((_, j) => j !== i)); }}
-                                  >×</button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="col-md-12"><small>DESCRIPCIÓN</small></label>
-                    <div className="col-md-12">
-                      <textarea id="mymce" />
-                      {touched && !form.description && <small className="text-danger animated fadeIn">* La descripción es obligatoria</small>}
-                    </div>
-                  </div>
-
-                  <div className="fadeIn animated form-group mt-5">
-                    {!disabledForWait && (
-                      <button disabled={loading} type="submit" className={`btn btn-block ${!loading ? "btn-info" : "btn-muted"}`}>
-                        {isModify
-                          ? (loading ? "MODIFICANDO NOTA" : "MODIFICAR NOTA")
-                          : (loading ? "SUBIENDO NOTA" : "SUBIR NOTA")}
-                      </button>
-                    )}
-                  </div>
-                </form>
-
-                {(loading || disabledForWait) && <ProgressBar mode="indeterminate" style={{ height: "6px" }} />}
+                <MultiFileDropzone
+                  files={files}
+                  onFiles={handleFiles}
+                  onRemove={(i) => setFiles((p) => p.filter((_, j) => j !== i))}
+                />
+                {touched && !isModify && files.length === 0 && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Debe ingresar una imagen</small>}
               </div>
-            </div>
+
+              <div className="mb-1">
+                <label className="profile-field-label">Descripción *</label>
+                <textarea id="mymce" />
+                {touched && !form.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* La descripción es obligatoria</small>}
+              </div>
+
+              {!disabledForWait && (
+                <div className="d-flex align-items-center mt-4" style={{ gap: "8px" }}>
+                  <button
+                    disabled={loading}
+                    type="submit"
+                    className="btn btn-primary d-flex align-items-center"
+                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                  >
+                    <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                    {isModify
+                      ? (loading ? "Modificando..." : "Modificar nota")
+                      : (loading ? "Subiendo..." : "Subir nota")}
+                  </button>
+                  {!isModify && (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={limpiar}
+                      className="btn btn-light text-muted ml-auto"
+                      style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+                    >
+                      Limpiar
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {(loading || disabledForWait) && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+            </form>
           </div>
         </div>
       </div>
