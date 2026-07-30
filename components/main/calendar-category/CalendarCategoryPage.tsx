@@ -225,7 +225,7 @@ export default function CalendarCategoryPage() {
     if (!form.name || !form.colour) return;
     setLoadingAction(true);
     try {
-      const resp = await createCalendarCategory(form);
+      const resp = await createCalendarCategory({ description: form.name, colour: form.colour, icon: form.icon });
       setCategories((prev) => [...prev, resp.category ?? resp.important_date_category ?? resp]);
       toast.current?.show({ severity: "success", summary: "Categoría creada" });
       limpiar();
