@@ -151,7 +151,7 @@ export default function ModalBosses({ show, user, onHide, onBossesAssigned }: Pr
         <i className="pi pi-users" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
       </div>
       <div>
-        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Asignar jefes</p>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificación de jefes</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Seleccioná quiénes aprobarán tus solicitudes de salida</small>
       </div>
     </div>
