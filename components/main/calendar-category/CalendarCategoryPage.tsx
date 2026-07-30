@@ -525,15 +525,6 @@ const filtered = searchTerm
                   body={(category) => <span className="license-cell-primary">{category.description ?? category.name}</span>}
                 />
                 <Column
-                  header="ÍCONO"
-                  style={{ width: "10%", textAlign: "left" }}
-                  body={(category) => (
-                    <div className="d-flex align-items-center" style={{ height: "100%" }}>
-                      <i className={`pi ${category.icon || DEFAULT_ICON}`} style={{ fontSize: "1rem", color: "#64748b" }} />
-                    </div>
-                  )}
-                />
-                <Column
                   header=""
                   style={{ width: "15%", textAlign: "center" }}
                   body={(category) => (
