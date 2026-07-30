@@ -237,7 +237,7 @@ export default function CalendarCategoryPage() {
   }
 
   function limpiar() {
-    setForm({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
+    setForm({ name: "", colour: "#000000", icon: "" });
     setTouched(false);
   }
 
