@@ -3,12 +3,73 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
-import { ProgressBar } from "primereact/progressbar";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
+import { ProgressBar } from "primereact/progressbar";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import esLocale from "@fullcalendar/core/locales/es";
 import { getCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/lib/services/calendar.service";
 import { getCalendarCategories } from "@/lib/services/calendar-category.service";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const ACCEPTED_IMAGES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+const MONTHS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+function formatDisplayDate(dateStr: string): string {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(`${dateStr}T00:00:00`);
+    return `${date.getDate()} de ${MONTHS_ES[date.getMonth()]}, ${date.getFullYear()}`;
+  } catch {
+    return dateStr;
+  }
+}
+
+interface EventForm { event: string; date: string; text: string; category_id: string; }
+
+function ImageDropzone({ file, onFile, onClear, existingImageUrl }: { file: File | null; onFile: (f: File) => void; onClear: () => void; existingImageUrl?: string | null }) {
+  const [drag, setDrag] = useState(false);
+  const ref = useRef<HTMLInputElement>(null);
+  const previewUrl = file ? URL.createObjectURL(file) : existingImageUrl;
+
+  return (
+    <div
+      className={`dropzone-area${drag ? " drag-over" : ""} text-center`}
+      onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
+      onDragLeave={() => setDrag(false)}
+      onDrop={(e) => { e.preventDefault(); setDrag(false); if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]); }}
+      onClick={() => ref.current?.click()}
+    >
+      <small className="text-muted d-block">Seleccioná o arrastrá una imagen</small>
+      <small className="text-muted d-block" style={{ fontSize: "0.7rem" }}><strong>JPG, JPEG, PNG, WEBP o GIF</strong></small>
+      <input
+        ref={ref}
+        type="file"
+        accept={ACCEPTED_IMAGES.join(",")}
+        style={{ display: "none" }}
+        onChange={(e) => { if (e.target.files?.[0]) onFile(e.target.files[0]); }}
+      />
+      {previewUrl && (
+        <div className="mt-2 position-relative d-inline-block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={previewUrl} alt="" style={{ width: 140, height: 90, objectFit: "cover", borderRadius: 8 }} />
+          {file && (
+            <button
+              type="button"
+              className="btn btn-danger btn-sm rounded-circle position-absolute"
+              style={{ top: 2, right: 2, width: 22, height: 22, padding: 0, fontSize: 10 }}
+              onClick={(e) => { e.stopPropagation(); onClear(); }}
+            >
+              ×
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CalendarPage() {
   const toast = useRef<Toast>(null);
@@ -16,6 +77,8 @@ export default function CalendarPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
+  const [loadingModify, setLoadingModify] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
 
   const [showCreate, setShowCreate] = useState(false);
   const [showModify, setShowModify] = useState(false);
@@ -23,15 +86,12 @@ export default function CalendarPage() {
   const [imgFile, setImgFile] = useState<File | null>(null);
   const [imgModifFile, setImgModifFile] = useState<File | null>(null);
 
-  const [createForm, setCreateForm] = useState({ event: "", date: "", text: "", category_id: "" });
-  const [modifyForm, setModifyForm] = useState({ event: "", date: "", text: "", category_id: "" });
+  const [createForm, setCreateForm] = useState<EventForm>({ event: "", date: "", text: "", category_id: "" });
+  const [modifyForm, setModifyForm] = useState<EventForm>({ event: "", date: "", text: "", category_id: "" });
   const [createTouched, setCreateTouched] = useState(false);
   const [modifyTouched, setModifyTouched] = useState(false);
-  const [filterMonth, setFilterMonth] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   async function loadData() {
     setLoading(true);
@@ -41,10 +101,24 @@ export default function CalendarPage() {
       setEvents(mapped);
       setCategories(cats);
     } catch (err: any) {
-      toast.current?.show({ severity: "error", summary: "Error cargando datos", detail: err.message });
+      toast.current?.show({ severity: "error", summary: "No se pudieron cargar los datos", detail: err.message });
     } finally {
       setLoading(false);
     }
+  }
+
+  function openCreate(dateStr: string) {
+    setCreateForm({ event: "", date: dateStr, text: "", category_id: "" });
+    setCreateTouched(false);
+    setImgFile(null);
+    setShowCreate(true);
+  }
+
+  function closeCreate() {
+    setShowCreate(false);
+    setCreateForm({ event: "", date: "", text: "", category_id: "" });
+    setCreateTouched(false);
+    setImgFile(null);
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -56,14 +130,12 @@ export default function CalendarPage() {
     fd.append("event", createForm.event);
     fd.append("date", createForm.date);
     fd.append("text", createForm.text);
-    fd.append("category_id", createForm.category_id);
+    fd.append("category_id", String(createForm.category_id));
     fd.append("image", imgFile, imgFile.name);
     try {
       await createCalendarEvent(fd);
       toast.current?.show({ severity: "success", summary: "Evento creado" });
-      setShowCreate(false);
-      setCreateForm({ event: "", date: "", text: "", category_id: "" });
-      setImgFile(null); setCreateTouched(false);
+      closeCreate();
       await loadData();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudo crear el evento", detail: err.message });
@@ -72,176 +144,362 @@ export default function CalendarPage() {
     }
   }
 
-  async function handleUpdate(e: React.FormEvent) {
+  function openModify(event: any) {
+    setEventSelected(event);
+    setModifyForm({
+      event: event.event,
+      date: event.date?.split("T")[0] ?? "",
+      text: event.text ?? "",
+      category_id: String(event.category_id ?? event.category?.id ?? ""),
+    });
+    setImgModifFile(null);
+    setModifyTouched(false);
+    setShowModify(true);
+  }
+
+  function closeModify() {
+    setShowModify(false);
+    setEventSelected(null);
+    setModifyForm({ event: "", date: "", text: "", category_id: "" });
+    setModifyTouched(false);
+    setImgModifFile(null);
+  }
+
+  async function handleModifySubmit(e: React.FormEvent) {
     e.preventDefault();
     setModifyTouched(true);
-    if (!modifyForm.event || !modifyForm.date || !modifyForm.text || !modifyForm.category_id) return;
-    setLoadingAction(true);
+    if (!modifyForm.event || !modifyForm.date || !modifyForm.text || !modifyForm.category_id || !eventSelected) return;
+    setLoadingModify(true);
     const fd = new FormData();
     fd.append("important_date_id", eventSelected.id);
     fd.append("event", modifyForm.event);
     fd.append("date", modifyForm.date);
     fd.append("text", modifyForm.text);
-    fd.append("category_id", modifyForm.category_id);
+    fd.append("category_id", String(modifyForm.category_id));
     if (imgModifFile) fd.append("image", imgModifFile, imgModifFile.name);
     try {
       await updateCalendarEvent(fd);
       toast.current?.show({ severity: "success", summary: "Evento modificado" });
-      setShowModify(false); setEventSelected(null); setImgModifFile(null); setModifyTouched(false);
+      closeModify();
       await loadData();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudo modificar el evento", detail: err.message });
     } finally {
-      setLoadingAction(false);
+      setLoadingModify(false);
     }
   }
 
   async function handleDelete() {
     if (!eventSelected) return;
-    setLoadingAction(true);
+    setLoadingDelete(true);
     try {
       await deleteCalendarEvent(eventSelected.id);
       toast.current?.show({ severity: "success", summary: "Evento eliminado" });
-      setShowModify(false); setEventSelected(null);
+      closeModify();
       await loadData();
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudo eliminar el evento", detail: err.message });
     } finally {
-      setLoadingAction(false);
+      setLoadingDelete(false);
     }
   }
 
-  function openModify(event: any) {
-    setEventSelected(event);
-    setModifyForm({ event: event.event, date: event.date?.split("T")[0] ?? "", text: event.text ?? "", category_id: event.category_id ?? event.category?.id ?? "" });
-    setImgModifFile(null); setModifyTouched(false);
-    setShowModify(true);
-  }
+  const categoryOptions = categories.map((c) => ({ id: c.id, label: c.description ?? c.name }));
 
-  const filtered = filterMonth ? events.filter((e) => e.date?.startsWith(filterMonth)) : events;
-  const sortedByDate = [...filtered].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const calendarEvents = events.map((e) => ({
+    id: String(e.id),
+    title: e.event,
+    start: e.date,
+    backgroundColor: e.color || "#94a3b8",
+    borderColor: e.color || "#94a3b8",
+    extendedProps: { raw: e },
+  }));
+
+  const createDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nuevo evento</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{formatDisplayDate(createForm.date)}</small>
+      </div>
+    </div>
+  );
+
+  const modifyDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar/Eliminar evento</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{formatDisplayDate(modifyForm.date)}</small>
+      </div>
+    </div>
+  );
 
   return (
     <>
       <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Calendario de fechas importantes</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Calendario</li>
-            </ol>
-          </div>
-        </div>
 
-        <div className="row mb-3">
-          <div className="col-12 d-flex gap-2 align-items-center flex-wrap">
-            <input type="month" className="form-control form-control-sm" style={{ maxWidth: 200 }} value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} placeholder="Filtrar por mes" />
-            <button className="btn btn-info btn-sm" onClick={() => { setCreateForm({ event: "", date: "", text: "", category_id: "" }); setCreateTouched(false); setImgFile(null); setShowCreate(true); }}>
-              <i className="mdi mdi-plus" /> Nuevo evento
+        {/* Header card */}
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-calendar" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Calendario de fechas importantes</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Gestión de eventos institucionales</small>
+            </div>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={loadData}
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+              Recargar
             </button>
           </div>
         </div>
 
-        {loading && <ProgressBar mode="indeterminate" style={{ height: "6px" }} className="mb-3" />}
+        {/* Calendar card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-th-large" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Vista mensual</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Hacé clic en un día para crear un evento, o en un evento para modificarlo</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
-        <div className="row">
-          {sortedByDate.map((event) => (
-            <div key={event.id} className="col-12 col-md-6 col-lg-4 mb-4 fadeIn animated">
-              <div className="card h-100" style={{ borderLeft: `4px solid ${event.color || event.category?.colour || "#ccc"}` }}>
-                {event.image_url && (
-                  <img src={`${API_URL}${event.image_url}`} alt={event.event} style={{ width: "100%", height: 120, objectFit: "cover" }} />
-                )}
-                <div className="card-body">
-                  <small className="text-muted">{event.date?.split("T")[0]}</small>
-                  <h6 className="mt-1">{event.event}</h6>
-                  <p className="text-muted small">{event.text}</p>
-                  {event.category && <span className="badge" style={{ backgroundColor: event.category.colour, color: "#fff" }}>{event.category.name}</span>}
-                </div>
-                <div className="card-footer">
-                  <button className="btn btn-sm btn-info" onClick={() => openModify(event)}><i className="mdi mdi-pencil-outline" /> Editar</button>
-                </div>
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mb-3" />}
+            <div style={{ overflowX: "auto" }}>
+              <div style={{ minWidth: 700 }}>
+                <FullCalendar
+                  plugins={[dayGridPlugin, interactionPlugin]}
+                  initialView="dayGridMonth"
+                  locale={esLocale}
+                  headerToolbar={{ left: "prev,next", center: "title", right: "dayGridMonth,dayGridWeek,dayGridDay,today" }}
+                  height={700}
+                  contentHeight={700}
+                  selectable
+                  selectMirror
+                  events={calendarEvents}
+                  dateClick={(arg) => openCreate(arg.dateStr)}
+                  eventClick={(arg) => openModify(arg.event.extendedProps.raw)}
+                />
               </div>
             </div>
-          ))}
-          {!loading && sortedByDate.length === 0 && <div className="col-12 text-center py-5 text-muted">No hay eventos para mostrar.</div>}
+          </div>
         </div>
       </div>
 
-      {/* Create Dialog */}
-      <Dialog header="Nuevo evento" visible={showCreate} modal draggable={false} resizable={false} style={{ width: "50vw" }} onHide={() => setShowCreate(false)}>
-        <form onSubmit={handleCreate} noValidate>
+      {/* Create event dialog */}
+      <Dialog
+        header={createDialogHeader}
+        visible={showCreate}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(720px, 92vw)" }}
+        onHide={closeCreate}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="create-event-form"
+                disabled={loadingAction}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingAction ? "Creando..." : "Crear evento"}
+              </button>
+              <button
+                disabled={loadingAction}
+                onClick={closeCreate}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingAction && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="create-event-form" onSubmit={handleCreate} noValidate>
           <div className="row">
-            <div className="form-group col-12 col-md-6">
-              <label><small>Título *</small></label>
-              <input type="text" className="form-control" value={createForm.event} onChange={(e) => setCreateForm((p) => ({ ...p, event: e.target.value }))} />
-              {createTouched && !createForm.event && <small className="text-danger">* Obligatorio</small>}
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Título *</label>
+              <input
+                className="profile-input"
+                type="text"
+                value={createForm.event}
+                onChange={(e) => setCreateForm((p) => ({ ...p, event: e.target.value }))}
+              />
+              {createTouched && !createForm.event && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
-            <div className="form-group col-12 col-md-6">
-              <label><small>Fecha *</small></label>
-              <input type="date" className="form-control" value={createForm.date} onChange={(e) => setCreateForm((p) => ({ ...p, date: e.target.value }))} />
-              {createTouched && !createForm.date && <small className="text-danger">* Obligatorio</small>}
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Categoría *</label>
+              <Dropdown
+                value={createForm.category_id || null}
+                options={categoryOptions}
+                optionLabel="label"
+                optionValue="id"
+                onChange={(e) => setCreateForm((p) => ({ ...p, category_id: e.value ?? "" }))}
+                placeholder="Seleccioná una categoría"
+                className="profile-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+              {createTouched && !createForm.category_id && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
-            <div className="form-group col-12 col-md-6">
-              <label><small>Categoría *</small></label>
-              <select className="custom-select w-100" value={createForm.category_id} onChange={(e) => setCreateForm((p) => ({ ...p, category_id: e.target.value }))}>
-                <option value=""></option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              {createTouched && !createForm.category_id && <small className="text-danger">* Obligatorio</small>}
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Fecha *</label>
+              <input
+                className="profile-input"
+                type="date"
+                value={createForm.date}
+                onChange={(e) => setCreateForm((p) => ({ ...p, date: e.target.value }))}
+              />
+              {createTouched && !createForm.date && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
-            <div className="form-group col-12">
-              <label><small>Descripción *</small></label>
-              <textarea className="form-control" value={createForm.text} onChange={(e) => setCreateForm((p) => ({ ...p, text: e.target.value }))} />
-              {createTouched && !createForm.text && <small className="text-danger">* Obligatorio</small>}
+            <div className="col-12 mb-3">
+              <label className="profile-field-label">Descripción *</label>
+              <textarea
+                className="profile-input"
+                rows={3}
+                value={createForm.text}
+                onChange={(e) => setCreateForm((p) => ({ ...p, text: e.target.value }))}
+              />
+              {createTouched && !createForm.text && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
-            <div className="form-group col-12">
-              <label><small>Imagen *</small></label>
-              <input type="file" accept="image/*" className="form-control-file" onChange={(e) => setImgFile(e.target.files?.[0] ?? null)} />
-              {createTouched && !imgFile && <small className="text-danger">* Obligatorio</small>}
+            <div className="col-12 mb-1">
+              <label className="profile-field-label">Imagen *</label>
+              <ImageDropzone file={imgFile} onFile={setImgFile} onClear={() => setImgFile(null)} />
+              {createTouched && !imgFile && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
           </div>
-          <button disabled={loadingAction} type="submit" className="btn btn-info btn-block mt-2">
-            {loadingAction ? "Creando..." : "Crear evento"}
-          </button>
         </form>
       </Dialog>
 
-      {/* Modify Dialog */}
-      <Dialog header="Modificar evento" visible={showModify} modal draggable={false} resizable={false} style={{ width: "50vw" }} onHide={() => { setShowModify(false); setEventSelected(null); }}>
-        <form onSubmit={handleUpdate} noValidate>
-          <div className="row">
-            <div className="form-group col-12 col-md-6">
-              <label><small>Título *</small></label>
-              <input type="text" className="form-control" value={modifyForm.event} onChange={(e) => setModifyForm((p) => ({ ...p, event: e.target.value }))} />
+      {/* Modify/delete event dialog */}
+      <Dialog
+        header={modifyDialogHeader}
+        visible={showModify}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(720px, 92vw)" }}
+        onHide={closeModify}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="modify-event-form"
+                disabled={loadingModify || loadingDelete}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingModify ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingModify ? "Modificando..." : "Modificar"}
+              </button>
+              <button
+                disabled={loadingModify || loadingDelete}
+                onClick={handleDelete}
+                type="button"
+                className="btn btn-danger d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingDelete ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
+                {loadingDelete ? "Eliminando..." : "Eliminar"}
+              </button>
+              <button
+                disabled={loadingModify || loadingDelete}
+                onClick={closeModify}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
             </div>
-            <div className="form-group col-12 col-md-6">
-              <label><small>Fecha *</small></label>
-              <input type="date" className="form-control" value={modifyForm.date} onChange={(e) => setModifyForm((p) => ({ ...p, date: e.target.value }))} />
-            </div>
-            <div className="form-group col-12 col-md-6">
-              <label><small>Categoría *</small></label>
-              <select className="custom-select w-100" value={modifyForm.category_id} onChange={(e) => setModifyForm((p) => ({ ...p, category_id: e.target.value }))}>
-                <option value=""></option>
-                {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div className="form-group col-12">
-              <label><small>Descripción *</small></label>
-              <textarea className="form-control" value={modifyForm.text} onChange={(e) => setModifyForm((p) => ({ ...p, text: e.target.value }))} />
-            </div>
-            <div className="form-group col-12">
-              <label><small>Nueva imagen (opcional)</small></label>
-              <input type="file" accept="image/*" className="form-control-file" onChange={(e) => setImgModifFile(e.target.files?.[0] ?? null)} />
-            </div>
+            {(loadingModify || loadingDelete) && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
-          <div className="d-flex gap-2 mt-2">
-            <button disabled={loadingAction} type="submit" className="btn btn-info">{loadingAction ? "Guardando..." : "Guardar cambios"}</button>
-            <button disabled={loadingAction} type="button" className="btn btn-danger" onClick={handleDelete}>{loadingAction ? "..." : "Eliminar"}</button>
+        }
+      >
+        <form id="modify-event-form" onSubmit={handleModifySubmit} noValidate>
+          <div className="row">
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Título *</label>
+              <input
+                className="profile-input"
+                type="text"
+                value={modifyForm.event}
+                onChange={(e) => setModifyForm((p) => ({ ...p, event: e.target.value }))}
+              />
+              {modifyTouched && !modifyForm.event && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Categoría *</label>
+              <Dropdown
+                value={modifyForm.category_id || null}
+                options={categoryOptions}
+                optionLabel="label"
+                optionValue="id"
+                onChange={(e) => setModifyForm((p) => ({ ...p, category_id: e.value ?? "" }))}
+                placeholder="Seleccioná una categoría"
+                className="profile-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+              {modifyTouched && !modifyForm.category_id && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 col-md-6 mb-3">
+              <label className="profile-field-label">Fecha *</label>
+              <input
+                className="profile-input"
+                type="date"
+                value={modifyForm.date}
+                onChange={(e) => setModifyForm((p) => ({ ...p, date: e.target.value }))}
+              />
+              {modifyTouched && !modifyForm.date && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 mb-3">
+              <label className="profile-field-label">Descripción *</label>
+              <textarea
+                className="profile-input"
+                rows={3}
+                value={modifyForm.text}
+                onChange={(e) => setModifyForm((p) => ({ ...p, text: e.target.value }))}
+              />
+              {modifyTouched && !modifyForm.text && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            </div>
+            <div className="col-12 mb-1">
+              <label className="profile-field-label">{eventSelected?.image_url ? "Imagen actual (opcional reemplazar)" : "Imagen (opcional)"}</label>
+              <ImageDropzone
+                file={imgModifFile}
+                onFile={setImgModifFile}
+                onClear={() => setImgModifFile(null)}
+                existingImageUrl={eventSelected?.image_url ? `${API_URL}${eventSelected.image_url}` : null}
+              />
+            </div>
           </div>
         </form>
       </Dialog>
