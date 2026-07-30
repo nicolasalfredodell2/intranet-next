@@ -5,8 +5,7 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
+import { Paginator } from "primereact/paginator";
 import { ProgressBar } from "primereact/progressbar";
 import { getCalendarCategories, createCalendarCategory, updateCalendarCategory, deleteCalendarCategory } from "@/lib/services/calendar-category.service";
 
@@ -202,6 +201,9 @@ export default function CalendarCategoryPage() {
   const [touched, setTouched] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [paginatorFirst, setPaginatorFirst] = useState(0);
+  const [paginatorRows, setPaginatorRows] = useState(10);
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
   const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
@@ -212,6 +214,8 @@ export default function CalendarCategoryPage() {
   const [loadingModify, setLoadingModify] = useState(false);
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => { setPaginatorFirst(0); }, [searchTerm, sortOrder]);
 
   async function load() {
     if (loading) return;
@@ -498,81 +502,96 @@ const filtered = (searchTerm
             {loading ? (
               <SkeletonRows />
             ) : (
-              <DataTable
-                value={filtered}
-                className="p-datatable-sm license-table"
-                paginator
-                rows={10}
-                rowsPerPageOptions={[10, 15, 20]}
-                paginatorRight={
-                  <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
-                    {filtered.length} {filtered.length === 1 ? "categoría" : "categorías"}
-                  </span>
-                }
-                emptyMessage={
-                  <div className="license-empty">
-                    <i className="pi pi-inbox" />
-                    <p>
-                      {searchTerm
-                        ? `No se encontraron categorías con el nombre "${searchTerm}".`
-                        : "No hay categorías disponibles para mostrar."}
-                    </p>
-                  </div>
-                }
-              >
-                <Column
-                  header="COLOR"
-                  style={{ width: "10%" }}
-                  body={(category) => (
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 26,
-                        height: 26,
-                        borderRadius: "50%",
-                        background: category.colour,
-                        border: "1.5px solid rgba(0,0,0,0.06)",
-                      }}
-                    >
-                      <i className={`pi ${category.icon || DEFAULT_ICON}`} style={{ fontSize: "0.7rem", color: "#fff" }} />
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr>
+                      {["COLOR", "NOMBRE", ""].map((h, i) => (
+                        <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 2 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.length === 0 && (
+                      <tr>
+                        <td colSpan={3} style={{ padding: "40px", textAlign: "center" }}>
+                          <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                          <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
+                            {searchTerm
+                              ? `No se encontraron categorías con el nombre "${searchTerm}".`
+                              : "No hay categorías disponibles para mostrar."}
+                          </p>
+                        </td>
+                      </tr>
+                    )}
+                    {filtered.slice(paginatorFirst, paginatorFirst + paginatorRows).map((category) => (
+                      <tr
+                        key={category.id}
+                        className="fadeIn animated"
+                        onMouseEnter={() => setHoveredRow(category.id)}
+                        onMouseLeave={() => setHoveredRow(null)}
+                        style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === category.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                      >
+                        <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: 26,
+                              height: 26,
+                              borderRadius: "50%",
+                              background: category.colour,
+                              border: "1.5px solid rgba(0,0,0,0.06)",
+                            }}
+                          >
+                            <i className={`pi ${category.icon || DEFAULT_ICON}`} style={{ fontSize: "0.7rem", color: "#fff" }} />
+                          </span>
+                        </td>
+                        <td style={{ padding: "10px 8px" }}>
+                          <span className="license-cell-primary">{category.description ?? category.name}</span>
+                        </td>
+                        <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
+                          <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
+                            <Tooltip label="Modificar">
+                              <button
+                                type="button"
+                                onClick={() => abrirModificar(category)}
+                                className="license-action-btn"
+                              >
+                                <i className="pi pi-pencil" />
+                              </button>
+                            </Tooltip>
+                            <Tooltip label="Eliminar">
+                              <button
+                                type="button"
+                                onClick={() => setCategoryToDelete(category)}
+                                style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545", height: "30px" }}
+                              >
+                                <i className="pi pi-trash" />
+                              </button>
+                            </Tooltip>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <Paginator
+                  first={paginatorFirst}
+                  rows={paginatorRows}
+                  totalRecords={filtered.length}
+                  rowsPerPageOptions={[10, 15, 20]}
+                  onPageChange={(e) => { setPaginatorFirst(e.first); setPaginatorRows(e.rows); }}
+                  rightContent={
+                    <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                      {filtered.length} {filtered.length === 1 ? "categoría" : "categorías"}
                     </span>
-                  )}
+                  }
                 />
-                <Column
-                  field="description"
-                  header="NOMBRE"
-                  sortable
-                  body={(category) => <span className="license-cell-primary">{category.description ?? category.name}</span>}
-                />
-                <Column
-                  header=""
-                  style={{ width: "15%", textAlign: "center" }}
-                  body={(category) => (
-                    <div className="d-flex align-items-center justify-content-center" style={{ gap: "6px" }}>
-                      <Tooltip label="Modificar">
-                        <button
-                          type="button"
-                          onClick={() => abrirModificar(category)}
-                          className="license-action-btn"
-                        >
-                          <i className="pi pi-pencil" />
-                        </button>
-                      </Tooltip>
-                      <Tooltip label="Eliminar">
-                        <button
-                          type="button"
-                          onClick={() => setCategoryToDelete(category)}
-                          style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545", height: "30px" }}
-                        >
-                          <i className="pi pi-trash" />
-                        </button>
-                      </Tooltip>
-                    </div>
-                  )}
-                />
-              </DataTable>
+              </div>
             )}
           </div>
         </div>
