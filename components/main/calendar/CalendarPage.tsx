@@ -6,12 +6,15 @@ import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { ProgressBar } from "primereact/progressbar";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import esLocale from "@fullcalendar/core/locales/es";
+import { Calendar, Willow, type CalendarInstanceApi } from "@svar-ui/react-calendar";
+import { Locale } from "@svar-ui/react-core";
+import "@svar-ui/react-calendar/all.css";
+import esCoreLocale from "@svar-ui/core-locales/locales/es.js";
+import esCalendarLocale from "@svar-ui/calendar-locales/es.js";
 import { getCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/lib/services/calendar.service";
 import { getCalendarCategories } from "@/lib/services/calendar-category.service";
+
+const CALENDAR_LOCALE_ES = { ...esCoreLocale, ...esCalendarLocale };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const ACCEPTED_IMAGES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
@@ -25,6 +28,13 @@ function formatDisplayDate(dateStr: string): string {
   } catch {
     return dateStr;
   }
+}
+
+function toDateInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 interface EventForm { event: string; date: string; text: string; category_id: string; }
@@ -91,7 +101,38 @@ export default function CalendarPage() {
   const [createTouched, setCreateTouched] = useState(false);
   const [modifyTouched, setModifyTouched] = useState(false);
 
+  const calendarApiRef = useRef<CalendarInstanceApi | null>(null);
+  const eventsRef = useRef<any[]>([]);
+
   useEffect(() => { loadData(); }, []);
+  useEffect(() => { eventsRef.current = events; }, [events]);
+
+  // Fully own event creation/selection instead of the widget's default popup editor,
+  // so we can use our own PrimeReact dialogs (category select, image upload, etc).
+  useEffect(() => {
+    const api = calendarApiRef.current;
+    if (!api) return;
+    api.intercept("add-event", (ev: any) => {
+      const start = ev?.event?.start ? new Date(ev.event.start) : new Date();
+      openCreate(toDateInputValue(start));
+      return false;
+    }, { tag: "calendar-add-event" });
+    api.intercept("select-event", (ev: any) => {
+      if (ev?.id != null) {
+        const raw = eventsRef.current.find((e) => String(e.id) === String(ev.id));
+        if (raw) openModify(raw);
+      }
+      return false;
+    }, { tag: "calendar-select-event" });
+    api.intercept("update-event", () => false, { tag: "calendar-update-event" });
+    api.intercept("move-event", () => false, { tag: "calendar-move-event" });
+    return () => {
+      api.detach("calendar-add-event");
+      api.detach("calendar-select-event");
+      api.detach("calendar-update-event");
+      api.detach("calendar-move-event");
+    };
+  }, []);
 
   async function loadData() {
     setLoading(true);
@@ -206,14 +247,19 @@ export default function CalendarPage() {
 
   const categoryOptions = categories.map((c) => ({ id: c.id, label: c.description ?? c.name }));
 
-  const calendarEvents = events.map((e) => ({
-    id: String(e.id),
-    title: e.event,
-    start: e.date,
-    backgroundColor: e.color || "#94a3b8",
-    borderColor: e.color || "#94a3b8",
-    extendedProps: { raw: e },
-  }));
+  const calendarEvents = events.map((e) => {
+    const start = new Date(`${e.date?.split("T")[0]}T00:00:00`);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return {
+      id: e.id,
+      start,
+      end,
+      allDay: true,
+      text: e.event,
+      color: e.color || "#94a3b8",
+    };
+  });
 
   const createDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -284,20 +330,18 @@ export default function CalendarPage() {
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mb-3" />}
             <div style={{ overflowX: "auto" }}>
-              <div style={{ minWidth: 700 }}>
-                <FullCalendar
-                  plugins={[dayGridPlugin, interactionPlugin]}
-                  initialView="dayGridMonth"
-                  locale={esLocale}
-                  headerToolbar={{ left: "prev,next", center: "title", right: "dayGridMonth,dayGridWeek,dayGridDay,today" }}
-                  height={700}
-                  contentHeight={700}
-                  selectable
-                  selectMirror
-                  events={calendarEvents}
-                  dateClick={(arg) => openCreate(arg.dateStr)}
-                  eventClick={(arg) => openModify(arg.event.extendedProps.raw)}
-                />
+              <div style={{ minWidth: 700, height: 700, display: "grid" }}>
+                <Locale words={CALENDAR_LOCALE_ES}>
+                  <Willow>
+                    <Calendar
+                      ref={calendarApiRef}
+                      events={calendarEvents}
+                      date={new Date()}
+                      views={["month", "week", "day"]}
+                      view="month"
+                    />
+                  </Willow>
+                </Locale>
               </div>
             </div>
           </div>
