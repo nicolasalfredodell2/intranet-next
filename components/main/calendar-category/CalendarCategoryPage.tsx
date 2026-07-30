@@ -193,7 +193,7 @@ export default function CalendarCategoryPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
-  const [form, setForm] = useState<CategoryForm>({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
+  const [form, setForm] = useState<CategoryForm>({ name: "", colour: "#000000", icon: "" });
   const [touched, setTouched] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -286,7 +286,7 @@ export default function CalendarCategoryPage() {
   }
 
 const filtered = searchTerm
-    ? categories.filter((c) => c.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? categories.filter((c) => (c.description ?? c.name)?.toLowerCase().includes(searchTerm.toLowerCase()))
     : categories;
 
   const modifyDialogHeader = (
@@ -519,10 +519,19 @@ const filtered = searchTerm
                   )}
                 />
                 <Column
-                  field="name"
+                  field="description"
                   header="NOMBRE"
                   sortable
-                  body={(category) => <span className="license-cell-primary">{category.name}</span>}
+                  body={(category) => <span className="license-cell-primary">{category.description ?? category.name}</span>}
+                />
+                <Column
+                  header="ÍCONO"
+                  style={{ width: "10%", textAlign: "left" }}
+                  body={(category) => (
+                    <div className="d-flex align-items-center" style={{ height: "100%" }}>
+                      <i className={`pi ${category.icon || DEFAULT_ICON}`} style={{ fontSize: "1rem", color: "#64748b" }} />
+                    </div>
+                  )}
                 />
                 <Column
                   header=""
