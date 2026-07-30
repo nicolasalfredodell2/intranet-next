@@ -6,7 +6,7 @@ import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { ProgressBar } from "primereact/progressbar";
-import { Calendar, Willow, type CalendarInstanceApi } from "@svar-ui/react-calendar";
+import { Calendar, Willow, getToolbarItems, type CalendarInstanceApi } from "@svar-ui/react-calendar";
 import { Locale } from "@svar-ui/react-core";
 import "@svar-ui/react-calendar/all.css";
 import esCoreLocale from "@svar-ui/core-locales/locales/es.js";
@@ -247,6 +247,9 @@ export default function CalendarPage() {
 
   const categoryOptions = categories.map((c) => ({ id: c.id, label: c.description ?? c.name }));
 
+  // Drop the library's default icon-only "+" button; we render our own labeled button instead.
+  const toolbarItems = getToolbarItems().filter((item) => item.id !== "add-event");
+
   const calendarEvents = events.map((e) => {
     const start = new Date(`${e.date?.split("T")[0]}T00:00:00`);
     const end = new Date(start);
@@ -324,6 +327,15 @@ export default function CalendarPage() {
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Vista mensual</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Hacé clic en un día para crear un evento, o en un evento para modificarlo</small>
             </div>
+            <button
+              type="button"
+              onClick={() => openCreate(toDateInputValue(new Date()))}
+              className="btn btn-primary d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px" }}
+            >
+              <i className="pi pi-plus" style={{ fontSize: "0.75rem" }} />
+              Crear evento
+            </button>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
@@ -337,8 +349,9 @@ export default function CalendarPage() {
                       ref={calendarApiRef}
                       events={calendarEvents}
                       date={new Date()}
-                      views={["month", "week", "day"]}
+                      views={["month"]}
                       view="month"
+                      toolbar={{ items: toolbarItems }}
                     />
                   </Willow>
                 </Locale>
