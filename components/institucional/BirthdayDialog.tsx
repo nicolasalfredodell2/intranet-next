@@ -23,11 +23,6 @@ export default function BirthdayDialog({ birthdays, onClose }: BirthdayDialogPro
       <div className="custom-dialog-card" onClick={(e) => e.stopPropagation()}>
         <button className="close-btn" onClick={onClose}>&times;</button>
 
-        <div className="ballon-container">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/birthdays/ballon.gif" className="ballon-img" alt="globos" />
-        </div>
-
         {birthdays.length > 1 && (
           <>
             <button
@@ -105,20 +100,6 @@ export default function BirthdayDialog({ birthdays, onClose }: BirthdayDialogPro
           justify-content: center;
           z-index: 30;
           line-height: 1;
-        }
-        .ballon-container {
-          position: absolute;
-          top: 75px;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 10;
-          pointer-events: none;
-        }
-        .ballon-img { width: 250px; height: auto; }
-        .dialog-body {
-          position: relative;
-          z-index: 20;
-          padding-top: 60px;
         }
         .img-profile {
           border: 1px solid #4285F4;
