@@ -6,6 +6,7 @@ import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
+import { MultiSelect } from "primereact/multiselect";
 import {
   loadFileCategories, createFileCategory, updateFileCategory, deleteFileCategory,
   createFileSubcategory, updateFileSubcategory, deleteFileSubcategory,
@@ -83,9 +84,9 @@ export default function FilesAdminItemsPage() {
   const [subUsers, setSubUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [hoveredUserRow, setHoveredUserRow] = useState<number | null>(null);
-  const [selectUsersMode, setSelectUsersMode] = useState(false);
-  const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
   const [loadingDeleteUsers, setLoadingDeleteUsers] = useState(false);
+  const [showDeleteUsersConfirm, setShowDeleteUsersConfirm] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -242,8 +243,7 @@ export default function FilesAdminItemsPage() {
     setLoadingUsers(true);
     setShowUsersDialog(true);
     setSubUsers([]);
-    setSelectUsersMode(false);
-    setSelectedUserIds(new Set());
+    setSelectedUserIds([]);
     try {
       setSubUsers(await getSubcategoryUsers(sub.id));
     } catch { toast.current?.show({ severity: "error", summary: "No se pudo cargar los usuarios" }); }
@@ -254,27 +254,19 @@ export default function FilesAdminItemsPage() {
     setShowUsersDialog(false);
     setUsersDialogSub(null);
     setSubUsers([]);
-    setSelectUsersMode(false);
-    setSelectedUserIds(new Set());
-  }
-
-  function toggleUserSelected(peopleId: number) {
-    setSelectedUserIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(peopleId)) next.delete(peopleId); else next.add(peopleId);
-      return next;
-    });
+    setSelectedUserIds([]);
+    setShowDeleteUsersConfirm(false);
   }
 
   async function handleDeleteSelectedUsers() {
-    if (!usersDialogSub || selectedUserIds.size === 0) return;
+    if (!usersDialogSub || selectedUserIds.length === 0) return;
     setLoadingDeleteUsers(true);
     try {
-      await unlinkSubcategoryUsers(usersDialogSub.id, Array.from(selectedUserIds));
-      setSubUsers((prev) => prev.filter((u) => !selectedUserIds.has(u.people?.id ?? u.people_id)));
+      await unlinkSubcategoryUsers(usersDialogSub.id, selectedUserIds);
+      setSubUsers((prev) => prev.filter((u) => !selectedUserIds.includes(u.people?.id ?? u.people_id)));
       toast.current?.show({ severity: "success", summary: "Agentes eliminados de la subcategoría" });
-      setSelectedUserIds(new Set());
-      setSelectUsersMode(false);
+      setSelectedUserIds([]);
+      setShowDeleteUsersConfirm(false);
     } catch {
       toast.current?.show({ severity: "error", summary: "No se pudo eliminar los agentes seleccionados" });
     } finally {
@@ -306,6 +298,18 @@ export default function FilesAdminItemsPage() {
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar subcategoría</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{subToEdit?.name}</small>
+      </div>
+    </div>
+  );
+
+  const deleteUsersHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-trash" style={{ color: "#dc3545", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar agentes vinculados</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
       </div>
     </div>
   );
@@ -839,40 +843,17 @@ export default function FilesAdminItemsPage() {
         footer={
           <div>
             <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-              {!selectUsersMode && (
+              {selectedUserIds.length > 0 && (
                 <button
                   type="button"
-                  disabled={subUsers.length === 0}
-                  onClick={() => setSelectUsersMode(true)}
-                  className="btn btn-light d-flex align-items-center"
-                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem", color: "#dc3545" }}
+                  disabled={loadingDeleteUsers}
+                  onClick={() => setShowDeleteUsersConfirm(true)}
+                  className="btn btn-danger d-flex align-items-center"
+                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
                 >
-                  <i className="pi pi-trash" style={{ fontSize: "0.78rem" }} />
-                  Eliminar agentes
+                  <i className={loadingDeleteUsers ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
+                  {loadingDeleteUsers ? "Eliminando..." : `Eliminar seleccionados (${selectedUserIds.length})`}
                 </button>
-              )}
-              {selectUsersMode && (
-                <>
-                  <button
-                    type="button"
-                    disabled={loadingDeleteUsers}
-                    onClick={() => { setSelectUsersMode(false); setSelectedUserIds(new Set()); }}
-                    className="btn btn-light text-muted"
-                    style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    disabled={loadingDeleteUsers || selectedUserIds.size === 0}
-                    onClick={handleDeleteSelectedUsers}
-                    className="btn btn-danger d-flex align-items-center"
-                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
-                  >
-                    <i className={loadingDeleteUsers ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
-                    {loadingDeleteUsers ? "Eliminando..." : `Eliminar (${selectedUserIds.size})`}
-                  </button>
-                </>
               )}
               <button
                 type="button"
@@ -889,11 +870,27 @@ export default function FilesAdminItemsPage() {
         }
       >
         {loadingUsers && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} />}
+        {!loadingUsers && subUsers.length > 0 && (
+          <div className="mb-3">
+            <label className="profile-field-label">Seleccionar agentes a eliminar</label>
+            <div className={`license-filter-input-wrap${selectedUserIds.length ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-users license-filter-icon" />
+              <MultiSelect
+                value={selectedUserIds}
+                options={subUsers.map((u: any) => ({ label: u.people?.lastname_name ?? u.people?.name, value: u.people?.id ?? u.people_id }))}
+                onChange={(e) => setSelectedUserIds(e.value ?? [])}
+                placeholder="Seleccioná uno o más agentes"
+                display="chip"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+            </div>
+          </div>
+        )}
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {selectUsersMode && <th style={{ padding: "0 8px 10px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", width: 32 }} />}
                 {["NOMBRE", "CUIL", "LEGAJO"].map((h, i) => (
                   <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
                     {h}
@@ -904,7 +901,7 @@ export default function FilesAdminItemsPage() {
             <tbody>
               {!loadingUsers && subUsers.length === 0 && (
                 <tr>
-                  <td colSpan={selectUsersMode ? 4 : 3} style={{ padding: "40px", textAlign: "center" }}>
+                  <td colSpan={3} style={{ padding: "40px", textAlign: "center" }}>
                     <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
                     <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>No hay agentes vinculados.</p>
                   </td>
@@ -912,24 +909,15 @@ export default function FilesAdminItemsPage() {
               )}
               {subUsers.map((u: any, i: number) => {
                 const peopleId = u.people?.id ?? u.people_id;
+                const isSelected = selectedUserIds.includes(peopleId);
                 return (
                   <tr
                     key={peopleId ?? i}
                     className="fadeIn animated"
                     onMouseEnter={() => setHoveredUserRow(i)}
                     onMouseLeave={() => setHoveredUserRow(null)}
-                    style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredUserRow === i ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                    style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: isSelected ? "rgba(220,53,69,0.06)" : (hoveredUserRow === i ? "rgba(74,108,247,0.06)" : "transparent"), transition: "background 0.15s" }}
                   >
-                    {selectUsersMode && (
-                      <td style={{ padding: "10px 8px" }}>
-                        <input
-                          type="checkbox"
-                          checked={selectedUserIds.has(peopleId)}
-                          onChange={() => toggleUserSelected(peopleId)}
-                          style={{ cursor: "pointer" }}
-                        />
-                      </td>
-                    )}
                     <td style={{ padding: "10px 8px" }}>
                       <span className="license-cell-primary">{u.people?.lastname_name ?? u.people?.name}</span>
                     </td>
@@ -945,6 +933,50 @@ export default function FilesAdminItemsPage() {
             </tbody>
           </table>
         </div>
+      </Dialog>
+
+      {/* Delete users confirm dialog */}
+      <Dialog
+        header={deleteUsersHeader}
+        visible={showDeleteUsersConfirm}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(460px, 92vw)" }}
+        onHide={() => setShowDeleteUsersConfirm(false)}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                disabled={loadingDeleteUsers}
+                onClick={handleDeleteSelectedUsers}
+                type="button"
+                className="btn btn-danger d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingDeleteUsers ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
+                {loadingDeleteUsers ? "Eliminando..." : "Sí, eliminar"}
+              </button>
+              <button
+                disabled={loadingDeleteUsers}
+                onClick={() => setShowDeleteUsersConfirm(false)}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingDeleteUsers && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
+          Está a punto de eliminar a <strong>{selectedUserIds.length}</strong> {selectedUserIds.length === 1 ? "agente" : "agentes"} de la subcategoría <strong>{usersDialogSub?.name}</strong>.
+          Esto también eliminará los archivos que ese agente tenga cargados en esta subcategoría de su legajo. Esta acción no se puede deshacer.
+        </p>
       </Dialog>
 
       {/* Delete category dialog */}
