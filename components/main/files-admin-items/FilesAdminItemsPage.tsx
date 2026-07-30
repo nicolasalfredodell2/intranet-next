@@ -645,6 +645,7 @@ export default function FilesAdminItemsPage() {
         draggable={false}
         resizable={false}
         closable={false}
+        dismissableMask
         style={{ width: "min(520px, 94vw)" }}
         onHide={cerrarModificarCat}
         footer={
