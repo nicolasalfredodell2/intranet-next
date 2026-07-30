@@ -333,7 +333,7 @@ export default function CalendarPage() {
               <i className="pi pi-calendar" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Calendario de fechas importantes</h5>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Calendario</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Gestión de eventos institucionales</small>
             </div>
             <button
