@@ -5,6 +5,7 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
+import { Tooltip } from "primereact/tooltip";
 import { loadFiles, loadFilePDF } from "@/lib/services/files.service";
 
 interface Filters {
@@ -175,6 +176,7 @@ export default function FilesPage() {
   return (
     <>
       <AppToast ref={toast} position="bottom-center" />
+      <Tooltip target=".files-view-btn" content="Ver archivo" position="left" />
 
       <div className="animated fadeIn">
 
@@ -330,13 +332,12 @@ export default function FilesPage() {
                                           </span>
                                           <button
                                             type="button"
+                                            className="files-view-btn"
                                             disabled={!!loadingFile}
                                             onClick={() => handleViewFile(file)}
                                             style={{ background: "none", border: "none", padding: "4px 8px", cursor: loadingFile ? "not-allowed" : "pointer", borderRadius: "6px", display: "flex", alignItems: "center", gap: "4px", color: isLoadingThis ? "#94a3b8" : "#4a6cf7", fontSize: "0.78rem", fontWeight: 600, flexShrink: 0 }}
-                                            title="Ver archivo"
                                           >
                                             <i className={isLoadingThis ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "0.85rem" }} />
-                                            {isLoadingThis ? "Abriendo…" : "Ver"}
                                           </button>
                                         </div>
                                       );
