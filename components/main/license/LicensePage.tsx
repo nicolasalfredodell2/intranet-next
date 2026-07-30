@@ -37,6 +37,17 @@ interface Filters {
   anio_ref: string;
 }
 
+const SORT_OPTIONS = [
+  { label: "Año (ascendente)", value: "anio_ref:asc" },
+  { label: "Año (descendente)", value: "anio_ref:desc" },
+  { label: "Descripción (A-Z)", value: "descripcion:asc" },
+  { label: "Descripción (Z-A)", value: "descripcion:desc" },
+  { label: "Norma (A-Z)", value: "norma_aprobatoria:asc" },
+  { label: "Norma (Z-A)", value: "norma_aprobatoria:desc" },
+  { label: "Días utilizados (menor a mayor)", value: "cant:asc" },
+  { label: "Días utilizados (mayor a menor)", value: "cant:desc" },
+];
+
 function formatDate(d: string) {
   return d.split("-").reverse().join("/").replace("-", "/").replace("-", "/");
 }
@@ -88,6 +99,7 @@ export default function LicensePage() {
     anio_ref: "",
   });
   const [paginatorFirst, setPaginatorFirst] = useState(0);
+  const [sortBy, setSortBy] = useState("");
 
   useEffect(() => {
     loadData();
@@ -172,6 +184,17 @@ export default function LicensePage() {
       (!filters.anio_ref || String(l.anio_ref).includes(filters.anio_ref))
   );
 
+  if (sortBy) {
+    const [sortField, sortDir] = sortBy.split(":");
+    filtered.sort((a, b) => {
+      const cmp =
+        sortField === "anio_ref" || sortField === "cant"
+          ? (Number(a[sortField]) || 0) - (Number(b[sortField]) || 0)
+          : String(a[sortField] ?? "").localeCompare(String(b[sortField] ?? ""));
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }
+
   const latestYear = licensesCompact.reduce((max, l) => Math.max(max, Number(l.anio_ref) || 0), 0);
   const totalDaysLatestYear = licensesCompact
     .filter((l) => l.anio_ref === latestYear)
@@ -251,6 +274,20 @@ export default function LicensePage() {
                         )}
                       </div>
                     ))}
+                    <div className={`license-filter-input-wrap${sortBy ? " license-filter-input-wrap--active" : ""}`}>
+                      <i className="pi pi-sort-alt license-filter-icon" />
+                      <Dropdown
+                        value={sortBy || null}
+                        options={SORT_OPTIONS}
+                        optionLabel="label"
+                        optionValue="value"
+                        onChange={(e) => setSortBy(e.value ?? "")}
+                        placeholder="Ordenar por"
+                        className="license-filter-dropdown"
+                        panelClassName="license-filter-dropdown-panel"
+                        showClear={!!sortBy}
+                      />
+                    </div>
                   </div>
                   {hasFilters && (
                     <button
@@ -290,28 +327,24 @@ export default function LicensePage() {
                     header="AÑO"
                     style={{ width: "9%", textAlign: "left" }}
                     body={(r) => <span className="license-cell-year">{r.anio_ref}</span>}
-                    sortable
                   />
                   <Column
                     field="descripcion"
                     header="DESCRIPCIÓN"
                     style={{ width: "30%" }}
                     body={(r) => <span className="license-cell-primary">{r.descripcion}</span>}
-                    sortable
                   />
                   <Column
                     field="norma_aprobatoria"
                     header="NORMA"
                     style={{ width: "22%" }}
                     body={(r) => <span className="license-cell-secondary">{r.norma_aprobatoria}</span>}
-                    sortable
                   />
                   <Column
                     field="cant"
                     header="DÍAS UTILIZADOS"
                     style={{ width: "14%", textAlign: "left" }}
                     body={(r) => <DayBadge days={r.cant} />}
-                    sortable
                   />
                   <Column
                     header=""
