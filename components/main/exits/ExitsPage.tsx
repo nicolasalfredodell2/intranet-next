@@ -276,6 +276,18 @@ function formatTimeOnly(str: string | null | undefined): string {
   } catch { return str; }
 }
 
+function formatDurationHMS(departure: string | null | undefined, arrival: string | null | undefined): string {
+  if (!departure || !arrival) return "--";
+  const start = new Date(departure);
+  const end = new Date(arrival);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return "--";
+  const diffSeconds = Math.max(0, Math.round((end.getTime() - start.getTime()) / 1000));
+  const hh = String(Math.floor(diffSeconds / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((diffSeconds % 3600) / 60)).padStart(2, "0");
+  const ss = String(diffSeconds % 60).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
 function getExitDate(item: { _rawStatus?: string; created_at?: string | null; departure_hour?: string | null }): string | null | undefined {
   return item._rawStatus === "Cancel" ? item.created_at : item.departure_hour;
 }
@@ -864,8 +876,8 @@ export default function ExitsPage() {
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr>
-                      {["TIPO", "SOLICITADO A", "ESTADO", "FECHA", "HORA SALIDA", "HORA LLEGADA", ""].map((h, i) => (
-                        <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 6 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                      {["TIPO", "SOLICITADO A", "ESTADO", "FECHA", "HORA SALIDA", "HORA LLEGADA", "DURACIÓN", ""].map((h, i) => (
+                        <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 7 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
                           {h}
                         </th>
                       ))}
@@ -874,7 +886,7 @@ export default function ExitsPage() {
                   <tbody>
                     {filteredItems.length === 0 && (
                       <tr>
-                        <td colSpan={7} style={{ padding: "40px", textAlign: "center" }}>
+                        <td colSpan={8} style={{ padding: "40px", textAlign: "center" }}>
                           <i className="pi pi-sign-out" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
                           <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
                             No hay salidas registradas{hasMyFilters ? " con los filtros aplicados" : ""}.
@@ -913,6 +925,9 @@ export default function ExitsPage() {
                           </td>
                           <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
                             {formatTimeOnly(item.arrival_hour)}
+                          </td>
+                          <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                            {formatDurationHMS(item.departure_hour, item.arrival_hour)}
                           </td>
                           <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
                             <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
@@ -1078,8 +1093,8 @@ export default function ExitsPage() {
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
                         <tr>
-                          {["SOLICITADA POR", "ESTADO", "TIPO", "FECHA", "HORA SALIDA", "HORA LLEGADA", ""].map((h, i) => (
-                            <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 6 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                          {["SOLICITADA POR", "ESTADO", "TIPO", "FECHA", "HORA SALIDA", "HORA LLEGADA", "DURACIÓN", ""].map((h, i) => (
+                            <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 7 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
                               {h}
                             </th>
                           ))}
@@ -1088,7 +1103,7 @@ export default function ExitsPage() {
                       <tbody>
                         {itemsAdmin.length === 0 && (
                           <tr>
-                            <td colSpan={7} style={{ padding: "40px", textAlign: "center" }}>
+                            <td colSpan={8} style={{ padding: "40px", textAlign: "center" }}>
                               <i className="pi pi-users" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
                               <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
                                 No hay salidas registradas{hasAdminFilters ? " con los filtros aplicados" : ""}.
@@ -1127,6 +1142,9 @@ export default function ExitsPage() {
                               </td>
                               <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
                                 {formatTimeOnly(item.arrival_hour)}
+                              </td>
+                              <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                                {formatDurationHMS(item.departure_hour, item.arrival_hour)}
                               </td>
                               <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
                                 <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
