@@ -1648,6 +1648,38 @@ input[disabled] {
   cursor: not-allowed;
 }
 
+/* Dropdown de PrimeReact con la apariencia de .profile-input */
+.profile-dropdown.p-dropdown {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  width: 100%;
+}
+
+.profile-dropdown.p-dropdown:not(.p-disabled).p-focus {
+  background: #fff;
+  border-color: #4a6cf7;
+  box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.12);
+}
+
+.profile-dropdown .p-dropdown-label {
+  align-items: center;
+  color: #2f3d4a;
+  display: flex;
+  font-size: 0.88rem;
+  padding: 9px 13px;
+}
+
+.profile-dropdown .p-dropdown-label.p-placeholder {
+  color: #94a3b8;
+}
+
+.profile-dropdown .p-dropdown-trigger {
+  color: #94a3b8;
+  width: 2.5rem;
+}
+
 /* Rich text editor (Tiptap) */
 .rich-text-editor {
   background: #f8fafc;

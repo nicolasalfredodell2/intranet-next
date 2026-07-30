@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
+import { Dropdown } from "primereact/dropdown";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { ProgressBar } from "primereact/progressbar";
@@ -31,8 +32,8 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-interface CategoryForm { name: string; colour: string; }
-interface CategoryItem { id: number; name: string; colour: string; }
+interface CategoryForm { name: string; colour: string; icon: string; }
+interface CategoryItem { id: number; name: string; colour: string; icon?: string; }
 
 function SkeletonRows() {
   return (
@@ -49,13 +50,58 @@ function SkeletonRows() {
 }
 
 const DEFAULT_COLOUR = "#2196f3";
+const DEFAULT_ICON = "pi-calendar";
+
+const ICON_OPTIONS = [
+  { label: "Calendario", value: "pi-calendar" },
+  { label: "Calendario +", value: "pi-calendar-plus" },
+  { label: "Estrella", value: "pi-star" },
+  { label: "Estrella (relleno)", value: "pi-star-fill" },
+  { label: "Corazón", value: "pi-heart" },
+  { label: "Corazón (relleno)", value: "pi-heart-fill" },
+  { label: "Bandera", value: "pi-flag" },
+  { label: "Bandera (relleno)", value: "pi-flag-fill" },
+  { label: "Marcador", value: "pi-bookmark" },
+  { label: "Marcador (relleno)", value: "pi-bookmark-fill" },
+  { label: "Campana", value: "pi-bell" },
+  { label: "Maletín", value: "pi-briefcase" },
+  { label: "Libro", value: "pi-book" },
+  { label: "Graduación", value: "pi-graduation-cap" },
+  { label: "Usuarios", value: "pi-users" },
+  { label: "Usuario", value: "pi-user" },
+  { label: "Inicio", value: "pi-home" },
+  { label: "Ubicación", value: "pi-map-marker" },
+  { label: "Regalo", value: "pi-gift" },
+  { label: "Trofeo", value: "pi-trophy" },
+  { label: "Escudo", value: "pi-shield" },
+  { label: "Alerta", value: "pi-exclamation-triangle" },
+  { label: "Información", value: "pi-info-circle" },
+  { label: "Confirmado", value: "pi-check-circle" },
+  { label: "Reloj", value: "pi-clock" },
+  { label: "Global", value: "pi-globe" },
+  { label: "Edificio", value: "pi-building" },
+  { label: "Archivo", value: "pi-file" },
+  { label: "Etiqueta", value: "pi-tag" },
+  { label: "Etiquetas", value: "pi-tags" },
+  { label: "Sol", value: "pi-sun" },
+  { label: "Luna", value: "pi-moon" },
+];
+
+function iconOptionTemplate(option: { label: string; value: string }) {
+  return (
+    <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+      <i className={`pi ${option.value}`} style={{ fontSize: "0.85rem" }} />
+      <span>{option.label}</span>
+    </div>
+  );
+}
 
 export default function CalendarCategoryPage() {
   const toast = useRef<Toast>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
-  const [form, setForm] = useState<CategoryForm>({ name: "", colour: DEFAULT_COLOUR });
+  const [form, setForm] = useState<CategoryForm>({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
   const [touched, setTouched] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -63,7 +109,7 @@ export default function CalendarCategoryPage() {
   const [loadingDelete, setLoadingDelete] = useState(false);
 
   const [categoryToModify, setCategoryToModify] = useState<CategoryItem | null>(null);
-  const [modifyForm, setModifyForm] = useState<CategoryForm>({ name: "", colour: DEFAULT_COLOUR });
+  const [modifyForm, setModifyForm] = useState<CategoryForm>({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
   const [modifyTouched, setModifyTouched] = useState(false);
   const [loadingModify, setLoadingModify] = useState(false);
 
@@ -99,19 +145,19 @@ export default function CalendarCategoryPage() {
   }
 
   function limpiar() {
-    setForm({ name: "", colour: DEFAULT_COLOUR });
+    setForm({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
     setTouched(false);
   }
 
   function abrirModificar(category: CategoryItem) {
     setCategoryToModify(category);
-    setModifyForm({ name: category.name, colour: category.colour });
+    setModifyForm({ name: category.name, colour: category.colour, icon: category.icon || DEFAULT_ICON });
     setModifyTouched(false);
   }
 
   function cerrarModificar() {
     setCategoryToModify(null);
-    setModifyForm({ name: "", colour: DEFAULT_COLOUR });
+    setModifyForm({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
     setModifyTouched(false);
   }
 
@@ -220,7 +266,7 @@ const filtered = searchTerm
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
               <div className="row">
-                <div className="col-12 col-md-6 mb-3">
+                <div className="col-12 col-md-4 mb-3">
                   <label className="profile-field-label">Nombre *</label>
                   <input
                     className="profile-input"
@@ -231,7 +277,22 @@ const filtered = searchTerm
                   />
                   {touched && !form.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                 </div>
-                <div className="col-12 col-md-6 mb-3">
+                <div className="col-12 col-md-4 mb-3">
+                  <label className="profile-field-label">Ícono</label>
+                  <Dropdown
+                    value={form.icon}
+                    options={ICON_OPTIONS}
+                    optionLabel="label"
+                    optionValue="value"
+                    itemTemplate={iconOptionTemplate}
+                    valueTemplate={(option) => (option ? iconOptionTemplate(option) : <span>Seleccioná un ícono</span>)}
+                    onChange={(e) => setForm((p) => ({ ...p, icon: e.value }))}
+                    placeholder="Seleccioná un ícono"
+                    className="profile-dropdown"
+                    panelClassName="license-filter-dropdown-panel"
+                  />
+                </div>
+                <div className="col-12 col-md-4 mb-3">
                   <label className="profile-field-label">Color *</label>
                   <div className="d-flex align-items-center" style={{ gap: "8px" }}>
                     <input
@@ -346,7 +407,20 @@ const filtered = searchTerm
                   header="COLOR"
                   style={{ width: "10%" }}
                   body={(category) => (
-                    <span style={{ display: "inline-block", width: 20, height: 20, borderRadius: "50%", background: category.colour, border: "1.5px solid rgba(0,0,0,0.06)" }} />
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 26,
+                        height: 26,
+                        borderRadius: "50%",
+                        background: category.colour,
+                        border: "1.5px solid rgba(0,0,0,0.06)",
+                      }}
+                    >
+                      <i className={`pi ${category.icon || DEFAULT_ICON}`} style={{ fontSize: "0.7rem", color: "#fff" }} />
+                    </span>
                   )}
                 />
                 <Column
@@ -436,6 +510,21 @@ const filtered = searchTerm
               onChange={(e) => setModifyForm((p) => ({ ...p, name: e.target.value }))}
             />
             {modifyTouched && !modifyForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+          <div className="mb-3">
+            <label className="profile-field-label">Ícono</label>
+            <Dropdown
+              value={modifyForm.icon}
+              options={ICON_OPTIONS}
+              optionLabel="label"
+              optionValue="value"
+              itemTemplate={iconOptionTemplate}
+              valueTemplate={(option) => (option ? iconOptionTemplate(option) : <span>Seleccioná un ícono</span>)}
+              onChange={(e) => setModifyForm((p) => ({ ...p, icon: e.value }))}
+              placeholder="Seleccioná un ícono"
+              className="profile-dropdown"
+              panelClassName="license-filter-dropdown-panel"
+            />
           </div>
           <div className="mb-1">
             <label className="profile-field-label">Color *</label>
