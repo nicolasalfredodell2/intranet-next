@@ -83,6 +83,9 @@ function ImageDropzone({ file, onFile, onClear, existingImageUrl }: { file: File
 
 export default function CalendarPage() {
   const toast = useRef<Toast>(null);
+  // Stable reference: passing a fresh `new Date()` on every render would make the widget
+  // jump back to the current month whenever this component re-renders (e.g. on click).
+  const initialDateRef = useRef(new Date());
   const [events, setEvents] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -368,7 +371,7 @@ export default function CalendarPage() {
                     <Calendar
                       ref={calendarApiRef}
                       events={calendarEvents}
-                      date={new Date()}
+                      date={initialDateRef.current}
                       views={["month"]}
                       view="month"
                       toolbar={{ items: toolbarItems }}
