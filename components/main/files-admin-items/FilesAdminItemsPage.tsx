@@ -710,6 +710,7 @@ export default function FilesAdminItemsPage() {
         draggable={false}
         resizable={false}
         closable={false}
+        dismissableMask
         style={{ width: "min(520px, 94vw)" }}
         onHide={cerrarModificarSub}
         footer={
@@ -796,6 +797,18 @@ export default function FilesAdminItemsPage() {
         dismissableMask
         style={{ width: "min(560px, 94vw)" }}
         onHide={() => setShowUsersDialog(false)}
+        footer={
+          <div className="d-flex align-items-center">
+            <button
+              type="button"
+              onClick={() => setShowUsersDialog(false)}
+              className="btn btn-light text-muted ml-auto"
+              style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+            >
+              Volver
+            </button>
+          </div>
+        }
       >
         {loadingUsers && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} />}
         <div style={{ overflowX: "auto" }}>
