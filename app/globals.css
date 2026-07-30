@@ -2233,3 +2233,8 @@ input[disabled] {
 .wx-grid-cell {
   cursor: pointer;
 }
+
+/* SVAR calendar: hide the small colored dot before each event's title */
+.wx-bar-marker {
+  display: none !important;
+}
