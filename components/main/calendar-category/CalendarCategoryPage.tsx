@@ -269,7 +269,7 @@ export default function CalendarCategoryPage() {
     if (!modifyForm.name || !modifyForm.colour || !categoryToModify) return;
     setLoadingModify(true);
     try {
-      const resp = await updateCalendarCategory(modifyForm, categoryToModify.id);
+      const resp = await updateCalendarCategory({ description: modifyForm.name, colour: modifyForm.colour, icon: modifyForm.icon }, categoryToModify.id);
       setCategories((prev) => prev.map((c) => (c.id === categoryToModify.id ? resp.category ?? resp.important_date_category ?? { ...c, ...modifyForm } : c)));
       toast.current?.show({ severity: "success", summary: "Categoría modificada" });
       cerrarModificar();
