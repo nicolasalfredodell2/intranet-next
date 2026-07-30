@@ -157,6 +157,17 @@ export default function CalendarPage() {
     }
   }
 
+  // The widget only wires up its own click handling on the day-number element; clicking
+  // anywhere else in the cell does nothing. Delegate clicks on the whole cell instead.
+  function handleGridClick(e: React.MouseEvent<HTMLDivElement>) {
+    const target = e.target as HTMLElement;
+    if (target.closest(".wx-bar-event, .wx-box-event")) return;
+    const cell = target.closest(".wx-grid-cell") as HTMLElement | null;
+    if (!cell) return;
+    const dateStr = cell.querySelector("[data-date]")?.getAttribute("data-date");
+    if (dateStr) openCreate(dateStr);
+  }
+
   function openCreate(dateStr: string) {
     setCreateForm({ event: "", date: dateStr, text: "", category_id: "" });
     setCreateTouched(false);
@@ -351,7 +362,7 @@ export default function CalendarPage() {
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mb-3" />}
             <div style={{ overflowX: "auto" }}>
-              <div style={{ minWidth: 700, height: 700, display: "grid" }}>
+              <div style={{ minWidth: 700, height: 700, display: "grid" }} onClick={handleGridClick}>
                 <Locale words={CALENDAR_LOCALE_ES}>
                   <Willow>
                     <Calendar
