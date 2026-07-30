@@ -159,24 +159,6 @@ export default function NavbarLateral() {
                         </Link>
                       </li>
 
-                      <li className="fadeIn animated admin-item">
-                        <a className="has-arrow waves-effect waves-dark" href="#" aria-expanded={openMenus["calendario"] ? "true" : "false"} onClick={(e) => toggleMenu("calendario", e)}>
-                          <i className="pi pi-calendar" />
-                          <span className="hide-menu">Eventos</span>
-                        </a>
-                        <ul className={`collapse${openMenus["calendario"] ? " show" : ""}`}>
-                          <li>
-                            <Link className="nav-toggler" href="/main/calendar" onClick={onNavClick}>
-                              Calendario
-                            </Link>
-                          </li>
-                          <li>
-                            <Link className="nav-toggler" href="/main/calendar-category" onClick={onNavClick}>
-                              Categorias
-                            </Link>
-                          </li>
-                        </ul>
-                      </li>
                     </>
                   )}
 
@@ -193,6 +175,27 @@ export default function NavbarLateral() {
                         <i className="pi pi-comments" />
                         <span className="hide-menu">Encuestas</span>
                       </Link>
+                    </li>
+                  )}
+
+                  {isAdminInformatic && (
+                    <li className="fadeIn animated admin-item">
+                      <a className="has-arrow waves-effect waves-dark" href="#" aria-expanded={openMenus["calendario"] ? "true" : "false"} onClick={(e) => toggleMenu("calendario", e)}>
+                        <i className="pi pi-calendar" />
+                        <span className="hide-menu">Eventos</span>
+                      </a>
+                      <ul className={`collapse${openMenus["calendario"] ? " show" : ""}`}>
+                        <li>
+                          <Link className="nav-toggler" href="/main/calendar" onClick={onNavClick}>
+                            Calendario
+                          </Link>
+                        </li>
+                        <li>
+                          <Link className="nav-toggler" href="/main/calendar-category" onClick={onNavClick}>
+                            Categorias
+                          </Link>
+                        </li>
+                      </ul>
                     </li>
                   )}
 
