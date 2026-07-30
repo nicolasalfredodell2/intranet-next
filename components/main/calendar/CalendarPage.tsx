@@ -150,8 +150,7 @@ export default function CalendarPage() {
     setLoading(true);
     try {
       const [evts, cats] = await Promise.all([getCalendarEvents(), getCalendarCategories()]);
-      const mapped = evts.map((e: any) => ({ ...e, color: e.color || e.category?.colour }));
-      setEvents(mapped);
+      setEvents(evts);
       setCategories(cats);
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "No se pudieron cargar los datos", detail: err.message });
@@ -277,15 +276,25 @@ export default function CalendarPage() {
     const start = new Date(`${e.date?.split("T")[0]}T00:00:00`);
     const end = new Date(start);
     end.setDate(end.getDate() + 1);
+    const categoryId = e.category_id ?? e.category?.id ?? "default";
     return {
       id: e.id,
       start,
       end,
       allDay: true,
       text: e.event,
-      color: e.color || "#94a3b8",
+      css: `cal-cat-${categoryId}`,
     };
   });
+
+  // The widget doesn't read an event.color field — event backgrounds are driven by a CSS
+  // class (event.css), so we generate one rule per category with its actual colour here.
+  const categoryEventStyles = categories
+    .map((c) => {
+      const colour = c.colour || "#94a3b8";
+      return `.wx-bar-event.cal-cat-${c.id}, .wx-box-event.cal-cat-${c.id} { background-color: ${colour} !important; }`;
+    })
+    .join("\n");
 
   const createDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -364,6 +373,7 @@ export default function CalendarPage() {
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mb-3" />}
+            {categoryEventStyles && <style>{categoryEventStyles}</style>}
             <div style={{ overflowX: "auto" }}>
               <div style={{ minWidth: 700, height: 700, display: "grid" }} onClick={handleGridClick}>
                 <Locale words={CALENDAR_LOCALE_ES}>
