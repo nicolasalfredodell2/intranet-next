@@ -284,7 +284,9 @@ export default function TimeclockTimelineChart({ groups, workingHours }: { group
             if (!s) return "";
             const lines: string[] = [];
             if (s.isComplete && s.entryTime && s.exitTime && s.durationMinutes != null) {
-              lines.push(`Entrada: ${s.entryTime}`, `Salida: ${s.exitTime}`, `Duración: ${formatDurationLabel(s.durationMinutes)}`);
+              const gaps = computeAbsenceGaps(tempMarkersByDay[item.dataIndex] ?? [], s.entryMinutes as number, s.exitMinutes as number);
+              const gapMinutes = gaps.reduce((sum, g) => sum + (g.end - g.start), 0);
+              lines.push(`Entrada: ${s.entryTime}`, `Salida: ${s.exitTime}`, `Duración: ${formatDurationLabel(s.durationMinutes - gapMinutes)}`);
             } else if (s.entryTime && !s.exitTime) {
               lines.push(`Entrada: ${s.entryTime}`, "Sin salida registrada");
             } else if (!s.entryTime && s.exitTime) {
