@@ -597,7 +597,7 @@ export default function ProfilePage() {
                       onClick={() => setShowModalBosses(true)}
                     >
                       <i className="pi pi-pencil" style={{ fontSize: "0.75rem" }} />
-                      Modificar
+                      Modificar jefes
                     </button>
                   ) : undefined
                 }
