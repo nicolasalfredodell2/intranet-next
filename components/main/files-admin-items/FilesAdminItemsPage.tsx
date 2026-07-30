@@ -81,6 +81,7 @@ export default function FilesAdminItemsPage() {
   const [showUsersDialog, setShowUsersDialog] = useState(false);
   const [subUsers, setSubUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [hoveredUserRow, setHoveredUserRow] = useState<number | null>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -793,22 +794,52 @@ export default function FilesAdminItemsPage() {
         draggable={false}
         resizable={false}
         dismissableMask
-        style={{ width: "min(420px, 92vw)" }}
+        style={{ width: "min(560px, 94vw)" }}
         onHide={() => setShowUsersDialog(false)}
       >
         {loadingUsers && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} />}
-        {!loadingUsers && subUsers.length === 0 && (
-          <p style={{ color: "#94a3b8", fontSize: "0.88rem", textAlign: "center", margin: 0 }}>No hay usuarios vinculados.</p>
-        )}
-        {!loadingUsers && subUsers.length > 0 && (
-          <div className="d-flex flex-wrap" style={{ gap: "8px" }}>
-            {subUsers.map((u: any) => (
-              <span key={u.id} className="profile-boss-chip">
-                {u.lastname_name ?? u.name}
-              </span>
-            ))}
-          </div>
-        )}
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                {["NOMBRE", "CUIL", "LEGAJO"].map((h, i) => (
+                  <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {!loadingUsers && subUsers.length === 0 && (
+                <tr>
+                  <td colSpan={3} style={{ padding: "40px", textAlign: "center" }}>
+                    <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>No hay usuarios vinculados.</p>
+                  </td>
+                </tr>
+              )}
+              {subUsers.map((u: any, i: number) => (
+                <tr
+                  key={u.people?.id ?? u.people_id ?? i}
+                  className="fadeIn animated"
+                  onMouseEnter={() => setHoveredUserRow(i)}
+                  onMouseLeave={() => setHoveredUserRow(null)}
+                  style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredUserRow === i ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                >
+                  <td style={{ padding: "10px 8px" }}>
+                    <span className="license-cell-primary">{u.people?.lastname_name ?? u.people?.name}</span>
+                  </td>
+                  <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                    <span className="license-cell-secondary">{u.people?.cuil ?? "--"}</span>
+                  </td>
+                  <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                    <span className="license-cell-secondary">{u.people?.internal ?? "--"}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Dialog>
 
       {/* Delete category dialog */}
