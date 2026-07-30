@@ -2228,3 +2228,8 @@ input[disabled] {
   animation-timing-function: linear;
   animation-fill-mode: forwards;
 }
+
+/* SVAR calendar: day cells are clickable (open the create-event dialog) */
+.wx-grid-cell {
+  cursor: pointer;
+}
