@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
 import { Dropdown } from "primereact/dropdown";
 import { Paginator } from "primereact/paginator";
 import { loadLicenses } from "@/lib/services/license.service";
@@ -103,6 +101,9 @@ export default function LicensePage() {
   const [paginatorRows, setPaginatorRows] = useState(10);
   const [sortBy, setSortBy] = useState("");
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
+  const [detailFirst, setDetailFirst] = useState(0);
+  const [detailRows, setDetailRows] = useState(10);
+  const [hoveredDetailRow, setHoveredDetailRow] = useState<number | null>(null);
 
   useEffect(() => {
     loadData();
@@ -173,6 +174,7 @@ export default function LicensePage() {
       .reverse();
     const norma = license.norma_aprobatoria ?? details.find((l: any) => l.norma_aprobatoria)?.norma_aprobatoria ?? null;
     setSelectedLicense({ ...license, norma_aprobatoria: norma });
+    setDetailFirst(0);
     setLicensesForDetail(details);
     setShowDetail(true);
   }
@@ -416,41 +418,66 @@ export default function LicensePage() {
         style={{ width: "min(95vw, 780px)" }}
         onHide={() => setShowDetail(false)}
       >
-        <DataTable
-          value={licensesForDetail}
-          className="p-datatable-sm license-table"
-          paginator
-          rows={10}
-        >
-          <Column
-            field="fecha_inicio"
-            header="FECHA INICIO"
-            body={(r) => (
-              <span className="license-date-cell">
-                {r.fecha_inicio}
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                {["FECHA INICIO", "FECHA FIN", "DÍAS UTILIZADOS", "NORMA APROBATORIA"].map((h, i) => (
+                  <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {licensesForDetail.length === 0 && (
+                <tr>
+                  <td colSpan={4} style={{ padding: "40px", textAlign: "center" }}>
+                    <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>No hay registros para esta licencia.</p>
+                  </td>
+                </tr>
+              )}
+              {licensesForDetail.slice(detailFirst, detailFirst + detailRows).map((r, i) => {
+                const rowKey = detailFirst + i;
+                return (
+                  <tr
+                    key={rowKey}
+                    className="fadeIn animated"
+                    onMouseEnter={() => setHoveredDetailRow(rowKey)}
+                    onMouseLeave={() => setHoveredDetailRow(null)}
+                    style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredDetailRow === rowKey ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                  >
+                    <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                      <span className="license-date-cell">{r.fecha_inicio}</span>
+                    </td>
+                    <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                      <span className="license-date-cell">{r.fecha_finaliz}</span>
+                    </td>
+                    <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                      <DayBadge days={r.dias_computados} />
+                    </td>
+                    <td style={{ padding: "10px 8px" }}>
+                      <span className="license-cell-secondary">{r.norma_aprobatoria}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <Paginator
+            first={detailFirst}
+            rows={detailRows}
+            totalRecords={licensesForDetail.length}
+            rowsPerPageOptions={[10, 15, 20]}
+            onPageChange={(e) => { setDetailFirst(e.first); setDetailRows(e.rows); }}
+            rightContent={
+              <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                {licensesForDetail.length} {licensesForDetail.length === 1 ? "registro" : "registros"}
               </span>
-            )}
+            }
           />
-          <Column
-            field="fecha_finaliz"
-            header="FECHA FIN"
-            body={(r) => (
-              <span className="license-date-cell">
-                {r.fecha_finaliz}
-              </span>
-            )}
-          />
-          <Column
-            field="dias_computados"
-            header="DÍAS UTILIZADOS"
-            body={(r) => <DayBadge days={r.dias_computados} />}
-          />
-          <Column
-            field="norma_aprobatoria"
-            header="NORMA APROBATORIA"
-            body={(r) => <span className="license-cell-secondary">{r.norma_aprobatoria}</span>}
-          />
-        </DataTable>
+        </div>
       </Dialog>
     </>
   );
