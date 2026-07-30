@@ -742,6 +742,7 @@ export default function BannersPage() {
         draggable={false}
         resizable={false}
         closable={false}
+        dismissableMask
         style={{ width: "min(720px, 94vw)" }}
         onHide={cerrarModificar}
         footer={

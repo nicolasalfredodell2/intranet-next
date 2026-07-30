@@ -67,8 +67,8 @@ export default function IncomePage() {
       {/* Header card */}
       <div className="card profile-card">
         <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
-          <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <i className="pi pi-history" style={{ color: "#059669", fontSize: "1rem" }} />
+          <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <i className="pi pi-history" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
           </div>
           <div className="flex-grow-1">
             <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Fichadas Diarias</h5>

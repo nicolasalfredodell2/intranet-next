@@ -584,8 +584,8 @@ export default function ProfilePage() {
             <div className={`card profile-card${!loadingUser && bosses.length === 0 ? " profile-card--warning" : ""}`}>
               <CardSectionHeader
                 icon="pi pi-users"
-                iconBg="#fff4e6"
-                iconColor="#fd7e14"
+                iconBg="rgba(74,108,247,0.08)"
+                iconColor="#4a6cf7"
                 title="Jefes"
                 subtitle="Quién aprueba tus solicitudes de salida"
                 action={
