@@ -128,7 +128,7 @@ interface WorkingHours {
   out: string;
 }
 
-function drawScheduleLine(ctx: CanvasRenderingContext2D, x: number, top: number, bottom: number, color: string, label: string) {
+function drawScheduleLine(ctx: CanvasRenderingContext2D, x: number, top: number, bottom: number, color: string, label: string, time: string) {
   ctx.save();
   ctx.beginPath();
   ctx.setLineDash([4, 4]);
@@ -142,6 +142,7 @@ function drawScheduleLine(ctx: CanvasRenderingContext2D, x: number, top: number,
   ctx.fillStyle = color;
   ctx.textAlign = "center";
   ctx.fillText(label, x, top + 10);
+  ctx.fillText(time, x, top + 20);
   ctx.restore();
 }
 
@@ -198,10 +199,10 @@ export default function TimeclockTimelineChart({ groups, workingHours }: { group
       const xScale = scales.x;
       if (!xScale || !chartArea) return;
       if (hourInMinutes != null) {
-        drawScheduleLine(ctx, xScale.getPixelForValue(hourInMinutes), chartArea.top, chartArea.bottom, COLOR_WORK_IN, "Ingreso");
+        drawScheduleLine(ctx, xScale.getPixelForValue(hourInMinutes), chartArea.top, chartArea.bottom, COLOR_WORK_IN, "Ingreso", minutesToHHMM(hourInMinutes));
       }
       if (hourOutMinutes != null) {
-        drawScheduleLine(ctx, xScale.getPixelForValue(hourOutMinutes), chartArea.top, chartArea.bottom, COLOR_WORK_OUT, "Salida");
+        drawScheduleLine(ctx, xScale.getPixelForValue(hourOutMinutes), chartArea.top, chartArea.bottom, COLOR_WORK_OUT, "Salida", minutesToHHMM(hourOutMinutes));
       }
     },
   };
