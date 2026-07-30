@@ -1307,7 +1307,7 @@ export default function ExitsPage() {
             onClick={openModalBosses}
           >
             <i className="pi pi-pencil" style={{ fontSize: "0.7rem" }} />
-            Modificar
+            Modificar jefes
           </button>
         </div>
         {cuilTouched && !formCuil && (
