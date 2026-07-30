@@ -74,6 +74,16 @@ export async function getSubcategoryUsers(subitemId: string | number): Promise<a
   return Array.isArray(resp) ? resp : (resp.data ?? resp);
 }
 
+export async function unlinkSubcategoryUsers(subItemId: string | number, userIds: (string | number)[]): Promise<any> {
+  const res = await fetch(`${API}legajo/sub-item/delete/users-linked`, {
+    method: "DELETE",
+    headers: { ...authHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ user_ids: userIds, sub_item_id: subItemId }),
+  });
+  if (!res.ok) throw new Error("No se pudo eliminar los agentes vinculados");
+  return res.json();
+}
+
 export async function loadFilesForUser(userId: string | number): Promise<any> {
   const res = await fetch(`${API}legajo/${userId}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("No se pudo cargar los archivos del usuario");

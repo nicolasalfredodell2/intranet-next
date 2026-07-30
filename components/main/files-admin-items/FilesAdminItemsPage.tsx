@@ -9,7 +9,7 @@ import { Dropdown } from "primereact/dropdown";
 import {
   loadFileCategories, createFileCategory, updateFileCategory, deleteFileCategory,
   createFileSubcategory, updateFileSubcategory, deleteFileSubcategory,
-  getSubcategoryUsers,
+  getSubcategoryUsers, unlinkSubcategoryUsers,
 } from "@/lib/services/files-admin-items.service";
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -79,9 +79,13 @@ export default function FilesAdminItemsPage() {
   const [newSubTouched, setNewSubTouched] = useState(false);
 
   const [showUsersDialog, setShowUsersDialog] = useState(false);
+  const [usersDialogSub, setUsersDialogSub] = useState<any>(null);
   const [subUsers, setSubUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [hoveredUserRow, setHoveredUserRow] = useState<number | null>(null);
+  const [selectUsersMode, setSelectUsersMode] = useState(false);
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
+  const [loadingDeleteUsers, setLoadingDeleteUsers] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -234,13 +238,48 @@ export default function FilesAdminItemsPage() {
   }
 
   async function openUsers(sub: any) {
+    setUsersDialogSub(sub);
     setLoadingUsers(true);
     setShowUsersDialog(true);
     setSubUsers([]);
+    setSelectUsersMode(false);
+    setSelectedUserIds(new Set());
     try {
       setSubUsers(await getSubcategoryUsers(sub.id));
     } catch { toast.current?.show({ severity: "error", summary: "No se pudo cargar los usuarios" }); }
     finally { setLoadingUsers(false); }
+  }
+
+  function closeUsersDialog() {
+    setShowUsersDialog(false);
+    setUsersDialogSub(null);
+    setSubUsers([]);
+    setSelectUsersMode(false);
+    setSelectedUserIds(new Set());
+  }
+
+  function toggleUserSelected(peopleId: number) {
+    setSelectedUserIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(peopleId)) next.delete(peopleId); else next.add(peopleId);
+      return next;
+    });
+  }
+
+  async function handleDeleteSelectedUsers() {
+    if (!usersDialogSub || selectedUserIds.size === 0) return;
+    setLoadingDeleteUsers(true);
+    try {
+      await unlinkSubcategoryUsers(usersDialogSub.id, Array.from(selectedUserIds));
+      setSubUsers((prev) => prev.filter((u) => !selectedUserIds.has(u.people?.id ?? u.people_id)));
+      toast.current?.show({ severity: "success", summary: "Agentes eliminados de la subcategoría" });
+      setSelectedUserIds(new Set());
+      setSelectUsersMode(false);
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se pudo eliminar los agentes seleccionados" });
+    } finally {
+      setLoadingDeleteUsers(false);
+    }
   }
 
   const filtered = search
@@ -796,17 +835,56 @@ export default function FilesAdminItemsPage() {
         resizable={false}
         dismissableMask
         style={{ width: "min(560px, 94vw)" }}
-        onHide={() => setShowUsersDialog(false)}
+        onHide={closeUsersDialog}
         footer={
-          <div className="d-flex align-items-center">
-            <button
-              type="button"
-              onClick={() => setShowUsersDialog(false)}
-              className="btn btn-light text-muted ml-auto"
-              style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
-            >
-              Volver
-            </button>
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              {!selectUsersMode && (
+                <button
+                  type="button"
+                  disabled={subUsers.length === 0}
+                  onClick={() => setSelectUsersMode(true)}
+                  className="btn btn-light d-flex align-items-center"
+                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem", color: "#dc3545" }}
+                >
+                  <i className="pi pi-trash" style={{ fontSize: "0.78rem" }} />
+                  Eliminar agentes
+                </button>
+              )}
+              {selectUsersMode && (
+                <>
+                  <button
+                    type="button"
+                    disabled={loadingDeleteUsers}
+                    onClick={() => { setSelectUsersMode(false); setSelectedUserIds(new Set()); }}
+                    className="btn btn-light text-muted"
+                    style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loadingDeleteUsers || selectedUserIds.size === 0}
+                    onClick={handleDeleteSelectedUsers}
+                    className="btn btn-danger d-flex align-items-center"
+                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                  >
+                    <i className={loadingDeleteUsers ? "pi pi-spin pi-spinner" : "pi pi-trash"} style={{ fontSize: "0.78rem" }} />
+                    {loadingDeleteUsers ? "Eliminando..." : `Eliminar (${selectedUserIds.size})`}
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                disabled={loadingDeleteUsers}
+                onClick={closeUsersDialog}
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingDeleteUsers && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
         }
       >
@@ -815,6 +893,7 @@ export default function FilesAdminItemsPage() {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
+                {selectUsersMode && <th style={{ padding: "0 8px 10px", borderBottom: "1.5px solid rgba(0,0,0,0.06)", width: 32 }} />}
                 {["NOMBRE", "CUIL", "LEGAJO"].map((h, i) => (
                   <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
                     {h}
@@ -825,31 +904,44 @@ export default function FilesAdminItemsPage() {
             <tbody>
               {!loadingUsers && subUsers.length === 0 && (
                 <tr>
-                  <td colSpan={3} style={{ padding: "40px", textAlign: "center" }}>
+                  <td colSpan={selectUsersMode ? 4 : 3} style={{ padding: "40px", textAlign: "center" }}>
                     <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
                     <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>No hay agentes vinculados.</p>
                   </td>
                 </tr>
               )}
-              {subUsers.map((u: any, i: number) => (
-                <tr
-                  key={u.people?.id ?? u.people_id ?? i}
-                  className="fadeIn animated"
-                  onMouseEnter={() => setHoveredUserRow(i)}
-                  onMouseLeave={() => setHoveredUserRow(null)}
-                  style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredUserRow === i ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
-                >
-                  <td style={{ padding: "10px 8px" }}>
-                    <span className="license-cell-primary">{u.people?.lastname_name ?? u.people?.name}</span>
-                  </td>
-                  <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
-                    <span className="license-cell-secondary">{u.people?.cuil ?? "--"}</span>
-                  </td>
-                  <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
-                    <span className="license-cell-secondary">{u.people?.internal?.split("/")[0]?.trim() ?? "--"}</span>
-                  </td>
-                </tr>
-              ))}
+              {subUsers.map((u: any, i: number) => {
+                const peopleId = u.people?.id ?? u.people_id;
+                return (
+                  <tr
+                    key={peopleId ?? i}
+                    className="fadeIn animated"
+                    onMouseEnter={() => setHoveredUserRow(i)}
+                    onMouseLeave={() => setHoveredUserRow(null)}
+                    style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredUserRow === i ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                  >
+                    {selectUsersMode && (
+                      <td style={{ padding: "10px 8px" }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.has(peopleId)}
+                          onChange={() => toggleUserSelected(peopleId)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      </td>
+                    )}
+                    <td style={{ padding: "10px 8px" }}>
+                      <span className="license-cell-primary">{u.people?.lastname_name ?? u.people?.name}</span>
+                    </td>
+                    <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                      <span className="license-cell-secondary">{u.people?.cuil ?? "--"}</span>
+                    </td>
+                    <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                      <span className="license-cell-secondary">{u.people?.internal?.split("/")[0]?.trim() ?? "--"}</span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
