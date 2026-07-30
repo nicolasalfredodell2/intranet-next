@@ -301,7 +301,7 @@ export default function FilesAdminItemsPage() {
         <i className="pi pi-users" style={{ color: "#3b82f6", fontSize: "1rem" }} />
       </div>
       <div>
-        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Usuarios vinculados</p>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Agentes vinculados</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Agentes con esta subcategoría en su legajo</small>
       </div>
     </div>
@@ -585,7 +585,7 @@ export default function FilesAdminItemsPage() {
                                 {sub.description && <p className="mb-0" style={{ fontSize: "0.76rem", color: "#94a3b8", fontStyle: "italic" }}>{sub.description}</p>}
                               </div>
                               <div className="d-flex align-items-center" style={{ gap: "6px", flexShrink: 0 }}>
-                                <Tooltip label="Ver usuarios">
+                                <Tooltip label="Agentes vinculados">
                                   <button type="button" onClick={() => openUsers(sub)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
                                     <i className="pi pi-users" style={{ fontSize: "0.85rem" }} />
                                   </button>
@@ -814,7 +814,7 @@ export default function FilesAdminItemsPage() {
                 <tr>
                   <td colSpan={3} style={{ padding: "40px", textAlign: "center" }}>
                     <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
-                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>No hay usuarios vinculados.</p>
+                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>No hay agentes vinculados.</p>
                   </td>
                 </tr>
               )}
@@ -833,7 +833,7 @@ export default function FilesAdminItemsPage() {
                     <span className="license-cell-secondary">{u.people?.cuil ?? "--"}</span>
                   </td>
                   <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
-                    <span className="license-cell-secondary">{u.people?.internal ?? "--"}</span>
+                    <span className="license-cell-secondary">{u.people?.internal?.split("/")[0]?.trim() ?? "--"}</span>
                   </td>
                 </tr>
               ))}
