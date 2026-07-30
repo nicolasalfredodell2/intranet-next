@@ -52,6 +52,11 @@ function SkeletonRows() {
 const DEFAULT_COLOUR = "#2196f3";
 const DEFAULT_ICON = "pi-calendar";
 
+const SORT_OPTIONS = [
+  { label: "Nombre (A-Z)", value: "asc" },
+  { label: "Nombre (Z-A)", value: "desc" },
+];
+
 const ICON_OPTIONS = [
   // Calendario y tiempo
   { label: "Calendario", value: "pi-calendar" },
@@ -196,6 +201,7 @@ export default function CalendarCategoryPage() {
   const [form, setForm] = useState<CategoryForm>({ name: "", colour: "#000000", icon: "" });
   const [touched, setTouched] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
@@ -285,9 +291,13 @@ export default function CalendarCategoryPage() {
     }
   }
 
-const filtered = searchTerm
+const filtered = (searchTerm
     ? categories.filter((c) => (c.description ?? c.name)?.toLowerCase().includes(searchTerm.toLowerCase()))
-    : categories;
+    : [...categories]
+  ).sort((a, b) => {
+    const cmp = (a.description ?? a.name ?? "").localeCompare(b.description ?? b.name ?? "");
+    return sortOrder === "asc" ? cmp : -cmp;
+  });
 
   const modifyDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -461,6 +471,18 @@ const filtered = searchTerm
                       placeholder="Buscar categoría por nombre…"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="license-filter-input-wrap license-filter-input-wrap--active">
+                    <i className={`pi ${sortOrder === "asc" ? "pi-sort-alpha-down" : "pi-sort-alpha-up"} license-filter-icon`} />
+                    <Dropdown
+                      value={sortOrder}
+                      options={SORT_OPTIONS}
+                      optionLabel="label"
+                      optionValue="value"
+                      onChange={(e) => setSortOrder(e.value)}
+                      className="license-filter-dropdown"
+                      panelClassName="license-filter-dropdown-panel"
                     />
                   </div>
                 </div>
