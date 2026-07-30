@@ -7,6 +7,7 @@ import { Dialog } from "primereact/dialog";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Dropdown } from "primereact/dropdown";
+import { Paginator } from "primereact/paginator";
 import { loadLicenses } from "@/lib/services/license.service";
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -99,7 +100,9 @@ export default function LicensePage() {
     anio_ref: "",
   });
   const [paginatorFirst, setPaginatorFirst] = useState(0);
+  const [paginatorRows, setPaginatorRows] = useState(10);
   const [sortBy, setSortBy] = useState("");
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -302,67 +305,82 @@ export default function LicensePage() {
                   )}
                 </div>
 
-                <DataTable
-                  value={filtered}
-                  className="p-datatable-sm license-table"
-                  paginator
-                  rows={10}
-                  rowsPerPageOptions={[10, 15, 20]}
-                  first={paginatorFirst}
-                  onPage={(e) => setPaginatorFirst(e.first)}
-                  paginatorRight={
-                    <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
-                      {filtered.length} {filtered.length === 1 ? "licencia" : "licencias"}
-                    </span>
-                  }
-                  emptyMessage={
-                    <div className="license-empty">
-                      <i className="pi pi-inbox" />
-                      <p>No hay licencias registradas {filters.anio_ref || filters.descripcion || filters.norma_aprobatoria ? `con los filtros aplicados` : ''}.</p>
-                    </div>
-                  }
-                >
-                  <Column
-                    field="anio_ref"
-                    header="AÑO"
-                    style={{ width: "9%", textAlign: "left" }}
-                    body={(r) => <span className="license-cell-year">{r.anio_ref}</span>}
-                  />
-                  <Column
-                    field="descripcion"
-                    header="DESCRIPCIÓN"
-                    style={{ width: "30%" }}
-                    body={(r) => <span className="license-cell-primary">{r.descripcion}</span>}
-                  />
-                  <Column
-                    field="norma_aprobatoria"
-                    header="NORMA"
-                    style={{ width: "22%" }}
-                    body={(r) => <span className="license-cell-secondary">{r.norma_aprobatoria}</span>}
-                  />
-                  <Column
-                    field="cant"
-                    header="DÍAS UTILIZADOS"
-                    style={{ width: "14%", textAlign: "left" }}
-                    body={(r) => <DayBadge days={r.cant} />}
-                  />
-                  <Column
-                    header=""
-                    style={{ width: "7%", textAlign: "center" }}
-                    body={(r) => (
-                      <Tooltip label="Ver detalle">
-                        <button
-                          type="button"
-                          className="license-action-btn"
-                          onClick={() => openDetail(r)}
-                          aria-label="Ver detalle"
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        {["AÑO", "DESCRIPCIÓN", "NORMA", "DÍAS UTILIZADOS", ""].map((h, i) => (
+                          <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 4 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.length === 0 && (
+                        <tr>
+                          <td colSpan={5} style={{ padding: "40px", textAlign: "center" }}>
+                            <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                            <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
+                              No hay licencias registradas {hasFilters ? "con los filtros aplicados" : ""}.
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+                      {filtered.slice(paginatorFirst, paginatorFirst + paginatorRows).map((r) => {
+                        const rowKey = `${r.articulo}-${r.anio_ref}`;
+                        return (
+                        <tr
+                          key={rowKey}
+                          className="fadeIn animated"
+                          onMouseEnter={() => setHoveredRow(rowKey)}
+                          onMouseLeave={() => setHoveredRow(null)}
+                          style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === rowKey ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
                         >
-                          <i className="pi pi-eye" />
-                        </button>
-                      </Tooltip>
-                    )}
+                          <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                            <span className="license-cell-year">{r.anio_ref}</span>
+                          </td>
+                          <td style={{ padding: "10px 8px" }}>
+                            <span className="license-cell-primary">{r.descripcion}</span>
+                          </td>
+                          <td style={{ padding: "10px 8px" }}>
+                            <span className="license-cell-secondary">{r.norma_aprobatoria}</span>
+                          </td>
+                          <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                            <DayBadge days={r.cant} />
+                          </td>
+                          <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
+                            <div className="d-flex align-items-center justify-content-end">
+                              <Tooltip label="Ver detalle">
+                                <button
+                                  type="button"
+                                  className="license-action-btn"
+                                  onClick={() => openDetail(r)}
+                                  aria-label="Ver detalle"
+                                >
+                                  <i className="pi pi-eye" />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          </td>
+                        </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <Paginator
+                    first={paginatorFirst}
+                    rows={paginatorRows}
+                    totalRecords={filtered.length}
+                    rowsPerPageOptions={[10, 15, 20]}
+                    onPageChange={(e) => { setPaginatorFirst(e.first); setPaginatorRows(e.rows); }}
+                    rightContent={
+                      <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                        {filtered.length} {filtered.length === 1 ? "licencia" : "licencias"}
+                      </span>
+                    }
                   />
-                </DataTable>
+                </div>
               </div>
             )}
           </div>
