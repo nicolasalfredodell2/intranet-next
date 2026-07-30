@@ -32,7 +32,7 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
 }
 
 interface CategoryForm { name: string; colour: string; icon: string; }
-interface CategoryItem { id: number; name: string; colour: string; icon?: string; }
+interface CategoryItem { id: number; name: string; description?: string; colour: string; icon?: string; }
 
 function SkeletonRows() {
   return (
@@ -253,7 +253,7 @@ export default function CalendarCategoryPage() {
 
   function abrirModificar(category: CategoryItem) {
     setCategoryToModify(category);
-    setModifyForm({ name: category.name, colour: category.colour, icon: category.icon || DEFAULT_ICON });
+    setModifyForm({ name: category.description ?? category.name, colour: category.colour, icon: category.icon || DEFAULT_ICON });
     setModifyTouched(false);
   }
 
