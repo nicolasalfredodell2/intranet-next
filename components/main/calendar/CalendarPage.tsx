@@ -124,11 +124,20 @@ export default function CalendarPage() {
       }
       return false;
     }, { tag: "calendar-select-event" });
+    // Clicking a day number normally navigates to the (disabled) day view; redirect that
+    // single click to open the create dialog instead. Other navigation (prev/next/today) passes through.
+    api.intercept("navigate-to", (ev: any) => {
+      if (ev?.view === "day" && ev?.date) {
+        openCreate(toDateInputValue(new Date(ev.date)));
+        return false;
+      }
+    }, { tag: "calendar-navigate-to" });
     api.intercept("update-event", () => false, { tag: "calendar-update-event" });
     api.intercept("move-event", () => false, { tag: "calendar-move-event" });
     return () => {
       api.detach("calendar-add-event");
       api.detach("calendar-select-event");
+      api.detach("calendar-navigate-to");
       api.detach("calendar-update-event");
       api.detach("calendar-move-event");
     };
