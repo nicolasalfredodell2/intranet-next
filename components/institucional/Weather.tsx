@@ -61,7 +61,7 @@ export default function Weather({ onSearch }: WeatherProps) {
                     Mín {round(weatherData.main.temp_min)}°C / Máx {round(weatherData.main.temp_max)}°C
                   </p>
                   <p className="mt-1 mb-0 text-rain">
-                    <i className="fas fa-cloud-showers-heavy" /> Lluvias: {weatherData.rain ? weatherData.rain : "0"}%
+                    <i className="fas fa-cloud-showers-heavy" /> Lluvias: {weatherData.rain?.["1h"] ?? 0}%
                     <i className="fas fa-wind ml-2" /> Viento: {round(weatherData.wind.speed)} km/h
                   </p>
                 </div>
