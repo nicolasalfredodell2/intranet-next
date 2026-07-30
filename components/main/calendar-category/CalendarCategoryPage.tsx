@@ -53,38 +53,130 @@ const DEFAULT_COLOUR = "#2196f3";
 const DEFAULT_ICON = "pi-calendar";
 
 const ICON_OPTIONS = [
+  // Calendario y tiempo
   { label: "Calendario", value: "pi-calendar" },
+  { label: "Calendario (reloj)", value: "pi-calendar-clock" },
   { label: "Calendario +", value: "pi-calendar-plus" },
+  { label: "Calendario -", value: "pi-calendar-minus" },
+  { label: "Calendario cancelado", value: "pi-calendar-times" },
+  { label: "Reloj", value: "pi-clock" },
+  { label: "Cronómetro", value: "pi-stopwatch" },
+  { label: "Reloj de arena", value: "pi-hourglass" },
+  { label: "Historial", value: "pi-history" },
+
+  // Destacados
   { label: "Estrella", value: "pi-star" },
   { label: "Estrella (relleno)", value: "pi-star-fill" },
+  { label: "Media estrella", value: "pi-star-half-fill" },
   { label: "Corazón", value: "pi-heart" },
   { label: "Corazón (relleno)", value: "pi-heart-fill" },
   { label: "Bandera", value: "pi-flag" },
   { label: "Bandera (relleno)", value: "pi-flag-fill" },
   { label: "Marcador", value: "pi-bookmark" },
   { label: "Marcador (relleno)", value: "pi-bookmark-fill" },
+  { label: "Chincheta", value: "pi-thumbtack" },
   { label: "Campana", value: "pi-bell" },
+  { label: "Campana silenciada", value: "pi-bell-slash" },
+  { label: "Megáfono", value: "pi-megaphone" },
+  { label: "Entrada/Ticket", value: "pi-ticket" },
+  { label: "Etiqueta", value: "pi-tag" },
+  { label: "Etiquetas", value: "pi-tags" },
+
+  // Personas
+  { label: "Usuario", value: "pi-user" },
+  { label: "Usuarios", value: "pi-users" },
+  { label: "Usuario +", value: "pi-user-plus" },
+  { label: "Usuario -", value: "pi-user-minus" },
+  { label: "Usuario (editar)", value: "pi-user-edit" },
+  { label: "Libreta de contactos", value: "pi-address-book" },
+  { label: "Credencial", value: "pi-id-card" },
+
+  // Institucional / laboral
   { label: "Maletín", value: "pi-briefcase" },
+  { label: "Edificio", value: "pi-building" },
+  { label: "Institución", value: "pi-building-columns" },
+  { label: "Almacén", value: "pi-warehouse" },
+  { label: "Tienda", value: "pi-shop" },
+  { label: "Carrito de compras", value: "pi-shopping-cart" },
+  { label: "Bolsa de compras", value: "pi-shopping-bag" },
+  { label: "Billetera", value: "pi-wallet" },
+  { label: "Tarjeta de crédito", value: "pi-credit-card" },
+  { label: "Recibo", value: "pi-receipt" },
+  { label: "Dinero", value: "pi-money-bill" },
+
+  // Educación / ideas
   { label: "Libro", value: "pi-book" },
   { label: "Graduación", value: "pi-graduation-cap" },
-  { label: "Usuarios", value: "pi-users" },
-  { label: "Usuario", value: "pi-user" },
+  { label: "Idea", value: "pi-lightbulb" },
+  { label: "Brújula", value: "pi-compass" },
+  { label: "Paleta", value: "pi-palette" },
+  { label: "Corona", value: "pi-crown" },
+  { label: "Verificado", value: "pi-verified" },
+  { label: "Destellos", value: "pi-sparkles" },
+
+  // Lugares / naturaleza
   { label: "Inicio", value: "pi-home" },
   { label: "Ubicación", value: "pi-map-marker" },
+  { label: "Mapa", value: "pi-map" },
+  { label: "Global", value: "pi-globe" },
+  { label: "Sol", value: "pi-sun" },
+  { label: "Luna", value: "pi-moon" },
+  { label: "Nube", value: "pi-cloud" },
+
+  // Estados / avisos
   { label: "Regalo", value: "pi-gift" },
   { label: "Trofeo", value: "pi-trophy" },
   { label: "Escudo", value: "pi-shield" },
   { label: "Alerta", value: "pi-exclamation-triangle" },
+  { label: "Advertencia", value: "pi-exclamation-circle" },
+  { label: "Prohibido", value: "pi-ban" },
   { label: "Información", value: "pi-info-circle" },
   { label: "Confirmado", value: "pi-check-circle" },
-  { label: "Reloj", value: "pi-clock" },
-  { label: "Global", value: "pi-globe" },
-  { label: "Edificio", value: "pi-building" },
+  { label: "Pregunta", value: "pi-question-circle" },
+  { label: "Cancelado", value: "pi-times-circle" },
+
+  // Documentos / medios
   { label: "Archivo", value: "pi-file" },
-  { label: "Etiqueta", value: "pi-tag" },
-  { label: "Etiquetas", value: "pi-tags" },
-  { label: "Sol", value: "pi-sun" },
-  { label: "Luna", value: "pi-moon" },
+  { label: "Carpeta", value: "pi-folder" },
+  { label: "Carpeta abierta", value: "pi-folder-open" },
+  { label: "Imagen", value: "pi-image" },
+  { label: "Imágenes", value: "pi-images" },
+  { label: "Video", value: "pi-video" },
+  { label: "Cámara", value: "pi-camera" },
+  { label: "Micrófono", value: "pi-microphone" },
+  { label: "Auriculares", value: "pi-headphones" },
+  { label: "Impresora", value: "pi-print" },
+  { label: "Portapapeles", value: "pi-clipboard" },
+  { label: "Sujetapapeles", value: "pi-paperclip" },
+
+  // Comunicación
+  { label: "Correo", value: "pi-envelope" },
+  { label: "Enviar", value: "pi-send" },
+  { label: "Teléfono", value: "pi-phone" },
+  { label: "Celular", value: "pi-mobile" },
+  { label: "Escritorio", value: "pi-desktop" },
+  { label: "Comentario", value: "pi-comment" },
+  { label: "Comentarios", value: "pi-comments" },
+
+  // Seguridad
+  { label: "Candado", value: "pi-lock" },
+  { label: "Candado abierto", value: "pi-lock-open" },
+  { label: "Llave", value: "pi-key" },
+  { label: "Ojo", value: "pi-eye" },
+
+  // Herramientas / transporte
+  { label: "Herramienta", value: "pi-wrench" },
+  { label: "Martillo", value: "pi-hammer" },
+  { label: "Auto", value: "pi-car" },
+  { label: "Camión", value: "pi-truck" },
+
+  // Datos
+  { label: "Gráfico de barras", value: "pi-chart-bar" },
+  { label: "Gráfico de líneas", value: "pi-chart-line" },
+  { label: "Gráfico circular", value: "pi-chart-pie" },
+  { label: "Lista", value: "pi-list" },
+  { label: "Tabla", value: "pi-table" },
+  { label: "Cuadrícula", value: "pi-th-large" },
 ];
 
 function iconOptionTemplate(option: { label: string; value: string }) {
@@ -288,6 +380,9 @@ const filtered = searchTerm
                     valueTemplate={(option) => (option ? iconOptionTemplate(option) : <span>Seleccioná un ícono</span>)}
                     onChange={(e) => setForm((p) => ({ ...p, icon: e.value }))}
                     placeholder="Seleccioná un ícono"
+                    filter
+                    filterPlaceholder="Buscar ícono…"
+                    emptyFilterMessage="Sin resultados"
                     className="profile-dropdown"
                     panelClassName="license-filter-dropdown-panel"
                   />
@@ -522,6 +617,9 @@ const filtered = searchTerm
               valueTemplate={(option) => (option ? iconOptionTemplate(option) : <span>Seleccioná un ícono</span>)}
               onChange={(e) => setModifyForm((p) => ({ ...p, icon: e.value }))}
               placeholder="Seleccioná un ícono"
+              filter
+              filterPlaceholder="Buscar ícono…"
+              emptyFilterMessage="Sin resultados"
               className="profile-dropdown"
               panelClassName="license-filter-dropdown-panel"
             />
