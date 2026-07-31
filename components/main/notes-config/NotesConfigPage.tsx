@@ -254,9 +254,9 @@ export default function NotesConfigPage() {
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             {missingLabels.length > 0 && (
-              <div className="d-flex align-items-center mb-3" style={{ gap: "8px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "8px", padding: "8px 12px" }}>
-                <i className="pi pi-exclamation-triangle" style={{ color: "#ea580c", fontSize: "0.85rem", flexShrink: 0 }} />
-                <small style={{ color: "#9a3412", fontSize: "0.78rem" }}>
+              <div className="d-flex align-items-center mb-3" style={{ gap: "8px", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "8px 12px" }}>
+                <i className="pi pi-info-circle" style={{ color: "#3b82f6", fontSize: "0.85rem", flexShrink: 0 }} />
+                <small style={{ color: "#1e40af", fontSize: "0.78rem" }}>
                   Para guardar, asigná: <strong>{missingLabels.join(", ")}</strong>
                 </small>
               </div>
