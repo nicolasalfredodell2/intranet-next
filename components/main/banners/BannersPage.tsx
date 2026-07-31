@@ -856,7 +856,7 @@ export default function BannersPage() {
               </div>
             </div>
             {modifyForm.is_internal && (
-              <div className="col-12 col-md-6 mt-2 fadeIn animated">
+              <div className="col-12 mt-2 fadeIn animated">
                 <label className="profile-field-label">Nota</label>
                 <div className={`license-filter-input-wrap${modifyForm.note_id ? " license-filter-input-wrap--active" : ""}`}>
                   <i className="pi pi-file license-filter-icon" />
@@ -877,7 +877,7 @@ export default function BannersPage() {
               </div>
             )}
             {modifyForm.is_external && (
-              <div className="col-12 col-md-6 mt-2 fadeIn animated">
+              <div className="col-12 mt-2 fadeIn animated">
                 <label className="profile-field-label">URL Externa</label>
                 <input className="profile-input" type="text" placeholder="https://..." value={modifyForm.external_url} onChange={(e) => setModifyForm((p) => ({ ...p, external_url: e.target.value }))} />
                 {modifyTouched && modifyForm.is_external && modifyForm.external_url && !URL_PATTERN.test(modifyForm.external_url) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* URL no válida</small>}
