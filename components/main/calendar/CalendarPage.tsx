@@ -298,8 +298,8 @@ export default function CalendarPage() {
 
   const createDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
-      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <i className="pi pi-plus-circle" style={{ color: "#059669", fontSize: "1rem" }} />
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-plus-circle" style={{ color: "#eab308", fontSize: "1rem" }} />
       </div>
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nuevo evento</p>
@@ -310,8 +310,8 @@ export default function CalendarPage() {
 
   const modifyDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
-      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-pencil" style={{ color: "#eab308", fontSize: "1rem" }} />
       </div>
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar/Eliminar evento</p>
@@ -329,8 +329,8 @@ export default function CalendarPage() {
         {/* Header card */}
         <div className="card profile-card">
           <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-calendar" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-calendar" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Calendario</h5>
@@ -352,8 +352,8 @@ export default function CalendarPage() {
         {/* Calendar card */}
         <div className="card profile-card mt-4">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-th-large" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-th-large" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Vista mensual</h5>
