@@ -304,7 +304,9 @@ export default function CalendarPage() {
     }
   }
 
-  const categoryOptions = categories.map((c) => ({ id: c.id, label: c.description ?? c.name }));
+  const categoryOptions = categories
+    .map((c) => ({ id: c.id, label: c.description ?? c.name }))
+    .sort((a, b) => a.label.localeCompare(b.label, "es", { sensitivity: "base" }));
 
   // Drop the library's default icon-only "+" button; we render our own labeled button instead.
   const toolbarItems = getToolbarItems().filter((item) => item.id !== "add-event");
