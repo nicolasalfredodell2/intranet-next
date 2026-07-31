@@ -201,14 +201,14 @@ export default function NotesConfigPage() {
                 <i className="pi pi-star-fill" style={{ color: "#eab308", fontSize: "1rem" }} />
               </div>
               <div className="flex-grow-1">
-                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Notas configuradas actualmente</h5>
+                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de notas principales</h5>
                 <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{config.length} de {TYPES.length} posiciones asignadas</small>
               </div>
             </div>
             <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
             <div className="card-body" style={{ padding: "16px 20px 20px", position: "relative" }}>
-              {config.map((item, i) => {
+              {[...config].sort((a, b) => TYPES.indexOf(a.type) - TYPES.indexOf(b.type)).map((item, i) => {
                 const tc = TYPE_COLORS[item.type] ?? { bg: "#f1f5f9", color: "#64748b" };
                 return (
                   <div
