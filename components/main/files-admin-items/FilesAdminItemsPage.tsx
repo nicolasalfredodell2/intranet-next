@@ -872,7 +872,20 @@ export default function FilesAdminItemsPage() {
         {loadingUsers && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} />}
         {!loadingUsers && subUsers.length > 0 && (
           <div className="mb-3">
-            <label className="profile-field-label">Seleccionar agentes a eliminar</label>
+            <div className="d-flex align-items-center justify-content-between">
+              <label className="profile-field-label mb-0">Seleccionar agentes a eliminar</label>
+              <button
+                type="button"
+                onClick={() => {
+                  const allIds = subUsers.map((u: any) => u.people?.id ?? u.people_id);
+                  setSelectedUserIds(selectedUserIds.length === allIds.length ? [] : allIds);
+                }}
+                className="btn btn-link p-0"
+                style={{ fontSize: "0.72rem", fontWeight: 600, color: "#4a6cf7", whiteSpace: "nowrap" }}
+              >
+                {selectedUserIds.length === subUsers.length ? "Deseleccionar todos" : "Seleccionar todos"}
+              </button>
+            </div>
             <div className={`license-filter-input-wrap${selectedUserIds.length ? " license-filter-input-wrap--active" : ""}`}>
               <i className="pi pi-users license-filter-icon" />
               <MultiSelect
@@ -881,6 +894,7 @@ export default function FilesAdminItemsPage() {
                 onChange={(e) => setSelectedUserIds(e.value ?? [])}
                 placeholder="Seleccioná uno o más agentes"
                 display="chip"
+                panelHeaderTemplate={() => null}
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel"
               />
