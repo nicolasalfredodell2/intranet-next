@@ -507,7 +507,7 @@ const filtered = (searchTerm
                   <thead>
                     <tr>
                       {["COLOR", "NOMBRE", ""].map((h, i) => (
-                        <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 2 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                        <th key={i} style={{ width: i === 0 ? "1%" : undefined, fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 2 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
                           {h}
                         </th>
                       ))}
