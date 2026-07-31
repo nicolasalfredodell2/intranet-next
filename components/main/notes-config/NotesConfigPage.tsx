@@ -46,7 +46,7 @@ export default function NotesConfigPage() {
     setIsLoadConfig(true);
     try {
       const resp = await getNotesConfig();
-      const arr: any[] = Array.isArray(resp) ? resp : [];
+      const arr: any[] = Array.isArray(resp?.data) ? resp.data : (Array.isArray(resp) ? resp : []);
       setConfig(arr);
       setConfigs((prev) => {
         const next = [...prev];
@@ -67,7 +67,7 @@ export default function NotesConfigPage() {
   async function chargeNotes(f: typeof filters) {
     setIsLoadingNotes(true);
     try {
-      const resp = await getNotes(f.page, f.per_page);
+      const resp = await getNotes(f.page, f.per_page, f.title);
       setNotes(resp.data ?? []);
     } catch {
       setNotes([]);

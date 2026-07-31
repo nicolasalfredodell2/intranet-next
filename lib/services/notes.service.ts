@@ -8,8 +8,9 @@ function authHeaders(): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export async function getNotes(page = 1, perPage = 10): Promise<any> {
-  const res = await fetch(`${API}notes?page=${page}&per_page=${perPage}`, { headers: authHeaders() });
+export async function getNotes(page = 1, perPage = 10, title = ""): Promise<any> {
+  const titleParam = title ? `&title=${encodeURIComponent(title)}` : "";
+  const res = await fetch(`${API}notes?page=${page}&per_page=${perPage}${titleParam}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("No se pudieron cargar las notas");
   return res.json();
 }
