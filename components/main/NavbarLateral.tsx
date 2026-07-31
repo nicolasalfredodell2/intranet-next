@@ -246,12 +246,6 @@ export default function NavbarLateral() {
                         </Link>
                       </li>
 
-                      <li className="fadeIn animated admin-item">
-                        <Link href="/main/tickets" className={active("/main/tickets")} onClick={onNavClick}>
-                          <i className="pi pi-ticket" />
-                          <span className="hide-menu">Tickets</span>
-                        </Link>
-                      </li>
                     </>
                   )}
                 </>
