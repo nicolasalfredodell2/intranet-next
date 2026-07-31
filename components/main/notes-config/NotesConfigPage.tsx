@@ -130,38 +130,21 @@ export default function NotesConfigPage() {
       }
       return next;
     });
-
-    // Immediately save after updating
-    setTimeout(() => saveConfigs(), 0);
   }
 
+  const missingLabels = configs.filter((c) => !c.note_id).map((c) => TYPE_LABELS[c.type] ?? c.type);
+
   function saveConfigs() {
-    if (isSetConfig) return;
+    if (isSetConfig || missingLabels.length > 0) return;
 
-    const labels: Record<string, string> = {
-      featured: "Falta asignar la 1ra nota principal",
-      order1: "Falta asignar la 2da nota principal",
-      order2: "Falta asignar la 3ra nota principal",
-    };
-
-    setConfigs((current) => {
-      const missing = current.filter((c) => !c.note_id).map((c) => labels[c.type] ?? c.type);
-      if (missing.length) {
-        missing.forEach((detail) => toast.current?.show({ severity: "warn", summary: "Falta nota por asignar", detail }));
-        return current;
-      }
-
-      setIsSetConfig(true);
-      setNotesConfig({ configs: current })
-        .then(() => {
-          toast.current?.show({ severity: "success", summary: "Configuración guardada" });
-          loadConfigNotes();
-        })
-        .catch(() => toast.current?.show({ severity: "error", summary: "No se pudo guardar la nueva configuración" }))
-        .finally(() => setIsSetConfig(false));
-
-      return current;
-    });
+    setIsSetConfig(true);
+    setNotesConfig({ configs })
+      .then(() => {
+        toast.current?.show({ severity: "success", summary: "Configuración guardada" });
+        loadConfigNotes();
+      })
+      .catch(() => toast.current?.show({ severity: "error", summary: "No se pudo guardar la nueva configuración" }))
+      .finally(() => setIsSetConfig(false));
   }
 
   return (
@@ -255,10 +238,30 @@ export default function NotesConfigPage() {
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar notas</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Asigná una posición a cada nota</small>
             </div>
+            <button
+              type="button"
+              disabled={missingLabels.length > 0 || isSetConfig}
+              onClick={saveConfigs}
+              title={missingLabels.length > 0 ? `Falta asignar: ${missingLabels.join(", ")}` : undefined}
+              className="btn btn-primary d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", flexShrink: 0 }}
+            >
+              <i className={isSetConfig ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+              {isSetConfig ? "Guardando..." : "Guardar cambios"}
+            </button>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            {missingLabels.length > 0 && (
+              <div className="d-flex align-items-center mb-3" style={{ gap: "8px", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "8px", padding: "8px 12px" }}>
+                <i className="pi pi-exclamation-triangle" style={{ color: "#ea580c", fontSize: "0.85rem", flexShrink: 0 }} />
+                <small style={{ color: "#9a3412", fontSize: "0.78rem" }}>
+                  Para guardar, asigná: <strong>{missingLabels.join(", ")}</strong>
+                </small>
+              </div>
+            )}
+
             <div className={`license-filter-input-wrap mb-3${searchTitle ? " license-filter-input-wrap--active" : ""}`}>
               <i className="pi pi-search license-filter-icon" />
               <input
