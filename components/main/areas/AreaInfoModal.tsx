@@ -151,8 +151,8 @@ export default function AreaInfoModal({ area, onClose }: { area: any; onClose: (
 
   const dialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
-      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <i className="pi pi-info-circle" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-info-circle" style={{ color: "#eab308", fontSize: "1rem" }} />
       </div>
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Información del área</p>
