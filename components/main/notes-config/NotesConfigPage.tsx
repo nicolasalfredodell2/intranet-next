@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
+import { Dropdown } from "primereact/dropdown";
 import { getNotesConfig, setNotesConfig, getNotes } from "@/lib/services/notes.service";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
@@ -15,10 +16,39 @@ const TYPE_LABELS: Record<string, string> = {
   order2: "3ra Nota Principal",
 };
 
+const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
+  featured: { bg: "#dcfce7", color: "#059669" },
+  order1: { bg: "#eff6ff", color: "#3b82f6" },
+  order2: { bg: "#e0f2fe", color: "#0284c7" },
+};
+
+const POSITION_OPTIONS = [
+  { label: "-- Sin asignar --", value: "" },
+  { label: "1ra Nota Principal", value: "featured" },
+  { label: "2da Nota Principal", value: "order1" },
+  { label: "3ra Nota Principal", value: "order2" },
+];
+
 interface ConfigEntry { type: ConfigType; note_id: number | null; }
 
 function initConfigs(): ConfigEntry[] {
   return TYPES.map((t) => ({ type: t, note_id: null }));
+}
+
+function SkeletonRows() {
+  return (
+    <div>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="d-flex align-items-center" style={{ gap: "14px", border: "1.5px solid #e2e8f0", borderRadius: "12px", padding: "12px 16px", marginBottom: "10px" }}>
+          <div style={{ width: 64, height: 64, borderRadius: 8, flexShrink: 0, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ width: "50%", height: 14, borderRadius: 6, marginBottom: 8, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+            <div style={{ width: "80%", height: 12, borderRadius: 6, background: "linear-gradient(90deg, #e8ecf0 25%, #f1f5f9 50%, #e8ecf0 75%)", backgroundSize: "200% 100%", animation: "skeleton-shimmer 1.4s infinite" }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function NotesConfigPage() {
@@ -77,7 +107,7 @@ export default function NotesConfigPage() {
     }
   }
 
-  function onKeyPress(e: React.ChangeEvent<HTMLInputElement>) {
+  function onSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
     setSearchTitle(val);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -134,144 +164,164 @@ export default function NotesConfigPage() {
     });
   }
 
-  const typeBadgeClass = (type: string) => {
-    if (type === "featured") return "badge bg-success px-3 py-2";
-    if (type === "order1") return "badge bg-primary px-3 py-2";
-    return "badge bg-info px-3 py-2";
-  };
-
   return (
     <>
       <AppToast ref={toast} position="bottom-center" />
 
       <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Configuración de notas</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Configuración de notas</li>
-            </ol>
+
+        {/* Header card */}
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-star" style={{ color: "#eab308", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Configuración de notas</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Elegí qué notas se destacan en el sitio institucional</small>
+            </div>
+            <button
+              type="button"
+              disabled={isLoadConfig}
+              onClick={loadConfigNotes}
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className={isLoadConfig ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+              Recargar
+            </button>
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-body">
-                <div className="animated fadeIn row">
-                  {isLoadConfig && (
-                    <div className="col-12 my-4 text-center">
-                      <i className="fa fa-spin fa-spinner text-muted" /> Cargando configuración actual
-                    </div>
-                  )}
-
-                  <div className="col-12">
-                    {config.length > 0 && (
-                      <div className="mb-5 position-relative">
-                        <h4 className="card-title text-primary mb-3">
-                          <i className="fa fa-star text-warning mr-2" /> Notas configuradas actualmente
-                        </h4>
-
-                        <ol className="list-group list-group-numbered">
-                          {config.map((item, i) => (
-                            <li key={i} className="d-flex align-items-center p-3 mb-3 border border-info rounded bg-light shadow-sm">
-                              <div className="ml-3 flex-grow-1">
-                                <div className="fw-bold fs-5 mb-1 text-dark font-bold">{item.note?.title}</div>
-                                <div className="text-muted" style={{ fontSize: "0.9rem" }}>{item.note?.subtitle}</div>
-                              </div>
-                              <div className="ml-auto text-end flex-shrink-0">
-                                <span className={typeBadgeClass(item.type)} style={{ fontSize: "0.85rem" }}>
-                                  {TYPE_LABELS[item.type] ?? item.type}
-                                </span>
-                                <br />
-                                <small className="text-muted d-block mt-2">
-                                  Actualizada el {item.updated_at ? new Date(item.updated_at).toLocaleString("es-AR") : "-"}
-                                </small>
-                              </div>
-                            </li>
-                          ))}
-                        </ol>
-
-                        {isSetConfig && (
-                          <div className="position-absolute w-100 h-100 d-flex flex-column justify-content-center align-items-center animated fadeIn"
-                            style={{ top: 0, left: 0, backgroundColor: "rgba(255,255,255,0.85)", zIndex: 1000, borderRadius: 4 }}>
-                            <i className="fa fa-circle-notch fa-spin text-primary" style={{ fontSize: "3rem" }} />
-                            <h4 className="mt-3 text-primary font-weight-bold">Guardando configuración...</h4>
-                          </div>
-                        )}
-
-                        <hr className="mt-4 mb-2" />
-                      </div>
-                    )}
-
-                    <h4 className="card-title mb-3">Buscar notas</h4>
-                    <input
-                      type="text"
-                      disabled={isLoadingNotes || isLoadConfig}
-                      className="form-control w-100"
-                      value={searchTitle}
-                      onChange={onKeyPress}
-                      placeholder="Buscar nota por título"
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  {isLoadingNotes && (
-                    <div className="col-12 text-center my-4">
-                      <i className="fa fa-spin fa-spinner text-muted" /> Cargando notas
-                    </div>
-                  )}
-
-                  {!isLoadingNotes && notes.length > 0 && (
-                    <div className="col-12 my-4">
-                      <ol className="list-group list-group-numbered">
-                        {notes.map((note) => (
-                          <li key={note.id} className="d-flex align-items-center p-3 mb-3 border rounded bg-white shadow-sm">
-                            <div className="flex-shrink-0">
-                              <img
-                                src={note.images?.[0]?.path_url ? `${API_URL}${note.images[0].path_url}` : "/assets/img/news/no-image.png"}
-                                alt="Imagen de la nota"
-                                className="rounded"
-                                style={{ width: 100, height: 100, objectFit: "cover" }}
-                              />
-                            </div>
-                            <div className="ml-3 flex-grow-1">
-                              <div className="fw-bold fs-5 mb-1 text-dark font-bold">{note.title}</div>
-                              <div className="text-muted" style={{ fontSize: "0.9rem" }}>{note.subtitle}</div>
-                            </div>
-                            <div className="ml-auto text-end text-secondary flex-shrink-0">
-                              <select
-                                className="form-control form-control-line form-control-sm"
-                                style={{ height: 35 }}
-                                disabled={isSetConfig}
-                                value={getConfigTypeForNote(note.id)}
-                                onChange={(e) => updateConfigForNote(note.id, e.target.value)}
-                              >
-                                <option value="">-- Sin asignar --</option>
-                                <option value="featured">1ra Nota Principal</option>
-                                <option value="order1">2da Nota Principal</option>
-                                <option value="order2">3ra Nota Principal</option>
-                              </select>
-                              <br />
-                              <small className="mt-4">
-                                Creado el {note.created_at ? new Date(note.created_at).toLocaleDateString("es-AR") : "-"}
-                              </small>
-                            </div>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  )}
-
-                  {!isLoadingNotes && !isLoadConfig && notes.length === 0 && (
-                    <div className="col-12 text-center my-4">No hay notas para mostrar</div>
-                  )}
-                </div>
+        {/* Current config card */}
+        {config.length > 0 && (
+          <div className="card profile-card mt-4">
+            <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <i className="pi pi-star-fill" style={{ color: "#eab308", fontSize: "1rem" }} />
+              </div>
+              <div className="flex-grow-1">
+                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Notas configuradas actualmente</h5>
+                <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{config.length} de {TYPES.length} posiciones asignadas</small>
               </div>
             </div>
+            <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+            <div className="card-body" style={{ padding: "16px 20px 20px", position: "relative" }}>
+              {config.map((item, i) => {
+                const tc = TYPE_COLORS[item.type] ?? { bg: "#f1f5f9", color: "#64748b" };
+                return (
+                  <div
+                    key={i}
+                    className="d-flex align-items-center"
+                    style={{ border: "1.5px solid #e2e8f0", borderRadius: "12px", padding: "12px 16px", marginBottom: i < config.length - 1 ? "10px" : 0, gap: "12px" }}
+                  >
+                    <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                      <p className="mb-1 font-weight-bold" style={{ fontSize: "0.88rem", color: "#1e293b" }}>{item.note?.title}</p>
+                      <p className="mb-0" style={{ fontSize: "0.78rem", color: "#64748b" }}>{item.note?.subtitle}</p>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <span style={{ display: "inline-block", background: tc.bg, color: tc.color, borderRadius: "20px", padding: "4px 12px", fontSize: "0.72rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+                        {TYPE_LABELS[item.type] ?? item.type}
+                      </span>
+                      <small style={{ display: "block", color: "#94a3b8", fontSize: "0.7rem", marginTop: "6px" }}>
+                        Actualizada el {item.updated_at ? new Date(item.updated_at).toLocaleString("es-AR") : "-"}
+                      </small>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {isSetConfig && (
+                <div
+                  className="d-flex flex-column align-items-center justify-content-center animated fadeIn"
+                  style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.85)", borderRadius: "0 0 12px 12px", zIndex: 10 }}
+                >
+                  <i className="pi pi-spin pi-spinner" style={{ fontSize: "2rem", color: "#4a6cf7" }} />
+                  <p className="mt-3 mb-0 font-weight-bold" style={{ color: "#4a6cf7", fontSize: "0.9rem" }}>Guardando configuración...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Search notes card */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-search" style={{ color: "#eab308", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar notas</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Asigná una posición a cada nota</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+            <div className={`license-filter-input-wrap mb-3${searchTitle ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-search license-filter-icon" />
+              <input
+                className="license-filter-input"
+                style={{ paddingLeft: "32px" }}
+                disabled={isLoadingNotes || isLoadConfig}
+                placeholder="Buscar nota por título…"
+                value={searchTitle}
+                onChange={onSearchChange}
+                autoComplete="off"
+              />
+            </div>
+
+            {isLoadingNotes && <SkeletonRows />}
+
+            {!isLoadingNotes && notes.length > 0 && (
+              <div className="fadeIn animated">
+                {notes.map((note) => (
+                  <div key={note.id} className="d-flex align-items-center" style={{ border: "1.5px solid #e2e8f0", borderRadius: "12px", padding: "12px 16px", marginBottom: "10px", gap: "14px" }}>
+                    {note.images?.[0]?.path_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`${API_URL}${note.images[0].path_url}`}
+                        alt=""
+                        style={{ width: 64, height: 64, objectFit: "cover", borderRadius: "8px", flexShrink: 0 }}
+                      />
+                    ) : (
+                      <div style={{ width: 64, height: 64, borderRadius: 8, background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <i className="pi pi-image" style={{ color: "#cbd5e1", fontSize: "1.3rem" }} />
+                      </div>
+                    )}
+                    <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                      <p className="mb-1 font-weight-bold" style={{ fontSize: "0.88rem", color: "#1e293b" }}>{note.title}</p>
+                      <p className="mb-1" style={{ fontSize: "0.78rem", color: "#64748b" }}>{note.subtitle}</p>
+                      <small style={{ color: "#94a3b8", fontSize: "0.7rem" }}>
+                        Creado el {note.created_at ? new Date(note.created_at).toLocaleDateString("es-AR") : "-"}
+                      </small>
+                    </div>
+                    <div style={{ width: 190, flexShrink: 0 }}>
+                      <Dropdown
+                        value={getConfigTypeForNote(note.id)}
+                        options={POSITION_OPTIONS}
+                        optionLabel="label"
+                        optionValue="value"
+                        disabled={isSetConfig}
+                        onChange={(e) => updateConfigForNote(note.id, e.value ?? "")}
+                        className="profile-dropdown"
+                        panelClassName="license-filter-dropdown-panel"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!isLoadingNotes && !isLoadConfig && notes.length === 0 && (
+              <div style={{ padding: "40px", textAlign: "center" }}>
+                <i className="pi pi-inbox" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
+                  {searchTitle.trim() ? `No se encontraron notas con el título "${searchTitle}".` : "No hay notas para mostrar."}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
