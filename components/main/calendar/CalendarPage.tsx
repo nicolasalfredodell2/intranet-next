@@ -457,6 +457,17 @@ export default function CalendarPage() {
                 panelClassName="license-filter-dropdown-panel"
               />
               {createTouched && !createForm.category_id && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+              <div className="d-flex align-items-center mt-1" style={{ gap: "6px" }}>
+                <small style={{ color: "#94a3b8", fontSize: "0.72rem" }}>¿Necesitás crear una categoría?</small>
+                <button
+                  type="button"
+                  onClick={() => window.open("/main/calendar-category", "_blank", "noopener,noreferrer")}
+                  className="btn btn-link p-0"
+                  style={{ fontSize: "0.72rem", fontWeight: 600, color: "#4a6cf7", whiteSpace: "nowrap" }}
+                >
+                  Crear categoría
+                </button>
+              </div>
             </div>
             <div className="col-12 col-md-6 mb-3">
               <label className="profile-field-label">Fecha *</label>
