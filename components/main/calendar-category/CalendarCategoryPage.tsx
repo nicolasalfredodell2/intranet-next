@@ -48,15 +48,15 @@ function SkeletonRows() {
   );
 }
 
-const DEFAULT_COLOUR = "#2196f3";
-const DEFAULT_ICON = "pi-calendar";
+export const DEFAULT_COLOUR = "#2196f3";
+export const DEFAULT_ICON = "pi-calendar";
 
 const SORT_OPTIONS = [
   { label: "Nombre (A-Z)", value: "asc" },
   { label: "Nombre (Z-A)", value: "desc" },
 ];
 
-const ICON_OPTIONS = [
+export const ICON_OPTIONS = [
   // Calendario y tiempo
   { label: "Calendario", value: "pi-calendar" },
   { label: "Calendario (reloj)", value: "pi-calendar-clock" },
@@ -183,7 +183,7 @@ const ICON_OPTIONS = [
   { label: "Cuadrícula", value: "pi-th-large" },
 ];
 
-function iconOptionTemplate(option: { label: string; value: string }) {
+export function iconOptionTemplate(option: { label: string; value: string }) {
   return (
     <div className="d-flex align-items-center" style={{ gap: "8px" }}>
       <i className={`pi ${option.value}`} style={{ fontSize: "0.85rem" }} />

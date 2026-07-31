@@ -12,7 +12,8 @@ import "@svar-ui/react-calendar/all.css";
 import esCoreLocale from "@svar-ui/core-locales/locales/es.js";
 import esCalendarLocale from "@svar-ui/calendar-locales/es.js";
 import { getCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/lib/services/calendar.service";
-import { getCalendarCategories } from "@/lib/services/calendar-category.service";
+import { getCalendarCategories, createCalendarCategory } from "@/lib/services/calendar-category.service";
+import { ICON_OPTIONS, iconOptionTemplate, DEFAULT_COLOUR, DEFAULT_ICON } from "@/components/main/calendar-category/CalendarCategoryPage";
 
 const CALENDAR_LOCALE_ES = { ...esCoreLocale, ...esCalendarLocale };
 
@@ -104,6 +105,11 @@ export default function CalendarPage() {
   const [createTouched, setCreateTouched] = useState(false);
   const [modifyTouched, setModifyTouched] = useState(false);
 
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
+  const [categoryTouched, setCategoryTouched] = useState(false);
+  const [loadingCategoryAction, setLoadingCategoryAction] = useState(false);
+
   const calendarApiRef = useRef<CalendarInstanceApi | null>(null);
   const eventsRef = useRef<any[]>([]);
 
@@ -182,6 +188,37 @@ export default function CalendarPage() {
     setCreateForm({ event: "", date: "", text: "", category_id: "" });
     setCreateTouched(false);
     setImgFile(null);
+  }
+
+  function openCreateCategory() {
+    setCategoryForm({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
+    setCategoryTouched(false);
+    setShowCreateCategory(true);
+  }
+
+  function closeCreateCategory() {
+    setShowCreateCategory(false);
+    setCategoryForm({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
+    setCategoryTouched(false);
+  }
+
+  async function handleCreateCategorySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setCategoryTouched(true);
+    if (!categoryForm.name || !categoryForm.colour) return;
+    setLoadingCategoryAction(true);
+    try {
+      const resp = await createCalendarCategory({ description: categoryForm.name, colour: categoryForm.colour, icon: categoryForm.icon });
+      const newCategory = resp.category ?? resp.important_date_category ?? resp;
+      setCategories((prev) => [...prev, newCategory]);
+      setCreateForm((p) => ({ ...p, category_id: String(newCategory.id) }));
+      toast.current?.show({ severity: "success", summary: "Categoría creada" });
+      closeCreateCategory();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
+    } finally {
+      setLoadingCategoryAction(false);
+    }
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -316,6 +353,18 @@ export default function CalendarPage() {
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar/Eliminar evento</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{formatDisplayDate(modifyForm.date)}</small>
+      </div>
+    </div>
+  );
+
+  const createCategoryDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-tags" style={{ color: "#eab308", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva categoría</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear una categoría</small>
       </div>
     </div>
   );
@@ -461,7 +510,7 @@ export default function CalendarPage() {
                 <small style={{ color: "#94a3b8", fontSize: "0.72rem" }}>¿Necesitás crear una categoría?</small>
                 <button
                   type="button"
-                  onClick={() => window.open("/main/calendar-category", "_blank", "noopener,noreferrer")}
+                  onClick={openCreateCategory}
                   className="btn btn-link p-0"
                   style={{ fontSize: "0.72rem", fontWeight: 600, color: "#4a6cf7", whiteSpace: "nowrap" }}
                 >
@@ -494,6 +543,96 @@ export default function CalendarPage() {
               <ImageDropzone file={imgFile} onFile={setImgFile} onClear={() => setImgFile(null)} />
               {createTouched && !imgFile && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Create category dialog */}
+      <Dialog
+        header={createCategoryDialogHeader}
+        visible={showCreateCategory}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(480px, 92vw)" }}
+        onHide={closeCreateCategory}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="create-category-form"
+                disabled={loadingCategoryAction}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingCategoryAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingCategoryAction ? "Creando..." : "Crear categoría"}
+              </button>
+              <button
+                disabled={loadingCategoryAction}
+                onClick={closeCreateCategory}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingCategoryAction && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="create-category-form" onSubmit={handleCreateCategorySubmit} noValidate>
+          <div className="mb-3">
+            <label className="profile-field-label">Nombre *</label>
+            <input
+              className="profile-input"
+              type="text"
+              maxLength={100}
+              value={categoryForm.name}
+              onChange={(e) => setCategoryForm((p) => ({ ...p, name: e.target.value }))}
+            />
+            {categoryTouched && !categoryForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+          <div className="mb-3">
+            <label className="profile-field-label">Ícono</label>
+            <Dropdown
+              value={categoryForm.icon}
+              options={ICON_OPTIONS}
+              optionLabel="label"
+              optionValue="value"
+              itemTemplate={iconOptionTemplate}
+              valueTemplate={(option) => (option ? iconOptionTemplate(option) : <span>Seleccioná un ícono</span>)}
+              onChange={(e) => setCategoryForm((p) => ({ ...p, icon: e.value }))}
+              placeholder="Seleccioná un ícono"
+              filter
+              filterPlaceholder="Buscar ícono…"
+              emptyFilterMessage="Sin resultados"
+              className="profile-dropdown"
+              panelClassName="license-filter-dropdown-panel"
+            />
+          </div>
+          <div className="mb-1">
+            <label className="profile-field-label">Color *</label>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <input
+                type="color"
+                value={categoryForm.colour}
+                onChange={(e) => setCategoryForm((p) => ({ ...p, colour: e.target.value }))}
+                style={{ width: 40, height: 40, padding: 2, border: "1.5px solid #e2e8f0", borderRadius: "8px", cursor: "pointer", flexShrink: 0 }}
+              />
+              <input
+                className="profile-input"
+                type="text"
+                placeholder="#2196f3"
+                value={categoryForm.colour}
+                onChange={(e) => setCategoryForm((p) => ({ ...p, colour: e.target.value }))}
+              />
+            </div>
+            {categoryTouched && !categoryForm.colour && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
           </div>
         </form>
       </Dialog>
