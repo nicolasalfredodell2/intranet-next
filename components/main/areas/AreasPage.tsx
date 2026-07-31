@@ -201,8 +201,8 @@ export default function AreasPage() {
 
   const disableDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
-      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <i className="pi pi-eye-slash" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-eye-slash" style={{ color: "#dc3545", fontSize: "1rem" }} />
       </div>
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Deshabilitar área</p>
@@ -567,7 +567,7 @@ export default function AreasPage() {
                 disabled={loadingDisable}
                 onClick={confirmarDeshabilitacion}
                 type="button"
-                className="btn btn-primary d-flex align-items-center"
+                className="btn btn-danger d-flex align-items-center"
                 style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
               >
                 <i className={loadingDisable ? "pi pi-spin pi-spinner" : "pi pi-eye-slash"} style={{ fontSize: "0.78rem" }} />
