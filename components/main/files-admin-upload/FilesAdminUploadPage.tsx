@@ -262,8 +262,8 @@ export default function FilesAdminUploadPage() {
 
   const uploadDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
-      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <i className="pi pi-cloud-upload" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-cloud-upload" style={{ color: "#eab308", fontSize: "1rem" }} />
       </div>
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Subir archivo</p>
@@ -308,8 +308,8 @@ export default function FilesAdminUploadPage() {
         {/* Header card */}
         <div className="card profile-card">
           <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eef1ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-id-card" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-id-card" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificación de legajos</h5>
@@ -323,8 +323,8 @@ export default function FilesAdminUploadPage() {
           <div className="col-12 col-lg-4">
             <div className="card profile-card">
               <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-                <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <i className="pi pi-search" style={{ color: "#059669", fontSize: "1rem" }} />
+                <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className="pi pi-search" style={{ color: "#eab308", fontSize: "1rem" }} />
                 </div>
                 <div className="flex-grow-1">
                   <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar usuario</h5>
@@ -400,8 +400,8 @@ export default function FilesAdminUploadPage() {
             ) : (
               <div className="card profile-card">
                 <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-                  <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <i className="pi pi-folder-open" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+                  <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <i className="pi pi-folder-open" style={{ color: "#eab308", fontSize: "1rem" }} />
                   </div>
                   <div className="flex-grow-1" style={{ minWidth: 0 }}>
                     <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>{userSelected.lastname_name ?? userSelected.name}</h5>
