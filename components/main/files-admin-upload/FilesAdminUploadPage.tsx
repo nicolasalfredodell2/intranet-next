@@ -7,7 +7,7 @@ import { ProgressBar } from "primereact/progressbar";
 import { Dialog } from "primereact/dialog";
 import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
-import { loadFileCategories, searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile, createFileCategory } from "@/lib/services/files-admin-items.service";
+import { loadFileCategories, searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile, createFileCategory, createFileSubcategory } from "@/lib/services/files-admin-items.service";
 import { loadFilePDF } from "@/lib/services/files.service";
 
 const MIME_MAP: Record<string, string> = {
@@ -123,6 +123,11 @@ export default function FilesAdminUploadPage() {
   const [categoryTouched, setCategoryTouched] = useState(false);
   const [loadingCategoryAction, setLoadingCategoryAction] = useState(false);
 
+  const [showCreateSubcategory, setShowCreateSubcategory] = useState(false);
+  const [subcategoryForm, setSubcategoryForm] = useState<{ name: string; description: string; item_id: any }>({ name: "", description: "", item_id: "" });
+  const [subcategoryTouched, setSubcategoryTouched] = useState(false);
+  const [loadingSubcategoryAction, setLoadingSubcategoryAction] = useState(false);
+
   const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
 
   useEffect(() => {
@@ -234,6 +239,42 @@ export default function FilesAdminUploadPage() {
     }
   }
 
+  function openCreateSubcategory() {
+    setSubcategoryForm({ name: "", description: "", item_id: uploadCat?.id ?? "" });
+    setSubcategoryTouched(false);
+    setShowCreateSubcategory(true);
+  }
+
+  function closeCreateSubcategory() {
+    setShowCreateSubcategory(false);
+    setSubcategoryForm({ name: "", description: "", item_id: "" });
+    setSubcategoryTouched(false);
+  }
+
+  async function handleCreateSubcategorySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubcategoryTouched(true);
+    if (!subcategoryForm.name || !subcategoryForm.description || !subcategoryForm.item_id) return;
+    setLoadingSubcategoryAction(true);
+    try {
+      const resp = await createFileSubcategory({ name: subcategoryForm.name, description: subcategoryForm.description, item_id: subcategoryForm.item_id, order: "1" });
+      const newSub = resp.data ?? resp;
+      setCategories((prev) => prev.map((cat) => cat.id === subcategoryForm.item_id
+        ? { ...cat, subitems: [...(cat.subitems ?? []), newSub] }
+        : cat
+      ));
+      const parentCat = categories.find((cat) => cat.id === subcategoryForm.item_id);
+      if (parentCat) setUploadCat({ ...parentCat, subitems: [...(parentCat.subitems ?? []), newSub] });
+      setUploadSubcat(newSub);
+      toast.current?.show({ severity: "success", summary: "Subcategoría creada" });
+      closeCreateSubcategory();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
+    } finally {
+      setLoadingSubcategoryAction(false);
+    }
+  }
+
   async function handleDeleteFile() {
     if (!fileToDelete) return;
     setLoadingDelete(true);
@@ -317,6 +358,18 @@ export default function FilesAdminUploadPage() {
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva categoría</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear una categoría</small>
+      </div>
+    </div>
+  );
+
+  const createSubcategoryDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-folder" style={{ color: "#eab308", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva subcategoría</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear una subcategoría</small>
       </div>
     </div>
   );
@@ -652,7 +705,7 @@ export default function FilesAdminUploadPage() {
               <small style={{ color: "#94a3b8", fontSize: "0.72rem" }}>¿Falta una subcategoría?</small>
               <button
                 type="button"
-                onClick={() => window.open("/main/files-admin-items", "_blank", "noopener,noreferrer")}
+                onClick={openCreateSubcategory}
                 className="btn btn-link p-0"
                 style={{ fontSize: "0.72rem", fontWeight: 600, color: "#4a6cf7", whiteSpace: "nowrap" }}
               >
@@ -748,6 +801,86 @@ export default function FilesAdminUploadPage() {
               onChange={(e) => setCategoryForm((p) => ({ ...p, description: e.target.value }))}
             />
             {categoryTouched && !categoryForm.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Create subcategory dialog */}
+      <Dialog
+        header={createSubcategoryDialogHeader}
+        visible={showCreateSubcategory}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(480px, 92vw)" }}
+        onHide={closeCreateSubcategory}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="create-subcategory-form"
+                disabled={loadingSubcategoryAction}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingSubcategoryAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingSubcategoryAction ? "Creando..." : "Crear subcategoría"}
+              </button>
+              <button
+                disabled={loadingSubcategoryAction}
+                onClick={closeCreateSubcategory}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingSubcategoryAction && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="create-subcategory-form" onSubmit={handleCreateSubcategorySubmit} noValidate>
+          <div className="mb-3">
+            <label className="profile-field-label">Nombre *</label>
+            <input
+              className="profile-input"
+              type="text"
+              value={subcategoryForm.name}
+              onChange={(e) => setSubcategoryForm((p) => ({ ...p, name: e.target.value }))}
+            />
+            {subcategoryTouched && !subcategoryForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+          <div className="mb-3">
+            <label className="profile-field-label">Descripción *</label>
+            <textarea
+              className="profile-input"
+              rows={2}
+              value={subcategoryForm.description}
+              onChange={(e) => setSubcategoryForm((p) => ({ ...p, description: e.target.value }))}
+            />
+            {subcategoryTouched && !subcategoryForm.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+          <div className="mb-1">
+            <label className="profile-field-label">Categoría *</label>
+            <div className={`license-filter-input-wrap${subcategoryForm.item_id ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-folder license-filter-icon" />
+              <Dropdown
+                value={subcategoryForm.item_id || null}
+                options={categories}
+                optionLabel="name"
+                optionValue="id"
+                onChange={(e) => setSubcategoryForm((p) => ({ ...p, item_id: e.value ?? "" }))}
+                placeholder="Seleccioná una categoría"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+                emptyMessage="Sin categorías"
+              />
+            </div>
+            {subcategoryTouched && !subcategoryForm.item_id && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
           </div>
         </form>
       </Dialog>
