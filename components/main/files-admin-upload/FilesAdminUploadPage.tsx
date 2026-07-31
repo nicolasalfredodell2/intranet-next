@@ -7,7 +7,7 @@ import { ProgressBar } from "primereact/progressbar";
 import { Dialog } from "primereact/dialog";
 import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
-import { loadFileCategories, searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile } from "@/lib/services/files-admin-items.service";
+import { loadFileCategories, searchUsers, loadFilesForUser, uploadFileForUser, deleteUserFile, createFileCategory } from "@/lib/services/files-admin-items.service";
 import { loadFilePDF } from "@/lib/services/files.service";
 
 const MIME_MAP: Record<string, string> = {
@@ -118,6 +118,11 @@ export default function FilesAdminUploadPage() {
   const [fileToDelete, setFileToDelete] = useState<any>(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
 
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
+  const [categoryTouched, setCategoryTouched] = useState(false);
+  const [loadingCategoryAction, setLoadingCategoryAction] = useState(false);
+
   const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
 
   useEffect(() => {
@@ -197,6 +202,38 @@ export default function FilesAdminUploadPage() {
     finally { setLoadingUpload(false); }
   }
 
+  function openCreateCategory() {
+    setCategoryForm({ name: "", description: "" });
+    setCategoryTouched(false);
+    setShowCreateCategory(true);
+  }
+
+  function closeCreateCategory() {
+    setShowCreateCategory(false);
+    setCategoryForm({ name: "", description: "" });
+    setCategoryTouched(false);
+  }
+
+  async function handleCreateCategorySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setCategoryTouched(true);
+    if (!categoryForm.name || !categoryForm.description) return;
+    setLoadingCategoryAction(true);
+    try {
+      const resp = await createFileCategory({ ...categoryForm, order: "1" });
+      const newCategory = { ...resp.data, subitems: [] };
+      setCategories((prev) => [...prev, newCategory]);
+      setUploadCat(newCategory);
+      setUploadSubcat(null);
+      toast.current?.show({ severity: "success", summary: "Categoría creada" });
+      closeCreateCategory();
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
+    } finally {
+      setLoadingCategoryAction(false);
+    }
+  }
+
   async function handleDeleteFile() {
     if (!fileToDelete) return;
     setLoadingDelete(true);
@@ -268,6 +305,18 @@ export default function FilesAdminUploadPage() {
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Subir archivo</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{userSelected?.lastname_name ?? userSelected?.name ?? ""}</small>
+      </div>
+    </div>
+  );
+
+  const createCategoryDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-folder" style={{ color: "#eab308", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nueva categoría</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para crear una categoría</small>
       </div>
     </div>
   );
@@ -565,6 +614,17 @@ export default function FilesAdminUploadPage() {
               />
             </div>
             {uploadTouched && !uploadCat && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            <div className="d-flex align-items-center mt-1" style={{ gap: "6px" }}>
+              <small style={{ color: "#94a3b8", fontSize: "0.72rem" }}>¿Falta una categoría?</small>
+              <button
+                type="button"
+                onClick={openCreateCategory}
+                className="btn btn-link p-0"
+                style={{ fontSize: "0.72rem", fontWeight: 600, color: "#4a6cf7", whiteSpace: "nowrap" }}
+              >
+                Crear categoría
+              </button>
+            </div>
           </div>
 
           <div className="mb-3">
@@ -588,6 +648,17 @@ export default function FilesAdminUploadPage() {
               />
             </div>
             {uploadTouched && !uploadSubcat && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+            <div className="d-flex align-items-center mt-1" style={{ gap: "6px" }}>
+              <small style={{ color: "#94a3b8", fontSize: "0.72rem" }}>¿Falta una subcategoría?</small>
+              <button
+                type="button"
+                onClick={() => window.open("/main/files-admin-items", "_blank", "noopener,noreferrer")}
+                className="btn btn-link p-0"
+                style={{ fontSize: "0.72rem", fontWeight: 600, color: "#4a6cf7", whiteSpace: "nowrap" }}
+              >
+                Crear subcategoría
+              </button>
+            </div>
           </div>
 
           <div className="mb-1">
@@ -615,6 +686,68 @@ export default function FilesAdminUploadPage() {
               )}
             </div>
             {uploadTouched && !uploadFiles.length && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Create category dialog */}
+      <Dialog
+        header={createCategoryDialogHeader}
+        visible={showCreateCategory}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(480px, 92vw)" }}
+        onHide={closeCreateCategory}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                form="create-category-form"
+                disabled={loadingCategoryAction}
+                type="submit"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={loadingCategoryAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {loadingCategoryAction ? "Creando..." : "Crear categoría"}
+              </button>
+              <button
+                disabled={loadingCategoryAction}
+                onClick={closeCreateCategory}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {loadingCategoryAction && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <form id="create-category-form" onSubmit={handleCreateCategorySubmit} noValidate>
+          <div className="mb-3">
+            <label className="profile-field-label">Nombre *</label>
+            <input
+              className="profile-input"
+              type="text"
+              value={categoryForm.name}
+              onChange={(e) => setCategoryForm((p) => ({ ...p, name: e.target.value }))}
+            />
+            {categoryTouched && !categoryForm.name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+          </div>
+          <div className="mb-1">
+            <label className="profile-field-label">Descripción *</label>
+            <textarea
+              className="profile-input"
+              rows={2}
+              value={categoryForm.description}
+              onChange={(e) => setCategoryForm((p) => ({ ...p, description: e.target.value }))}
+            />
+            {categoryTouched && !categoryForm.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
           </div>
         </form>
       </Dialog>
