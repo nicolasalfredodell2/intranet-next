@@ -63,7 +63,7 @@ body::-webkit-scrollbar-track {
 
 .login-split-left {
   align-items: center;
-  background: #0b1224;
+  background: #fff;
   display: flex;
   justify-content: center;
   overflow: hidden;

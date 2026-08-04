@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { login, validateToken } from "@/lib/services/auth.service";
 import { version as appVersion } from "@/package.json";
-import AuroraBackground from "@/components/common/AuroraBackground";
 
 interface LoginFormData {
   cuil: string;
@@ -86,16 +85,14 @@ export default function LoginForm() {
   return (
     <section id="wrapper" className="fadeIn animated login-split">
       <div className="login-split-left">
-        <AuroraBackground>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/img/trib-cuentas-escudo-white.png"
-              alt="Escudo del Tribunal de Cuentas"
-              className="login-split-image"
-            />
-          </div>
-        </AuroraBackground>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/img/trib-cuentas-escudo.png"
+            alt="Escudo del Tribunal de Cuentas"
+            className="login-split-image"
+          />
+        </div>
       </div>
 
       <div className="login-split-right">
