@@ -149,12 +149,10 @@ export default function FilesAdminUploadPage() {
     finally { setLoadingUsers(false); }
   }
 
-  async function selectUser(user: any) {
-    if (userSelected?.id === user.id) return;
-    setUserSelected(user);
+  async function loadItemsForUser(userId: string) {
     setLoadingItems(true);
     try {
-      const raw = await loadFilesForUser(user.id);
+      const raw = await loadFilesForUser(userId);
       const tempItems: any[] = [];
       const arr = Array.isArray(raw) ? raw : (raw.data ?? []);
       arr.forEach((item: any) => {
@@ -169,6 +167,12 @@ export default function FilesAdminUploadPage() {
       setItems(tempItems);
     } catch { toast.current?.show({ severity: "error", summary: "No se pudo cargar los archivos" }); }
     finally { setLoadingItems(false); }
+  }
+
+  async function selectUser(user: any) {
+    if (userSelected?.id === user.id) return;
+    setUserSelected(user);
+    await loadItemsForUser(user.id);
   }
 
   function closeUploadDialog() {
@@ -186,22 +190,9 @@ export default function FilesAdminUploadPage() {
     if (!uploadFiles.length || !uploadCat || !uploadSubcat || !userSelected) return;
     setLoadingUpload(true);
     try {
-      const resp = await uploadFileForUser({ files: uploadFiles, people_id: String(userSelected.id), sub_item_id: String(uploadSubcat.id) });
+      await uploadFileForUser({ files: uploadFiles, people_id: String(userSelected.id), sub_item_id: String(uploadSubcat.id) });
       toast.current?.show({ severity: "success", summary: "Archivo subido" });
-      const newFile = resp.data ?? resp;
-      setItems((prev) => {
-        const updatedItems = prev.map((cat: any) => {
-          if (cat.name !== uploadCat.name) return cat;
-          return {
-            ...cat,
-            subitems: cat.subitems.map((sub: any) => {
-              if (sub.name !== uploadSubcat.name) return sub;
-              return { ...sub, data: [newFile, ...(sub.data ?? [])] };
-            }),
-          };
-        });
-        return updatedItems;
-      });
+      await loadItemsForUser(userSelected.id);
       closeUploadDialog();
     } catch { toast.current?.show({ severity: "error", summary: "No se pudo subir el archivo" }); }
     finally { setLoadingUpload(false); }
@@ -429,7 +420,7 @@ export default function FilesAdminUploadPage() {
                   <i className="pi pi-search" style={{ color: "#eab308", fontSize: "1rem" }} />
                 </div>
                 <div className="flex-grow-1">
-                  <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar usuario</h5>
+                  <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar agente</h5>
                   <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Seleccioná un agente para gestionar sus archivos</small>
                 </div>
               </div>
