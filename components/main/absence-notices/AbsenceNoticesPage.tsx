@@ -566,7 +566,7 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Avisos</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Solicitá ausencias o generá avisos y notificá a tus jefes</small>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Solicitá ausencias o llegadas tardes</small>
             </div>
           </div>
         </div>
