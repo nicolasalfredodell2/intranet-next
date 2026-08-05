@@ -220,7 +220,7 @@ export default function Navbar() {
 
           <div className="navbar-collapse">
             {/* Mobile hamburger */}
-            <ul className="navbar-nav mr-auto">
+            <ul className="navbar-nav mr-auto align-items-center">
               <li className="nav-item d-md-none d-flex align-items-center">
                 <button
                   type="button"
@@ -230,6 +230,29 @@ export default function Navbar() {
                 >
                   <i className="mdi mdi-menu" />
                 </button>
+              </li>
+
+              {/* Ir a las noticias */}
+              <li className="nav-item px-1">
+                <Link
+                  href="/institucional"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    background: "#eef1ff",
+                    color: "#4a6cf7",
+                    borderRadius: "20px",
+                    padding: "3px 10px",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <i className="pi pi-arrow-left" style={{ fontSize: "0.72rem" }} />
+                  Ir a las noticias
+                </Link>
               </li>
             </ul>
 
