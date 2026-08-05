@@ -584,149 +584,160 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-                <form className="animated fadeIn row" onSubmit={handleSubmit} noValidate>
-                  <div className="fadeIn animated form-group col-12 col-lg-6">
-                    <label className="col-12"><small>Tipo *</small></label>
-                    <div className="col-md-12">
-                      <select className="custom-select w-100" value={form.type} onChange={(e) => { setForm((p) => ({ ...p, type: e.target.value, reason: "" })); setNoticeDate(null); setNoticeTo(null); }}>
-                        <option value=""></option>
-                        {types.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                      </select>
-                      {touched && !form.type && <small className="text-danger animated fadeIn">* Campo obligatorio</small>}
+                <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
+                  <div className="row">
+                    <div className="col-12 col-md-6 mb-3">
+                      <label className="profile-field-label">Tipo *</label>
+                      <div className={`license-filter-input-wrap${form.type ? " license-filter-input-wrap--active" : ""}`}>
+                        <i className="pi pi-tag license-filter-icon" />
+                        <Dropdown
+                          value={form.type || null}
+                          options={types}
+                          optionLabel="name"
+                          optionValue="id"
+                          onChange={(e) => { setForm((p) => ({ ...p, type: e.value ?? "", reason: "" })); setNoticeDate(null); setNoticeTo(null); }}
+                          placeholder="Seleccioná un tipo"
+                          className="license-filter-dropdown"
+                          panelClassName="license-filter-dropdown-panel"
+                          emptyMessage="Sin tipos"
+                        />
+                      </div>
+                      {touched && !form.type && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                     </div>
 
                     {isAusencia && (
-                      <div className="alert alert-info mt-4 mx-3 d-flex align-items-center animated fadeIn">
-                        <i className="mdi mdi-information-outline mr-2" />
-                        <div><strong>Cuando es por ausencia, puede que tenga que presentar la documentación dentro de las 48hs siguientes.</strong></div>
-                      </div>
-                    )}
-
-                    {isAusencia && (
-                      <div className="fadeIn animated form-group mt-3">
-                        <label className="col-md-12"><small>Razón <span className="text-danger">*</span></small></label>
-                        <div className="col-md-12">
-                          <select className="custom-select w-100" value={form.reason} onChange={(e) => setForm((p) => ({ ...p, reason: e.target.value }))}>
-                            <option value=""></option>
-                            {reasons.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                          </select>
-                          {touched && !form.reason && <small className="text-danger animated fadeIn">* Campo obligatorio</small>}
+                      <div className="col-12 col-md-6 mb-3 fadeIn animated">
+                        <label className="profile-field-label">Razón *</label>
+                        <div className={`license-filter-input-wrap${form.reason ? " license-filter-input-wrap--active" : ""}`}>
+                          <i className="pi pi-info-circle license-filter-icon" />
+                          <Dropdown
+                            value={form.reason || null}
+                            options={reasons}
+                            optionLabel="name"
+                            optionValue="id"
+                            onChange={(e) => setForm((p) => ({ ...p, reason: e.value ?? "" }))}
+                            placeholder="Seleccioná una razón"
+                            className="license-filter-dropdown"
+                            panelClassName="license-filter-dropdown-panel"
+                            emptyMessage="Sin razones"
+                          />
                         </div>
+                        {touched && !form.reason && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                       </div>
                     )}
+                  </div>
 
-                    <div className="fadeIn animated form-group mt-3">
-                      <label className="col-md-12"><small>Descripción *</small></label>
-                      <div className="col-md-12">
-                        <textarea className="form-control" value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
-                        {touched && !form.description && <small className="text-danger animated fadeIn">* Campo obligatorio</small>}
+                  {isAusencia && (
+                    <div className="alert alert-info d-flex align-items-center animated fadeIn mb-3">
+                      <i className="mdi mdi-information-outline mr-2" />
+                      <div><strong>Cuando es por ausencia, puede que tenga que presentar la documentación dentro de las 48hs siguientes.</strong></div>
+                    </div>
+                  )}
+
+                  <div className="row">
+                    <div className="col-12 col-md-6 mb-3">
+                      <label className="profile-field-label">{isAusencia ? "Desde / Hasta *" : "Fecha *"}</label>
+                      <div className={`license-filter-input-wrap${noticeDate ? " license-filter-input-wrap--active" : ""}`}>
+                        <i className="pi pi-calendar license-filter-icon" />
+                        {!isAusencia ? (
+                          <Calendar
+                            inputId="notice_date"
+                            value={noticeDate}
+                            onChange={(e) => setNoticeDate((e.value as Date) ?? null)}
+                            readOnlyInput
+                            dateFormat="dd/mm/yy"
+                            locale="es"
+                            showButtonBar
+                            disabledDays={[0, 6]}
+                            minDate={weekMinDate}
+                            maxDate={weekMaxDate}
+                            placeholder="Seleccioná una fecha"
+                            className="license-filter-dropdown"
+                            panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                          />
+                        ) : (
+                          <Calendar
+                            inputId="notice_range"
+                            value={noticeDate ? [noticeDate, noticeTo] : null}
+                            onChange={(e) => {
+                              const [start, end] = (e.value as [Date | null, Date | null] | null) ?? [null, null];
+                              setNoticeDate(start ?? null);
+                              setNoticeTo(end ?? null);
+                            }}
+                            selectionMode="range"
+                            readOnlyInput
+                            dateFormat="dd/mm/yy"
+                            locale="es"
+                            showButtonBar
+                            disabledDays={[0, 6]}
+                            minDate={weekMinDate}
+                            maxDate={noticeDate ? addBusinessDays(noticeDate, 20) : weekMaxDate}
+                            placeholder="Seleccioná el rango de fechas"
+                            className="license-filter-dropdown"
+                            panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                          />
+                        )}
                       </div>
+                      {!isAusencia && touched && !noticeDate && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                      {isAusencia && touched && (!noticeDate || !noticeTo) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Las fechas "Desde" y "Hasta" son obligatorias</small>}
+                      {isAusencia && touched && noticeDate && noticeTo && noticeTo < noticeDate && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* La fecha "Hasta" no puede ser anterior a la fecha "Desde"</small>}
                     </div>
 
-                    <div className="fadeIn animated form-group mt-3">
-                      <label className="col-md-12"><small>Jefes a notificar</small></label>
-                      <div className="col-md-12">
-                        {isLoadingRecipients && <small className="text-muted">Cargando jefes...</small>}
-                        {!isLoadingRecipients && recipients.length === 0 && <small className="text-muted">No hay jefes disponibles</small>}
+                    <div className="col-12 col-md-6 mb-3">
+                      <label className="profile-field-label">Descripción *</label>
+                      <textarea className="profile-input" rows={3} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
+                      {touched && !form.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                    </div>
+                  </div>
+
+                  <div className="row mb-3">
+                    <div className="col-12">
+                      <label className="profile-field-label">Jefes a notificar</label>
+                      {isLoadingRecipients && <small className="text-muted">Cargando jefes...</small>}
+                      {!isLoadingRecipients && recipients.length === 0 && <small className="text-muted">No hay jefes disponibles</small>}
+                      <div className="row">
                         {recipients.map((r) => (
-                          <div key={r.id} className="form-check mb-2">
-                            <input
-                              type="checkbox"
-                              className="form-check-input"
-                              id={`recipient_${r.id}`}
-                              checked={isRecipientSelected(r.id)}
-                              onChange={(e) => toggleRecipient(r.id, e.target.checked)}
-                            />
-                            <label className="form-check-label" htmlFor={`recipient_${r.id}`}>
-                              <span className="d-block">{r.lastname_name}</span>
-                              <small className="text-muted">{r.email}</small>
-                            </label>
+                          <div key={r.id} className="col-12 col-md-6 col-lg-4">
+                            <div className="form-check mb-2">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                id={`recipient_${r.id}`}
+                                checked={isRecipientSelected(r.id)}
+                                onChange={(e) => toggleRecipient(r.id, e.target.checked)}
+                              />
+                              <label className="form-check-label" htmlFor={`recipient_${r.id}`}>
+                                <span className="d-block">{r.lastname_name}</span>
+                                <small className="text-muted">{r.email}</small>
+                              </label>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  {!isAusencia && (
-                    <div className="fadeIn animated form-group col-12 col-lg-3">
-                      <label className="col-12 d-flex align-items-center justify-content-between">
-                        <small>Fecha <span className="text-danger">*</span></small>
-                        {noticeDate && (
-                          <button type="button" className="btn btn-sm btn-link p-0 text-muted" title="Quitar fecha" onClick={() => setNoticeDate(null)}>
-                            <i className="mdi mdi-close-circle-outline" /> Quitar
-                          </button>
-                        )}
-                      </label>
-                      <div className="col-12">
-                        <Calendar
-                          inputId="notice_date"
-                          value={noticeDate}
-                          onChange={(e) => setNoticeDate((e.value as Date) ?? null)}
-                          dateFormat="dd/mm/yy"
-                          locale="es"
-                          disabledDays={[0, 6]}
-                          minDate={weekMinDate}
-                          maxDate={weekMaxDate}
-                          inline
-                          className="w-100"
-                        />
-                        <small className="text-muted d-block mt-1">Fecha: <strong>{noticeDate ? formatDateDisplay(formatDateForApi(noticeDate)) : "-"}</strong></small>
-                        {touched && !noticeDate && <small className="text-danger animated fadeIn d-block">* Campo obligatorio</small>}
-                      </div>
-                    </div>
-                  )}
-
-                  {isAusencia && (
-                    <div className="fadeIn animated form-group col-12 col-lg-3">
-                      <label className="col-12 d-flex align-items-center justify-content-between">
-                        <small>Desde / Hasta <span className="text-danger">*</span></small>
-                        {noticeDate && (
-                          <button type="button" className="btn btn-sm btn-link p-0 text-muted" title="Quitar fechas" onClick={() => { setNoticeDate(null); setNoticeTo(null); }}>
-                            <i className="mdi mdi-close-circle-outline" /> Quitar
-                          </button>
-                        )}
-                      </label>
-                      <div className="col-md-12">
-                        <Calendar
-                          inputId="notice_range"
-                          value={noticeDate ? [noticeDate, noticeTo] : null}
-                          onChange={(e) => {
-                            const [start, end] = (e.value as [Date | null, Date | null] | null) ?? [null, null];
-                            setNoticeDate(start ?? null);
-                            setNoticeTo(end ?? null);
-                          }}
-                          selectionMode="range"
-                          dateFormat="dd/mm/yy"
-                          locale="es"
-                          disabledDays={[0, 6]}
-                          minDate={weekMinDate}
-                          maxDate={noticeDate ? addBusinessDays(noticeDate, 20) : weekMaxDate}
-                          inline
-                          className="w-100"
-                        />
-                        <div className="d-flex justify-content-between mt-1">
-                          <small className="text-muted">Desde: <strong>{noticeDate ? formatDateDisplay(formatDateForApi(noticeDate)) : "-"}</strong></small>
-                          <small className="text-muted">Hasta: <strong>{noticeTo ? formatDateDisplay(formatDateForApi(noticeTo)) : "-"}</strong></small>
-                        </div>
-                        {touched && (!noticeDate || !noticeTo) && <small className="text-danger animated fadeIn d-block">* Las fechas "Desde" y "Hasta" son obligatorias</small>}
-                        {touched && noticeDate && noticeTo && noticeTo < noticeDate && <small className="text-danger animated fadeIn d-block">* La fecha "Hasta" no puede ser anterior a la fecha "Desde"</small>}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="fadeIn animated form-group col-12">
-                    <div className="row">
-                      <div className="col-6">
-                        <button disabled={loadingAction} type="submit" className="btn btn-block btn-info">
-                          {noticeParaModificar
-                            ? (loadingAction ? "MODIFICANDO AVISO" : "MODIFICAR AVISO")
-                            : (loadingAction ? "CREANDO AVISO" : "CREAR AVISO")}
-                        </button>
-                      </div>
-                      <div className="col-6">
-                        <button type="button" disabled={loadingAction} className="btn btn-block btn-muted" onClick={limpiar}>Limpiar</button>
-                      </div>
-                    </div>
+                  <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
+                    <button
+                      disabled={loadingAction}
+                      type="submit"
+                      className="btn btn-primary d-flex align-items-center"
+                      style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                    >
+                      <i className={loadingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                      {noticeParaModificar
+                        ? (loadingAction ? "Modificando..." : "Modificar aviso")
+                        : (loadingAction ? "Creando..." : "Crear aviso")}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={loadingAction}
+                      onClick={limpiar}
+                      className="btn btn-light text-muted ml-auto"
+                      style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+                    >
+                      Limpiar
+                    </button>
                   </div>
                 </form>
           </div>
