@@ -128,6 +128,29 @@ function getStatusClass(statusId: string): string {
   }
 }
 
+// Paleta categórica fija (orden validado para daltonismo) — cada tipo/razón
+// obtiene siempre el mismo color, calculado a partir de su id.
+const CATEGORY_PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
+
+function colorForCategory(key: string): string {
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  return CATEGORY_PALETTE[hash % CATEGORY_PALETTE.length];
+}
+
+function CategoryBadge({ label, id }: { label?: string | null; id?: string | number | null }) {
+  if (!label || !id) return <small>-</small>;
+  const color = label.toLowerCase().includes("llegada tarde") ? "#2a78d6" : colorForCategory(String(id));
+  return (
+    <span
+      className="badge rounded-pill"
+      style={{ background: `${color}1a`, color, border: "none", fontWeight: 600, padding: "4px 10px" }}
+    >
+      {label}
+    </span>
+  );
+}
+
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   return (
@@ -879,8 +902,8 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                   </div>
                 }
               >
-                <Column header="TIPO" body={(n) => <small>{n.type?.name}</small>} />
-                <Column header="RAZÓN" body={(n) => <small>{n.reason?.name ?? "-"}</small>} />
+                <Column header="TIPO" body={(n) => <CategoryBadge label={n.type?.name} id={n.type?.id} />} />
+                <Column header="RAZÓN" body={(n) => <CategoryBadge label={n.reason?.name} id={n.reason?.id} />} />
                 <Column
                   header="DESCRIPCIÓN"
                   style={{ maxWidth: 260 }}
@@ -901,7 +924,7 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                 <Column
                   header="ESTADO"
                   body={(n) => (
-                    <span className={`badge rounded-pill ${getStatusClass(n.status?.id)}`}>
+                    <span className={`badge rounded-pill ${getStatusClass(n.status?.id)}`} style={{ padding: "4px 10px" }}>
                       {statusLabel(n.status)}
                     </span>
                   )}
