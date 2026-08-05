@@ -699,7 +699,7 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                       <div className="row">
                         {recipients.map((r) => (
                           <div key={r.id} className="col-12 col-md-6 col-lg-4">
-                            <div className="form-check mb-2">
+                            <div className="form-check mb-2 pl-0">
                               <input
                                 type="checkbox"
                                 className="form-check-input"
