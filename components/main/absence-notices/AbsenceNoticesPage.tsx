@@ -821,6 +821,27 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                   />
                 </div>
 
+                <div className={`license-filter-input-wrap${filterForm.date_from || filterForm.date_to ? " license-filter-input-wrap--active" : ""}`}>
+                  <i className="pi pi-calendar license-filter-icon" />
+                  <Calendar
+                    value={filterForm.date_from
+                      ? [new Date(`${filterForm.date_from}T00:00:00`), filterForm.date_to ? new Date(`${filterForm.date_to}T00:00:00`) : null]
+                      : null}
+                    onChange={(e) => {
+                      const [start, end] = (e.value as (Date | null)[] | null) ?? [null, null];
+                      updateFilter({ date_from: start ? formatDateForApi(start) : "", date_to: end ? formatDateForApi(end) : "" });
+                    }}
+                    selectionMode="range"
+                    readOnlyInput
+                    dateFormat="dd/mm/yy"
+                    locale="es-avisos"
+                    showButtonBar
+                    placeholder="Fecha desde - hasta"
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                  />
+                </div>
+
                 <div className={`license-filter-input-wrap${filterForm.notice_status_id ? " license-filter-input-wrap--active" : ""}`}>
                   <i className="pi pi-flag license-filter-icon" />
                   <Dropdown
@@ -835,21 +856,13 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                     panelClassName="license-filter-dropdown-panel"
                   />
                 </div>
-
-                <div className={`license-filter-input-wrap${filterForm.date_from ? " license-filter-input-wrap--active" : ""}`}>
-                  <i className="pi pi-calendar license-filter-icon" />
-                  <input type="date" className="license-filter-input" title="Fecha desde" value={filterForm.date_from} onChange={(e) => updateFilter({ date_from: e.target.value })} />
-                </div>
-
-                <div className={`license-filter-input-wrap${filterForm.date_to ? " license-filter-input-wrap--active" : ""}`}>
-                  <i className="pi pi-calendar license-filter-icon" />
-                  <input type="date" className="license-filter-input" title="Fecha hasta" value={filterForm.date_to} onChange={(e) => updateFilter({ date_to: e.target.value })} />
-                </div>
               </div>
 
-              <button type="button" className="license-filter-clear" onClick={clearFilters}>
-                <i className="pi pi-filter-slash" /> Limpiar filtros
-              </button>
+              {(descInput || Object.values(filterForm).some((v) => v)) && (
+                <button type="button" className="license-filter-clear" onClick={clearFilters}>
+                  <i className="pi pi-filter-slash" /> Limpiar filtros
+                </button>
+              )}
             </div>
 
             {loading && <ProgressBar mode="indeterminate" style={{ height: "6px" }} className="mt-3" />}
