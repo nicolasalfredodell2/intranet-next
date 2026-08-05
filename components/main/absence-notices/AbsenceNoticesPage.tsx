@@ -913,7 +913,9 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                 }
               >
                 <Column header="TIPO" body={(n) => <CategoryBadge label={n.type?.name} id={n.type?.id} />} />
-                <Column header="RAZÓN" body={(n) => <CategoryBadge label={n.reason?.name} id={n.reason?.id} palette={REASON_PALETTE} />} />
+                {!isFilterLlegadaTarde && (
+                  <Column header="RAZÓN" body={(n) => <CategoryBadge label={n.reason?.name} id={n.reason?.id} palette={REASON_PALETTE} />} />
+                )}
                 <Column
                   header="DESCRIPCIÓN"
                   style={{ maxWidth: 260 }}
@@ -940,7 +942,7 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                   )}
                 />
                 <Column
-                  header="ACCIONES"
+                  header=""
                   body={(n) => (
                     <div className="d-flex align-items-center" style={{ gap: "4px" }}>
                       {n.type?.code === "ausencia" && (
