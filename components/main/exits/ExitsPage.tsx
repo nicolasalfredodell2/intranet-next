@@ -1223,7 +1223,7 @@ export default function ExitsPage() {
               <i className="mdi mdi-file-pdf-box" style={{ color: "#dc3545", fontSize: "1.2rem" }} />
             </div>
             <div style={{ minWidth: 0 }}>
-              <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pdfExit?.lastname_name}</p>
+              <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Solicitado a {pdfExit?.lastname_name}</p>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Orden de salida</small>
             </div>
           </div>
