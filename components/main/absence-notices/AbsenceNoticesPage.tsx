@@ -12,6 +12,7 @@ import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { Message } from "primereact/message";
+import { Tag } from "primereact/tag";
 import { addLocale } from "primereact/api";
 import imageCompression from "browser-image-compression";
 import { PDFDocument } from "pdf-lib";
@@ -93,6 +94,19 @@ function formatDateDisplay(iso: string | null | undefined): string {
   const [y, m, d] = iso.split("-");
   if (!y || !m || !d) return iso;
   return `${d}/${m}/${y}`;
+}
+
+function formatDateTime(value: string | null | undefined): string {
+  if (!value) return "";
+  const normalized = value.includes("T") || value.includes(" ") ? value.replace(" ", "T") : `${value}T00:00:00`;
+  const date = new Date(normalized);
+  if (isNaN(date.getTime())) return value;
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mm = String(date.getMinutes()).padStart(2, "0");
+  return `${d}/${m}/${y} ${hh}:${mm}`;
 }
 
 function countDays(start: Date, end: Date): number {
@@ -578,6 +592,18 @@ export default function AbsenceNoticesPage() {
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar aviso</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
+      </div>
+    </div>
+  );
+
+  const historyDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="pi pi-history" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Historial de archivos</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Documentación adjuntada para este aviso</small>
       </div>
     </div>
   );
@@ -1227,7 +1253,7 @@ export default function AbsenceNoticesPage() {
 
       {/* Historial de archivos */}
       <Dialog
-        header="Historial de Archivos Adjuntos"
+        header={historyDialogHeader}
         visible={!!historyAttachments}
         modal
         draggable={false}
@@ -1236,37 +1262,63 @@ export default function AbsenceNoticesPage() {
         style={{ width: "min(480px, 92vw)" }}
         onHide={() => setHistoryAttachments(null)}
         footer={
-          <button type="button" className="btn btn-outline-secondary" onClick={() => setHistoryAttachments(null)}>
-            Cerrar
+          <button
+            type="button"
+            onClick={() => setHistoryAttachments(null)}
+            className="btn btn-light text-muted ml-auto"
+            style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+          >
+            Volver
           </button>
         }
       >
-        <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+        <div style={{ maxHeight: "60vh", overflowY: "auto" }} className="fadeIn animated">
           {(historyAttachments ?? []).map((file, i) => (
-            <div key={file.id} className="border rounded mb-2 p-2">
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="mb-0 font-weight-bold">
-                  <i className="fa-solid fa-file-pdf text-danger mr-2" /> {file.name}
-                  {i === 0 && <span className="badge badge-success ml-2">Último subido</span>}
-                </h6>
-                <small className="text-muted">{file.created_at}</small>
+            <div key={file.id} className="mb-2" style={{ border: "1.5px solid #e2e8f0", borderRadius: "10px", padding: "12px 14px" }}>
+              <div className="mb-2" style={{ minWidth: 0 }}>
+                <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+                  <i className="pi pi-file-pdf" style={{ color: "#dc3545", fontSize: "1rem", flexShrink: 0 }} />
+                  <span style={{ fontSize: "0.86rem", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {file.name}
+                  </span>
+                  {i === 0 && <Tag value="Último subido" severity="success" style={{ fontSize: "0.62rem" }} />}
+                </div>
+                <small style={{ color: "#94a3b8", fontSize: "0.72rem", display: "block", marginTop: "2px", marginLeft: "24px" }}>
+                  {formatDateTime(file.created_at)}
+                </small>
               </div>
 
-              <div className="mb-2">
-                <button className="btn btn-sm btn-outline-primary" onClick={() => abrirArchivo(file)}>
-                  <i className="fa-solid fa-eye" /> Ver documento
+              <Tooltip label="Ver documento">
+                <button
+                  type="button"
+                  onClick={() => abrirArchivo(file)}
+                  style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6", fontSize: "0.78rem", fontWeight: 600, gap: "6px" }}
+                >
+                  <i className="pi pi-eye" style={{ fontSize: "0.78rem" }} />
+                  Ver documento
                 </button>
-              </div>
+              </Tooltip>
 
               {file.rejection_reasons && file.rejection_reasons.length > 0 && (
-                <div className="alert alert-danger p-2 mb-0">
-                  <small className="font-weight-bold"><i className="fa-solid fa-circle-exclamation" /> Motivos de rechazo:</small>
-                  <ul className="mb-0 pl-3 mt-1">
-                    {file.rejection_reasons.map((reason: any, idx: number) => (
-                      <li key={idx}><small>{reason.reason} <span className="text-muted">({reason.created_at})</span></small></li>
-                    ))}
-                  </ul>
-                </div>
+                <Message
+                  severity="error"
+                  className="mt-2 w-100"
+                  style={{ justifyContent: "flex-start" }}
+                  text={
+                    <div>
+                      <small style={{ fontWeight: 700 }}>Motivos de rechazo:</small>
+                      <ul className="mb-0 pl-3 mt-1">
+                        {file.rejection_reasons.map((reason: any, idx: number) => (
+                          <li key={idx}>
+                            <small>
+                              {reason.reason} <span style={{ color: "#94a3b8" }}>({reason.created_at})</span>
+                            </small>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  }
+                />
               )}
             </div>
           ))}
