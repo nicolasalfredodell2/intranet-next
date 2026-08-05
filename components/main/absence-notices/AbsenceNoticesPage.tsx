@@ -132,15 +132,18 @@ function getStatusClass(statusId: string): string {
 // obtiene siempre el mismo color, calculado a partir de su id.
 const CATEGORY_PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
 
-function colorForCategory(key: string): string {
+// Paleta para "Razón": sin azul ni verde/aqua, para no confundirse con los badges de "Tipo".
+const REASON_PALETTE = ["#eb6834", "#eda100", "#e87ba4", "#4a3aa7", "#e34948"];
+
+function colorForCategory(key: string, palette: string[] = CATEGORY_PALETTE): string {
   let hash = 0;
   for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
-  return CATEGORY_PALETTE[hash % CATEGORY_PALETTE.length];
+  return palette[hash % palette.length];
 }
 
-function CategoryBadge({ label, id }: { label?: string | null; id?: string | number | null }) {
+function CategoryBadge({ label, id, palette = CATEGORY_PALETTE }: { label?: string | null; id?: string | number | null; palette?: string[] }) {
   if (!label || !id) return <small>-</small>;
-  const color = label.toLowerCase().includes("llegada tarde") ? "#2a78d6" : colorForCategory(String(id));
+  const color = label.toLowerCase().includes("llegada tarde") ? "#2a78d6" : colorForCategory(String(id), palette);
   return (
     <span
       className="badge rounded-pill"
@@ -289,6 +292,7 @@ export default function AbsenceNoticesPage() {
   }
 
   const isAusencia = types.find((t) => t.id == form.type)?.code === "ausencia";
+  const isFilterAusencia = types.find((t) => t.id == filterForm.notice_type_id)?.code === "ausencia";
 
   function isRecipientSelected(id: number): boolean {
     return selectedRecipientIds.includes(id);
@@ -811,7 +815,10 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                     options={types}
                     optionLabel="name"
                     optionValue="id"
-                    onChange={(e) => updateFilter({ notice_type_id: e.value ?? "" })}
+                    onChange={(e) => {
+                      const selectedType = types.find((t) => t.id === e.value);
+                      updateFilter({ notice_type_id: e.value ?? "", notice_reason_id: selectedType?.code === "ausencia" ? filterForm.notice_reason_id : "" });
+                    }}
                     placeholder="Tipo"
                     showClear
                     className="license-filter-dropdown"
@@ -819,20 +826,22 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                   />
                 </div>
 
-                <div className={`license-filter-input-wrap${filterForm.notice_reason_id ? " license-filter-input-wrap--active" : ""}`}>
-                  <i className="pi pi-info-circle license-filter-icon" />
-                  <Dropdown
-                    value={filterForm.notice_reason_id || null}
-                    options={reasons}
-                    optionLabel="name"
-                    optionValue="id"
-                    onChange={(e) => updateFilter({ notice_reason_id: e.value ?? "" })}
-                    placeholder="Razón"
-                    showClear
-                    className="license-filter-dropdown"
-                    panelClassName="license-filter-dropdown-panel"
-                  />
-                </div>
+                {isFilterAusencia && (
+                  <div className={`license-filter-input-wrap${filterForm.notice_reason_id ? " license-filter-input-wrap--active" : ""}`}>
+                    <i className="pi pi-info-circle license-filter-icon" />
+                    <Dropdown
+                      value={filterForm.notice_reason_id || null}
+                      options={reasons}
+                      optionLabel="name"
+                      optionValue="id"
+                      onChange={(e) => updateFilter({ notice_reason_id: e.value ?? "" })}
+                      placeholder="Razón"
+                      showClear
+                      className="license-filter-dropdown"
+                      panelClassName="license-filter-dropdown-panel"
+                    />
+                  </div>
+                )}
 
                 <div className={`license-filter-input-wrap${descInput ? " license-filter-input-wrap--active" : ""}`}>
                   <i className="pi pi-search license-filter-icon" />
@@ -903,7 +912,7 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                 }
               >
                 <Column header="TIPO" body={(n) => <CategoryBadge label={n.type?.name} id={n.type?.id} />} />
-                <Column header="RAZÓN" body={(n) => <CategoryBadge label={n.reason?.name} id={n.reason?.id} />} />
+                <Column header="RAZÓN" body={(n) => <CategoryBadge label={n.reason?.name} id={n.reason?.id} palette={REASON_PALETTE} />} />
                 <Column
                   header="DESCRIPCIÓN"
                   style={{ maxWidth: 260 }}
