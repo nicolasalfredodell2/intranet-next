@@ -1011,7 +1011,7 @@ export default function AbsenceNoticesPage() {
                           {n.attachments?.length > 1 && (
                             <Tooltip label="Ver historial de archivos">
                               <button type="button" onClick={() => abrirModalHistorial(n.attachments)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
-                                <i className="fa-solid fa-clock-rotate-left" style={{ fontSize: "0.85rem" }} />
+                                <i className="pi pi-history" style={{ fontSize: "0.85rem" }} />
                               </button>
                             </Tooltip>
                           )}
@@ -1068,8 +1068,19 @@ export default function AbsenceNoticesPage() {
         header={previewSidebarHeader}
       >
         {previewFile?.type === "image" && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
+          <>
+            <a
+              href={previewFile.url}
+              download={previewFile.name}
+              className="btn btn-light d-inline-flex align-items-center mb-3"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#4a6cf7", textDecoration: "none" }}
+            >
+              <i className="pi pi-download" style={{ fontSize: "0.78rem" }} />
+              Descargar imagen
+            </a>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
+          </>
         )}
         {previewFile?.type === "pdf" && (
           <iframe src={previewFile.url} title={previewFile.name} style={{ width: "100%", height: "calc(100vh - 120px)", border: "none" }} />
