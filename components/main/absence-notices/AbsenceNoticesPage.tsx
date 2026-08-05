@@ -25,7 +25,7 @@ import {
   getNoticeFile,
 } from "@/lib/services/absence-notices.service";
 
-addLocale("es", {
+addLocale("es-avisos", {
   firstDayOfWeek: 1,
   dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
   dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
@@ -34,7 +34,7 @@ addLocale("es", {
   monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
   today: "Hoy",
   now: "Ahora",
-  clear: "Limpiar",
+  clear: "Quitar fechas",
 });
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -638,8 +638,9 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                             onChange={(e) => setNoticeDate((e.value as Date) ?? null)}
                             readOnlyInput
                             dateFormat="dd/mm/yy"
-                            locale="es"
+                            locale="es-avisos"
                             showButtonBar
+                            showOtherMonths={false}
                             disabledDays={[0, 6]}
                             minDate={weekMinDate}
                             maxDate={weekMaxDate}
@@ -665,8 +666,9 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                             selectionMode="range"
                             readOnlyInput
                             dateFormat="dd/mm/yy"
-                            locale="es"
+                            locale="es-avisos"
                             showButtonBar
+                            showOtherMonths={false}
                             disabledDays={[0, 6]}
                             minDate={weekMinDate}
                             maxDate={noticeDate ? addBusinessDays(noticeDate, 20) : weekMaxDate}
