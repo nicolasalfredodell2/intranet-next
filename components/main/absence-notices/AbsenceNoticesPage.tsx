@@ -125,6 +125,17 @@ function countDays(start: Date, end: Date): number {
   return Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
 }
 
+function countBusinessDays(start: Date, end: Date): number {
+  let count = 0;
+  const current = new Date(start);
+  while (current <= end) {
+    const day = current.getDay();
+    if (day !== 0 && day !== 6) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
 function hasAttachment(item: any): boolean {
   return Array.isArray(item.attachments) && item.attachments.length > 0;
 }
@@ -762,6 +773,7 @@ export default function AbsenceNoticesPage() {
                       {isAusencia && noticeDate && noticeTo && noticeTo >= noticeDate && (
                         <small className="fadeIn animated" style={{ marginTop: "4px", display: "block", color: "#cbd5e1", fontSize: "0.72rem" }}>
                           {countDays(noticeDate, noticeTo)} {countDays(noticeDate, noticeTo) === 1 ? "día total" : "días totales"}
+                          {" "}({countBusinessDays(noticeDate, noticeTo)} {countBusinessDays(noticeDate, noticeTo) === 1 ? "día hábil" : "días hábiles"})
                         </small>
                       )}
                       {!isAusencia && touched && !noticeDate && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
@@ -988,9 +1000,11 @@ export default function AbsenceNoticesPage() {
                 <Column
                   header="FECHA"
                   body={(n) => {
-                    const days = n.type?.code === "ausencia" && n.notice_date && n.notice_to
-                      ? countDays(new Date(`${n.notice_date}T00:00:00`), new Date(`${n.notice_to}T00:00:00`))
-                      : null;
+                    const hasRange = n.type?.code === "ausencia" && n.notice_date && n.notice_to;
+                    const start = hasRange ? new Date(`${n.notice_date}T00:00:00`) : null;
+                    const end = hasRange ? new Date(`${n.notice_to}T00:00:00`) : null;
+                    const days = start && end ? countDays(start, end) : null;
+                    const businessDays = start && end ? countBusinessDays(start, end) : null;
                     return (
                       <div className="d-flex align-items-center" style={{ gap: "8px" }}>
                         <small>{formatDateDisplay(n.notice_date)}{n.notice_to ? ` - ${formatDateDisplay(n.notice_to)}` : ""}</small>
@@ -999,7 +1013,7 @@ export default function AbsenceNoticesPage() {
                             className="badge rounded-pill"
                             style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
                           >
-                            {days} {days === 1 ? "día total" : "días totales"}
+                            {days} {days === 1 ? "día total" : "días totales"} ({businessDays} {businessDays === 1 ? "día hábil" : "días hábiles"})
                           </span>
                         )}
                       </div>
