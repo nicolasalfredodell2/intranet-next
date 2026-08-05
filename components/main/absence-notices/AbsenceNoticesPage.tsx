@@ -10,6 +10,7 @@ import { Column } from "primereact/column";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
+import { Message } from "primereact/message";
 import { addLocale } from "primereact/api";
 import imageCompression from "browser-image-compression";
 import { PDFDocument } from "pdf-lib";
@@ -627,13 +628,6 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                     )}
                   </div>
 
-                  {isAusencia && (
-                    <div className="alert alert-info d-flex align-items-center animated fadeIn mb-3">
-                      <i className="mdi mdi-information-outline mr-2" />
-                      <div><strong>Cuando es por ausencia, puede que tenga que presentar la documentación dentro de las 48hs siguientes.</strong></div>
-                    </div>
-                  )}
-
                   <div className="row">
                     <div className="col-12 col-md-6 mb-3">
                       <label className="profile-field-label">{isAusencia ? "Desde / Hasta *" : "Fecha *"}</label>
@@ -716,6 +710,15 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                       </div>
                     </div>
                   </div>
+
+                  {isAusencia && (
+                    <Message
+                      severity="info"
+                      className="animated fadeIn mb-3 w-100"
+                      style={{ justifyContent: "flex-start" }}
+                      text="Cuando es por ausencia, puede que tenga que presentar la documentación dentro de las 48hs siguientes."
+                    />
+                  )}
 
                   <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
                     <button
