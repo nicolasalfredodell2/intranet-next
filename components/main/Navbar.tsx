@@ -212,7 +212,7 @@ export default function Navbar() {
                   </span>
                 </span>
                 <span style={{ fontSize: "0.58rem", color: "#000000", letterSpacing: "0.03em", fontWeight: 500, marginTop: "2px" }}>
-                  Tribunal de Cuentas de la provincia de Río Negro
+                  Tribunal de Cuentas de Río Negro
                 </span>
               </div>
             </Link>
