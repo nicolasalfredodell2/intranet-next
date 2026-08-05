@@ -216,7 +216,7 @@ export default function AbsenceNoticesPage() {
   const [notices, setNotices] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const perPage = 10;
+  const [perPage, setPerPage] = useState(10);
   const [loading, setLoading] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
 
@@ -287,14 +287,15 @@ export default function AbsenceNoticesPage() {
     }
   }
 
-  async function loadNotices(p = 1, f: FilterForm = filterForm) {
+  async function loadNotices(p = 1, f: FilterForm = filterForm, rows: number = perPage) {
     if (loading) return;
     setLoading(true);
     try {
-      const resp = await getMyNotices(p, perPage, f);
+      const resp = await getMyNotices(p, rows, f);
       setNotices(resp.data ?? []);
       setTotal(resp.meta?.total ?? 0);
       setPage(p);
+      setPerPage(rows);
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
     } finally {
@@ -1047,10 +1048,17 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
 
               <Paginator
                 className="mt-2"
+                first={(page - 1) * perPage}
                 rows={perPage}
                 totalRecords={total}
-                onPageChange={(e) => loadNotices(e.page + 1)}
+                rowsPerPageOptions={[10, 15, 20]}
+                onPageChange={(e) => loadNotices(e.page + 1, filterForm, e.rows)}
                 pageLinkSize={3}
+                rightContent={
+                  <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+                    {total} {total === 1 ? "aviso" : "avisos"}
+                  </span>
+                }
               />
             </div>
           </div>
