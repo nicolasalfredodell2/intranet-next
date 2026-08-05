@@ -326,6 +326,7 @@ export default function ExitsPage() {
   const [loadingActionOpenPdfExit, setLoadingActionOpenPdfExit] = useState<number | null>(null);
   const [pdfUrl,  setPdfUrl]  = useState<string | null>(null);
   const [pdfExit, setPdfExit] = useState<any>(null);
+  const [pdfExitSource, setPdfExitSource] = useState<"mine" | "admin">("mine");
 
   const [isOpenModalCancelExit,   setIsOpenModalCancelExit]   = useState(false);
   const [loadingActionCancelExit, setLoadingActionCancelExit] = useState(false);
@@ -479,7 +480,7 @@ export default function ExitsPage() {
   }
 
   // ── PDF ───────────────────────────────────────────────────────────────────────
-  async function openPdfExit(exit: any) {
+  async function openPdfExit(exit: any, source: "mine" | "admin" = "mine") {
     if (loadingActionOpenPdfExit) return;
     if (pdfExit?.id === exit.id) {
       toast.current?.show({ severity: "info", summary: "Ya estás viendo este PDF", life: 2500 });
@@ -496,6 +497,7 @@ export default function ExitsPage() {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
       setPdfUrl(URL.createObjectURL(blob));
       setPdfExit(exit);
+      setPdfExitSource(source);
     } catch {
       toast.current?.show({ severity: "error", summary: "No se encontró el PDF" });
     } finally {
@@ -1152,7 +1154,7 @@ export default function ExitsPage() {
                                     <Tooltip label="Ver PDF">
                                       <button
                                         type="button"
-                                        onClick={() => openPdfExit(item)}
+                                        onClick={() => openPdfExit(item, "admin")}
                                         style={{ background: "none", border: "none", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
                                       >
                                         <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "mdi mdi-file-pdf-box"} style={{ fontSize: "1.2rem", color: loadingActionOpenPdfExit === item.id ? undefined : "#dc3545" }} />
@@ -1223,7 +1225,9 @@ export default function ExitsPage() {
               <i className="mdi mdi-file-pdf-box" style={{ color: "#dc3545", fontSize: "1.2rem" }} />
             </div>
             <div style={{ minWidth: 0 }}>
-              <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Solicitado a {pdfExit?.lastname_name}</p>
+              <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {pdfExitSource === "admin" ? "Solicitado por " : "Solicitado a "}{pdfExit?.lastname_name}
+              </p>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Orden de salida</small>
             </div>
           </div>
