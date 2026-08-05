@@ -41,6 +41,8 @@ addLocale("es-avisos", {
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_FILE_TYPES = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
 
+const ICON_BTN_STYLE = { background: "none", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center" } as const;
+
 interface NoticeForm {
   type: string;
   reason: string;
@@ -998,25 +1000,26 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                 <Column
                   header=""
                   body={(n) => (
-                    <div className="d-flex align-items-center" style={{ gap: "4px" }}>
+                    <div className="d-flex align-items-center" style={{ gap: "6px" }}>
                       {n.type?.code === "ausencia" && (
                         <>
                           {hasAttachment(n) && (
                             isDownloadingFile && downloadingId === getUltimoAdjunto(n)?.id ? (
-                              <i className="fa-solid fa-spinner fa-spin mx-1 text-primary" />
+                              <span style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#94a3b8", cursor: "not-allowed" }}>
+                                <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "0.85rem" }} />
+                              </span>
                             ) : (
                               <Tooltip label="Ver último archivo subido">
-                                <i className="fa-solid fa-file mx-1 text-dark pointer" onClick={() => abrirArchivo(getUltimoAdjunto(n))} />
+                                <button type="button" onClick={() => abrirArchivo(getUltimoAdjunto(n))} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                                  <i className="fa-solid fa-file" style={{ fontSize: "0.85rem" }} />
+                                </button>
                               </Tooltip>
                             )
                           )}
 
                           {!hasAttachment(n) && isTimeExpired(n) && (
                             <Tooltip label="Plazo de 48hs vencido. Ya no se pueden subir archivos.">
-                              <span
-                                className="license-action-btn mx-1"
-                                style={{ background: "rgba(220,53,69,0.08)", border: "1px solid rgba(220,53,69,0.15)", color: "#dc3545", cursor: "not-allowed" }}
-                              >
+                              <span style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545", cursor: "not-allowed" }}>
                                 <ClockAlert size={14} />
                               </span>
                             </Tooltip>
@@ -1024,13 +1027,17 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
 
                           {n.attachments?.length > 1 && (
                             <Tooltip label="Ver historial de archivos">
-                              <i className="fa-solid fa-clock-rotate-left mx-1 text-info pointer" onClick={() => abrirModalHistorial(n.attachments)} />
+                              <button type="button" onClick={() => abrirModalHistorial(n.attachments)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
+                                <i className="fa-solid fa-clock-rotate-left" style={{ fontSize: "0.85rem" }} />
+                              </button>
                             </Tooltip>
                           )}
 
                           {checkCanUpload(n) && (
                             <Tooltip label="Subir documentación">
-                              <i className="fa-solid fa-file-arrow-up mx-1 pointer text-primary" onClick={() => abrirModalUpload(n)} />
+                              <button type="button" onClick={() => abrirModalUpload(n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
+                                <i className="fa-solid fa-file-arrow-up" style={{ fontSize: "0.85rem" }} />
+                              </button>
                             </Tooltip>
                           )}
                         </>
@@ -1038,7 +1045,9 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
 
                       {n.status?.id === "creado" && (
                         <Tooltip label="Eliminar">
-                          <i className="fa-regular fa-circle-xmark mx-1 pointer text-danger" onClick={() => setNoticeToDelete(n)} />
+                          <button type="button" onClick={() => setNoticeToDelete(n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
+                            <i className="fa-regular fa-circle-xmark" style={{ fontSize: "0.85rem" }} />
+                          </button>
                         </Tooltip>
                       )}
                     </div>
