@@ -14,6 +14,7 @@ import { Message } from "primereact/message";
 import { addLocale } from "primereact/api";
 import imageCompression from "browser-image-compression";
 import { PDFDocument } from "pdf-lib";
+import { ClockAlert } from "lucide-react";
 import {
   getNoticesConfig,
   getMyNotices,
@@ -923,7 +924,12 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
 
                           {!hasAttachment(n) && isTimeExpired(n) && (
                             <Tooltip label="Plazo de 48hs vencido. Ya no se pueden subir archivos.">
-                              <i className="fa-solid fa-clock-rotate-left mx-1 text-danger" style={{ cursor: "not-allowed" }} />
+                              <span
+                                className="license-action-btn mx-1"
+                                style={{ background: "rgba(220,53,69,0.08)", border: "1px solid rgba(220,53,69,0.15)", color: "#dc3545", cursor: "not-allowed" }}
+                              >
+                                <ClockAlert size={14} />
+                              </span>
                             </Tooltip>
                           )}
 
@@ -940,10 +946,6 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                           )}
                         </>
                       )}
-
-                      <Tooltip label="Modificar">
-                        <i className="fa-regular fa-pen-to-square mx-1 pointer text-info" onClick={() => llenarFormulario(n)} />
-                      </Tooltip>
 
                       {n.status?.id === "creado" && (
                         <Tooltip label="Eliminar">
