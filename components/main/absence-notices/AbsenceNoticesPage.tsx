@@ -658,6 +658,12 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                               setNoticeDate(start ?? null);
                               setNoticeTo(end ?? null);
                             }}
+                            onTodayButtonClick={() => {
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              setNoticeDate(today);
+                              setNoticeTo(today);
+                            }}
                             selectionMode="range"
                             readOnlyInput
                             dateFormat="dd/mm/yy"
@@ -702,7 +708,6 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                               />
                               <label className="form-check-label" htmlFor={`recipient_${r.id}`}>
                                 <span className="d-block">{r.lastname_name}</span>
-                                <small className="text-muted">{r.email}</small>
                               </label>
                             </div>
                           </div>
