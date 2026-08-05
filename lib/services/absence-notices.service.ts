@@ -17,6 +17,11 @@ export async function getNoticesConfig(): Promise<any> {
   return res.json();
 }
 
+function normalizeNoticeDate(value: string): string {
+  const m = /^([0-9]{2})-([0-9]{2})-([0-9]{4})$/.exec(value);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : value;
+}
+
 export async function getMyNotices(page = 1, perPage = 10, filters: any = {}): Promise<any> {
   let url = `${API}personal/notices?page=${page}&per_page=${perPage}`;
   if (filters.notice_type_id) url += `&notice_type_id=${filters.notice_type_id}`;
@@ -30,14 +35,36 @@ export async function getMyNotices(page = 1, perPage = 10, filters: any = {}): P
   const resp = await res.json();
   if (resp.data) {
     resp.data = resp.data.map((item: any) => {
-      if (item.notice_date) {
-        const m = /^([0-9]{2})-([0-9]{2})-([0-9]{4})$/.exec(item.notice_date);
-        if (m) item.notice_date = `${m[3]}-${m[2]}-${m[1]}`;
-      }
+      if (item.notice_date) item.notice_date = normalizeNoticeDate(item.notice_date);
+      if (item.notice_to) item.notice_to = normalizeNoticeDate(item.notice_to);
       return item;
     });
   }
   return resp;
+}
+
+export async function getRecipients(): Promise<any> {
+  const res = await fetch(`${API}personal/notices/recipients`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudo cargar el listado de jefes");
+  return res.json();
+}
+
+export async function uploadNoticeFile(noticeId: number | string, file: File): Promise<any> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch(`${API}personal/notices/${noticeId}/upload`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: fd,
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
+  return res.json();
+}
+
+export async function getNoticeFile(id: number | string): Promise<Blob> {
+  const res = await fetch(`${API}personal/notices/files/${id}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudo obtener el archivo");
+  return res.blob();
 }
 
 export async function createNotice(data: any): Promise<any> {
