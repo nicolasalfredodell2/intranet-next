@@ -152,11 +152,16 @@ function colorByIndex(id: string | number, list: any[], palette: string[]): stri
 
 function CategoryBadge({ label, id, palette = CATEGORY_PALETTE, list }: { label?: string | null; id?: string | number | null; palette?: string[]; list?: any[] }) {
   if (!label || !id) return <small>-</small>;
-  const color = label.toLowerCase().includes("llegada tarde")
+  const normalizedLabel = label.toLowerCase();
+  const color = normalizedLabel.includes("llegada tarde")
     ? "#2a78d6"
-    : list
-      ? colorByIndex(id, list, palette)
-      : colorForCategory(String(id), palette);
+    : normalizedLabel.includes("ausencia")
+      ? "#10b981"
+      : normalizedLabel === "otro"
+        ? "#64748b"
+        : list
+          ? colorByIndex(id, list, palette)
+          : colorForCategory(String(id), palette);
   return (
     <span
       className="badge rounded-pill"
