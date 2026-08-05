@@ -579,8 +579,8 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
               <i className="pi pi-plus-circle" style={{ color: "#3b82f6", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nuevo aviso</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá el formulario para generar un aviso</small>
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>{noticeParaModificar ? "Modificando aviso" : "Nuevo aviso"}</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{noticeParaModificar ? "Completá el formulario para modificar el aviso" : "Completá el formulario para generar un aviso"}</small>
             </div>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
