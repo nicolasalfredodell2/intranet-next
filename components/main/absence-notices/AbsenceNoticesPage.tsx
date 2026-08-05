@@ -587,49 +587,47 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
                 <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
                   <div className="row">
-                    <div className="col-12 col-md-6">
-                      <div className="mb-3">
-                        <label className="profile-field-label">Tipo *</label>
-                        <div className={`license-filter-input-wrap${form.type ? " license-filter-input-wrap--active" : ""}`}>
-                          <i className="pi pi-tag license-filter-icon" />
-                          <Dropdown
-                            value={form.type || null}
-                            options={types}
-                            optionLabel="name"
-                            optionValue="id"
-                            onChange={(e) => { setForm((p) => ({ ...p, type: e.value ?? "", reason: "" })); setNoticeDate(null); setNoticeTo(null); }}
-                            placeholder="Seleccioná un tipo"
-                            className="license-filter-dropdown"
-                            panelClassName="license-filter-dropdown-panel"
-                            emptyMessage="Sin tipos"
-                          />
-                        </div>
-                        {touched && !form.type && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                    <div className="col-12 col-md-4 mb-3">
+                      <label className="profile-field-label">Tipo *</label>
+                      <div className={`license-filter-input-wrap${form.type ? " license-filter-input-wrap--active" : ""}`}>
+                        <i className="pi pi-tag license-filter-icon" />
+                        <Dropdown
+                          value={form.type || null}
+                          options={types}
+                          optionLabel="name"
+                          optionValue="id"
+                          onChange={(e) => { setForm((p) => ({ ...p, type: e.value ?? "", reason: "" })); setNoticeDate(null); setNoticeTo(null); }}
+                          placeholder="Seleccioná un tipo"
+                          className="license-filter-dropdown"
+                          panelClassName="license-filter-dropdown-panel"
+                          emptyMessage="Sin tipos"
+                        />
                       </div>
-
-                      {isAusencia && (
-                        <div className="mb-3 fadeIn animated">
-                          <label className="profile-field-label">Razón *</label>
-                          <div className={`license-filter-input-wrap${form.reason ? " license-filter-input-wrap--active" : ""}`}>
-                            <i className="pi pi-info-circle license-filter-icon" />
-                            <Dropdown
-                              value={form.reason || null}
-                              options={reasons}
-                              optionLabel="name"
-                              optionValue="id"
-                              onChange={(e) => setForm((p) => ({ ...p, reason: e.value ?? "" }))}
-                              placeholder="Seleccioná una razón"
-                              className="license-filter-dropdown"
-                              panelClassName="license-filter-dropdown-panel"
-                              emptyMessage="Sin razones"
-                            />
-                          </div>
-                          {touched && !form.reason && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
-                        </div>
-                      )}
+                      {touched && !form.type && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                     </div>
 
-                    <div className="col-12 col-md-6 mb-3">
+                    {isAusencia && (
+                      <div className="col-12 col-md-4 mb-3 fadeIn animated">
+                        <label className="profile-field-label">Razón *</label>
+                        <div className={`license-filter-input-wrap${form.reason ? " license-filter-input-wrap--active" : ""}`}>
+                          <i className="pi pi-info-circle license-filter-icon" />
+                          <Dropdown
+                            value={form.reason || null}
+                            options={reasons}
+                            optionLabel="name"
+                            optionValue="id"
+                            onChange={(e) => setForm((p) => ({ ...p, reason: e.value ?? "" }))}
+                            placeholder="Seleccioná una razón"
+                            className="license-filter-dropdown"
+                            panelClassName="license-filter-dropdown-panel"
+                            emptyMessage="Sin razones"
+                          />
+                        </div>
+                        {touched && !form.reason && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                      </div>
+                    )}
+
+                    <div className="col-12 col-md-4 mb-3">
                       <label className="profile-field-label">{isAusencia ? "Desde / Hasta *" : "Fecha *"}</label>
                       <div className={`license-filter-input-wrap${noticeDate ? " license-filter-input-wrap--active" : ""}`}>
                         <i className="pi pi-calendar license-filter-icon" />
