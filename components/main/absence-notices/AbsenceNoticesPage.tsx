@@ -120,16 +120,24 @@ function getUltimoAdjunto(item: any) {
   return [...item.attachments].sort((a: any, b: any) => b.id - a.id)[0];
 }
 
-function getStatusClass(statusId: string): string {
-  switch (statusId) {
-    case "aprobado": return "bg-success text-white";
-    case "creado": return "bg-secondary text-white";
-    case "documentacion_adjuntada": return "bg-info text-white";
-    case "documentacion_aprobada": return "bg-primary text-white";
-    case "documentacion_rechazada": return "bg-warning text-dark";
-    case "rechazado": return "bg-danger text-white";
-    default: return "bg-light text-dark";
-  }
+const DIACRITICS_RE = new RegExp("[\\u0300-\\u036f]", "g");
+
+// Colores fijos por estado (se matchea por el texto visible, no por id/code).
+const STATUS_BADGE_COLORS: Record<string, string> = {
+  "creado": "#22c55e",                      // green
+  "recibido": "#d946ef",                    // fuchsia
+  "pendiente de documentacion": "#6366f1",  // indigo
+  "documentacion adjuntada": "#0ea5e9",     // sky
+  "documentacion aprobada": "#14b8a6",      // teal
+  "documentacion rechazada": "#ef4444",     // red
+};
+
+function getStatusColor(label: string): string {
+  const key = String(label ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(DIACRITICS_RE, "");
+  return STATUS_BADGE_COLORS[key] ?? "#94a3b8";
 }
 
 // Paleta categórica fija (orden validado para daltonismo) — cada tipo/razón
@@ -973,11 +981,18 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                 />
                 <Column
                   header="ESTADO"
-                  body={(n) => (
-                    <span className={`badge rounded-pill ${getStatusClass(n.status?.id)}`} style={{ padding: "4px 10px" }}>
-                      {statusLabel(n.status)}
-                    </span>
-                  )}
+                  body={(n) => {
+                    const label = statusLabel(n.status);
+                    const color = getStatusColor(label);
+                    return (
+                      <span
+                        className="badge rounded-pill"
+                        style={{ background: `${color}1a`, color, border: "none", fontWeight: 600, padding: "4px 10px" }}
+                      >
+                        {label}
+                      </span>
+                    );
+                  }}
                 />
                 <Column
                   header=""
