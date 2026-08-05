@@ -557,23 +557,33 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
       )}
 
       <div className="fadeIn animated">
-        <div className="row page-titles">
-          <div className="col-md-5 align-self-center">
-            <h3 className="text-themecolor">Avisos</h3>
-          </div>
-          <div className="col-md-7 align-self-center">
-            <ol className="breadcrumb">
-              <li className="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-              <li className="breadcrumb-item">Avisos</li>
-            </ol>
+
+        {/* Header card */}
+        <div className="card profile-card">
+          <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-bell" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Avisos</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Solicitá ausencias o generá avisos y notificá a tus jefes</small>
+            </div>
           </div>
         </div>
 
-        {/* Formulario */}
-        <div className="row">
-          <div className="col-12">
-            <div className="card">
-              <div className="card-body">
+        {/* Nuevo aviso */}
+        <div className="card profile-card mt-4 fadeIn animated">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-plus-circle" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nuevo aviso</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá el formulario para generar un aviso</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
                 <form className="animated fadeIn row" onSubmit={handleSubmit} noValidate>
                   <div className="fadeIn animated form-group col-12 col-lg-6">
                     <label className="col-12"><small>Tipo *</small></label>
@@ -719,15 +729,11 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                     </div>
                   </div>
                 </form>
-              </div>
-            </div>
           </div>
         </div>
 
-        <hr />
-
         {/* Listado */}
-        <div className="card profile-card license-main-card">
+        <div className="card profile-card license-main-card mt-4 fadeIn animated">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
             <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#e8edff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <i className="pi pi-bell" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
