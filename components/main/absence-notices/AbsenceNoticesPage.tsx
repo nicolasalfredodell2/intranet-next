@@ -8,6 +8,7 @@ import { Paginator } from "primereact/paginator";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Dialog } from "primereact/dialog";
+import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { Message } from "primereact/message";
@@ -250,6 +251,7 @@ export default function AbsenceNoticesPage() {
 
   const [isDownloadingFile, setIsDownloadingFile] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
 
   useEffect(() => {
     loadConfig();
@@ -532,48 +534,9 @@ export default function AbsenceNoticesPage() {
       const blob = await getNoticeFile(attachment.id);
       const mimeType = blob.type || "application/octet-stream";
       const finalBlob = new Blob([blob], { type: mimeType });
-      const fileURL = URL.createObjectURL(finalBlob);
+      const url = URL.createObjectURL(finalBlob);
       const isPDF = mimeType === "application/pdf" || attachment.name?.toLowerCase().endsWith(".pdf");
-
-      if (isPDF) {
-        const link = document.createElement("a");
-        link.href = fileURL;
-        link.target = "_blank";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(fileURL), 1000);
-      } else {
-        const filename = attachment.name || "imagen";
-        const newWin = window.open("", "_blank");
-        if (newWin) {
-          newWin.document.write(`<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>${filename}</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #1a1a1a; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
-.bar { position: fixed; top: 0; left: 0; right: 0; height: 52px; background: rgba(0,0,0,0.78); display: flex; align-items: center; padding: 0 16px; gap: 12px; z-index: 10; }
-.dl { color: #fff; background: #0d6efd; border-radius: 4px; padding: 6px 14px; text-decoration: none; font: 14px/1 sans-serif; white-space: nowrap; }
-.dl:hover { background: #0b5ed7; }
-.name { color: #bbb; font: 13px/1 sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; margin-top: 68px; }
-</style>
-</head>
-<body>
-<div class="bar">
-<a class="dl" href="${fileURL}" download="${filename}">&#8595; Descargar</a>
-<span class="name">${filename}</span>
-</div>
-<img src="${fileURL}" alt="${filename}">
-</body>
-</html>`);
-          newWin.document.close();
-        }
-        setTimeout(() => URL.revokeObjectURL(fileURL), 300000);
-      }
+      setPreviewFile({ url, type: isPDF ? "pdf" : "image", name: attachment.name ?? "archivo" });
     } catch {
       toast.current?.show({ severity: "error", summary: "Error", detail: "No se pudo abrir el archivo." });
     } finally {
@@ -582,10 +545,30 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
     }
   }
 
+  function closePreview() {
+    if (previewFile) URL.revokeObjectURL(previewFile.url);
+    setPreviewFile(null);
+  }
+
   const statusLabel = (s: any) => {
     const found = statuses.find((st) => st.id === (s?.id ?? s));
     return found?.name ?? s?.name ?? "";
   };
+
+  const previewNameParts = previewFile?.name.split(".") ?? [];
+  const previewExt = previewNameParts.length > 1 ? previewNameParts.pop() : null;
+  const previewNameNoExt = previewNameParts.join(".");
+
+  const previewSidebarHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
+      <span style={{ fontWeight: 700, fontSize: "0.93rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{previewNameNoExt}</span>
+      {previewExt && (
+        <span style={{ background: "#eff6ff", color: "#3b82f6", borderRadius: "20px", padding: "2px 10px", fontSize: "0.72rem", fontWeight: 700, flexShrink: 0 }}>
+          {previewExt.toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
 
   const deleteDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -1073,6 +1056,25 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
           </div>
         </div>
       </div>
+
+      {/* Visor de archivo adjunto */}
+      <Sidebar
+        visible={!!previewFile}
+        position="right"
+        showCloseIcon
+        onHide={closePreview}
+        baseZIndex={3000}
+        style={{ width: "min(560px, 92vw)" }}
+        header={previewSidebarHeader}
+      >
+        {previewFile?.type === "image" && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewFile.url} alt={previewFile.name} style={{ width: "100%", height: "auto", borderRadius: 8, display: "block" }} />
+        )}
+        {previewFile?.type === "pdf" && (
+          <iframe src={previewFile.url} title={previewFile.name} style={{ width: "100%", height: "calc(100vh - 120px)", border: "none" }} />
+        )}
+      </Sidebar>
 
       {/* Confirmar eliminación */}
       <Dialog
