@@ -145,9 +145,18 @@ function colorForCategory(key: string, palette: string[] = CATEGORY_PALETTE): st
   return palette[hash % palette.length];
 }
 
-function CategoryBadge({ label, id, palette = CATEGORY_PALETTE }: { label?: string | null; id?: string | number | null; palette?: string[] }) {
+function colorByIndex(id: string | number, list: any[], palette: string[]): string {
+  const idx = list.findIndex((item) => item.id === id);
+  return palette[(idx >= 0 ? idx : 0) % palette.length];
+}
+
+function CategoryBadge({ label, id, palette = CATEGORY_PALETTE, list }: { label?: string | null; id?: string | number | null; palette?: string[]; list?: any[] }) {
   if (!label || !id) return <small>-</small>;
-  const color = label.toLowerCase().includes("llegada tarde") ? "#2a78d6" : colorForCategory(String(id), palette);
+  const color = label.toLowerCase().includes("llegada tarde")
+    ? "#2a78d6"
+    : list
+      ? colorByIndex(id, list, palette)
+      : colorForCategory(String(id), palette);
   return (
     <span
       className="badge rounded-pill"
@@ -921,9 +930,9 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                   </div>
                 }
               >
-                <Column header="TIPO" body={(n) => <CategoryBadge label={n.type?.name} id={n.type?.id} />} />
+                <Column header="TIPO" body={(n) => <CategoryBadge label={n.type?.name} id={n.type?.id} list={types} />} />
                 {!isFilterLlegadaTarde && (
-                  <Column header="RAZÓN" body={(n) => <CategoryBadge label={n.reason?.name} id={n.reason?.id} palette={REASON_PALETTE} />} />
+                  <Column header="RAZÓN" body={(n) => <CategoryBadge label={n.reason?.name} id={n.reason?.id} palette={REASON_PALETTE} list={reasons} />} />
                 )}
                 <Column
                   header="DESCRIPCIÓN"
