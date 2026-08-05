@@ -12,7 +12,7 @@ import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { Message } from "primereact/message";
-import { Tag } from "primereact/tag";
+import { Badge } from "primereact/badge";
 import { addLocale } from "primereact/api";
 import imageCompression from "browser-image-compression";
 import { PDFDocument } from "pdf-lib";
@@ -1275,29 +1275,32 @@ export default function AbsenceNoticesPage() {
         <div style={{ maxHeight: "60vh", overflowY: "auto" }} className="fadeIn animated">
           {(historyAttachments ?? []).map((file, i) => (
             <div key={file.id} className="mb-2" style={{ border: "1.5px solid #e2e8f0", borderRadius: "10px", padding: "12px 14px" }}>
-              <div className="mb-2" style={{ minWidth: 0 }}>
-                <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-                  <i className="pi pi-file-pdf" style={{ color: "#dc3545", fontSize: "1rem", flexShrink: 0 }} />
-                  <span style={{ fontSize: "0.86rem", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {file.name}
-                  </span>
-                  {i === 0 && <Tag value="Último subido" severity="success" style={{ fontSize: "0.62rem" }} />}
+              <div className="mb-2">
+                <div className="d-flex align-items-center justify-content-between" style={{ gap: "8px" }}>
+                  <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
+                    <i className="pi pi-file-pdf" style={{ color: "#dc3545", fontSize: "1rem", flexShrink: 0 }} />
+                    <span style={{ fontSize: "0.86rem", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {file.name}
+                    </span>
+                  </div>
+                  <Tooltip label="Ver documento">
+                    <button
+                      type="button"
+                      onClick={() => abrirArchivo(file)}
+                      style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6", fontSize: "0.78rem", fontWeight: 600, gap: "6px", flexShrink: 0 }}
+                    >
+                      <i className="pi pi-eye" style={{ fontSize: "0.78rem" }} />
+                      Ver
+                    </button>
+                  </Tooltip>
                 </div>
-                <small style={{ color: "#94a3b8", fontSize: "0.72rem", display: "block", marginTop: "2px", marginLeft: "24px" }}>
-                  {formatDateTime(file.created_at)}
-                </small>
+                <div className="d-flex align-items-center" style={{ gap: "8px", marginTop: "2px", marginLeft: "24px" }}>
+                  <small style={{ color: "#94a3b8", fontSize: "0.72rem" }}>
+                    Subido el {formatDateTime(file.created_at)}
+                  </small>
+                  {i === 0 && <Badge value="Último subido" severity="info" style={{ fontSize: "0.62rem" }} />}
+                </div>
               </div>
-
-              <Tooltip label="Ver documento">
-                <button
-                  type="button"
-                  onClick={() => abrirArchivo(file)}
-                  style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6", fontSize: "0.78rem", fontWeight: 600, gap: "6px" }}
-                >
-                  <i className="pi pi-eye" style={{ fontSize: "0.78rem" }} />
-                  Ver documento
-                </button>
-              </Tooltip>
 
               {file.rejection_reasons && file.rejection_reasons.length > 0 && (
                 <Message
