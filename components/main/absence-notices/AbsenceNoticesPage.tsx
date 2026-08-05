@@ -12,7 +12,6 @@ import { Sidebar } from "primereact/sidebar";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { Message } from "primereact/message";
-import { Badge } from "primereact/badge";
 import { addLocale } from "primereact/api";
 import imageCompression from "browser-image-compression";
 import { PDFDocument } from "pdf-lib";
@@ -595,6 +594,9 @@ export default function AbsenceNoticesPage() {
       </div>
     </div>
   );
+
+  const donanteSangreReason = reasons.find((r) => r.name?.toLowerCase().includes("donante de sangre"));
+  const ultimoSubidoColor = donanteSangreReason ? colorByIndex(donanteSangreReason.id, reasons, REASON_PALETTE) : REASON_PALETTE[1];
 
   const historyDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
@@ -1298,7 +1300,14 @@ export default function AbsenceNoticesPage() {
                   <small style={{ color: "#94a3b8", fontSize: "0.72rem" }}>
                     Subido el {formatDateTime(file.created_at)}
                   </small>
-                  {i === 0 && <Badge value="Último subido" severity="info" style={{ fontSize: "0.62rem" }} />}
+                  {i === 0 && (
+                    <span
+                      className="badge rounded-pill"
+                      style={{ background: `${ultimoSubidoColor}1a`, color: ultimoSubidoColor, border: "none", fontWeight: 600, padding: "4px 10px", fontSize: "0.62rem" }}
+                    >
+                      Último subido
+                    </span>
+                  )}
                 </div>
               </div>
 
