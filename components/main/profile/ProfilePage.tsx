@@ -35,6 +35,17 @@ function getMaxBirthdate(): Date {
   return d;
 }
 
+function calculateAge(dateStr: string): number | null {
+  if (!dateStr) return null;
+  const birth = new Date(`${dateStr}T00:00:00`);
+  if (isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
+}
+
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   return (
@@ -516,7 +527,14 @@ export default function ProfilePage() {
                     </div>
                     <div className="row">
                       <div className="col-12 col-md-6 mb-3">
-                        <label className={`profile-field-label${touched.datebirth && errors.datebirth ? " text-danger" : ""}`}>Fecha de nacimiento</label>
+                        <label className={`profile-field-label${touched.datebirth && errors.datebirth ? " text-danger" : ""}`}>
+                          Fecha de nacimiento
+                          {calculateAge(form.datebirth) !== null && (
+                            <span style={{ fontSize: "0.65rem", background: "#f1f5f9", color: "#94a3b8", borderRadius: "20px", padding: "1px 7px", display: "inline-flex", alignItems: "center", marginLeft: "6px", verticalAlign: "middle" }}>
+                              {calculateAge(form.datebirth)} años
+                            </span>
+                          )}
+                        </label>
                         <div className="license-filter-input-wrap profile-birthdate-wrap">
                           <i className="pi pi-calendar license-filter-icon" />
                           <Calendar
