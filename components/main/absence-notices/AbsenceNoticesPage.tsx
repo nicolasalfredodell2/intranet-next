@@ -1062,7 +1062,7 @@ export default function AbsenceNoticesPage() {
                           )}
 
                           {!hasAttachment(n) && isTimeExpired(n) && (
-                            <Tooltip label="Plazo de 48hs vencido. Ya no se pueden subir archivos.">
+                            <Tooltip label="Pasaron 48hs, no puede subir archivos.">
                               <span style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545", cursor: "not-allowed" }}>
                                 <ClockAlert size={14} />
                               </span>
