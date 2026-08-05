@@ -108,6 +108,19 @@ function formatDateTime(value: string | null | undefined): string {
   return `${d}/${m}/${y} ${hh}:${mm}`;
 }
 
+function formatRejectionDate(value: string | null | undefined): string {
+  if (!value) return "";
+  const normalized = value.includes("T") || value.includes(" ") ? value.replace(" ", "T") : `${value}T00:00:00`;
+  const date = new Date(normalized);
+  if (isNaN(date.getTime())) return value;
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, "0");
+  const ss = String(date.getSeconds()).padStart(2, "0");
+  return `${d}/${m}/${y} ${hh}:${ss}`;
+}
+
 function countDays(start: Date, end: Date): number {
   return Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
 }
@@ -1318,16 +1331,14 @@ export default function AbsenceNoticesPage() {
                   style={{ justifyContent: "flex-start" }}
                   text={
                     <div>
-                      <small style={{ fontWeight: 700 }}>Motivos de rechazo:</small>
-                      <ul className="mb-0 pl-3 mt-1">
-                        {file.rejection_reasons.map((reason: any, idx: number) => (
-                          <li key={idx}>
-                            <small>
-                              {reason.reason} <span style={{ color: "#94a3b8" }}>({reason.created_at})</span>
-                            </small>
-                          </li>
-                        ))}
-                      </ul>
+                      {file.rejection_reasons.map((reason: any, idx: number) => (
+                        <div key={idx} className={idx > 0 ? "mt-2" : ""}>
+                          <small style={{ fontWeight: 700, display: "block" }}>
+                            Rechazado el {formatRejectionDate(reason.created_at)}
+                          </small>
+                          <small style={{ display: "block" }}>{reason.reason}</small>
+                        </div>
+                      ))}
                     </div>
                   }
                 />
