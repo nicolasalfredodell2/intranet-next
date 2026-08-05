@@ -938,9 +938,24 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                 />
                 <Column
                   header="FECHA"
-                  body={(n) => (
-                    <small>{formatDateDisplay(n.notice_date)}{n.notice_to ? ` - ${formatDateDisplay(n.notice_to)}` : ""}</small>
-                  )}
+                  body={(n) => {
+                    const days = n.type?.code === "ausencia" && n.notice_date && n.notice_to
+                      ? countDays(new Date(`${n.notice_date}T00:00:00`), new Date(`${n.notice_to}T00:00:00`))
+                      : null;
+                    return (
+                      <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+                        <small>{formatDateDisplay(n.notice_date)}{n.notice_to ? ` - ${formatDateDisplay(n.notice_to)}` : ""}</small>
+                        {days !== null && (
+                          <span
+                            className="badge rounded-pill"
+                            style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
+                          >
+                            {days} {days === 1 ? "día total" : "días totales"}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }}
                 />
                 <Column
                   header="ESTADO"
