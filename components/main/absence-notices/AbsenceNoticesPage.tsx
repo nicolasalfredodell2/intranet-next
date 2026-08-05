@@ -292,7 +292,7 @@ export default function AbsenceNoticesPage() {
   }
 
   const isAusencia = types.find((t) => t.id == form.type)?.code === "ausencia";
-  const isFilterAusencia = types.find((t) => t.id == filterForm.notice_type_id)?.code === "ausencia";
+  const isFilterLlegadaTarde = types.find((t) => t.id == filterForm.notice_type_id)?.name?.toLowerCase().includes("llegada tarde");
 
   function isRecipientSelected(id: number): boolean {
     return selectedRecipientIds.includes(id);
@@ -817,7 +817,8 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                     optionValue="id"
                     onChange={(e) => {
                       const selectedType = types.find((t) => t.id === e.value);
-                      updateFilter({ notice_type_id: e.value ?? "", notice_reason_id: selectedType?.code === "ausencia" ? filterForm.notice_reason_id : "" });
+                      const isLlegadaTarde = selectedType?.name?.toLowerCase().includes("llegada tarde");
+                      updateFilter({ notice_type_id: e.value ?? "", notice_reason_id: isLlegadaTarde ? "" : filterForm.notice_reason_id });
                     }}
                     placeholder="Tipo"
                     showClear
@@ -826,7 +827,7 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                   />
                 </div>
 
-                {isFilterAusencia && (
+                {!isFilterLlegadaTarde && (
                   <div className={`license-filter-input-wrap${filterForm.notice_reason_id ? " license-filter-input-wrap--active" : ""}`}>
                     <i className="pi pi-info-circle license-filter-icon" />
                     <Dropdown
