@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
@@ -1093,6 +1094,12 @@ export default function AbsenceNoticesPage() {
                           </button>
                         </Tooltip>
                       )}
+
+                      <Tooltip label="Ver detalle">
+                        <Link href={`/main/absence-notices/${n.id}`} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                          <i className="pi pi-external-link" style={{ fontSize: "0.85rem" }} />
+                        </Link>
+                      </Tooltip>
                     </div>
                   )}
                 />

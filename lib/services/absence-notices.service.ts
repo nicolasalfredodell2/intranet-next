@@ -43,6 +43,15 @@ export async function getMyNotices(page = 1, perPage = 10, filters: any = {}): P
   return resp;
 }
 
+export async function getNotice(id: string | number): Promise<any> {
+  const res = await fetch(`${API}personal/notices/${id}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudo cargar el aviso");
+  const resp = await res.json();
+  if (resp.notice_date) resp.notice_date = normalizeNoticeDate(resp.notice_date);
+  if (resp.notice_to) resp.notice_to = normalizeNoticeDate(resp.notice_to);
+  return resp;
+}
+
 export async function getRecipients(): Promise<any> {
   const res = await fetch(`${API}personal/notices/recipients`, { headers: authHeaders() });
   if (!res.ok) throw new Error("No se pudo cargar el listado de jefes");
