@@ -770,12 +770,16 @@ export default function AbsenceNoticesPage() {
                           />
                         )}
                       </div>
-                      {isAusencia && noticeDate && noticeTo && noticeTo >= noticeDate && (
-                        <small className="fadeIn animated" style={{ marginTop: "4px", display: "block", color: "#cbd5e1", fontSize: "0.72rem" }}>
-                          {countDays(noticeDate, noticeTo)} {countDays(noticeDate, noticeTo) === 1 ? "día total" : "días totales"}
-                          {" "}({countBusinessDays(noticeDate, noticeTo)} {countBusinessDays(noticeDate, noticeTo) === 1 ? "día hábil" : "días hábiles"})
-                        </small>
-                      )}
+                      {isAusencia && noticeDate && noticeTo && noticeTo >= noticeDate && (() => {
+                        const totalDays = countDays(noticeDate, noticeTo);
+                        const businessDays = countBusinessDays(noticeDate, noticeTo);
+                        return (
+                          <small className="fadeIn animated" style={{ marginTop: "4px", display: "block", color: "#cbd5e1", fontSize: "0.72rem" }}>
+                            {totalDays} {totalDays === 1 ? "día total" : "días totales"}
+                            {businessDays !== totalDays && ` (${businessDays} ${businessDays === 1 ? "día hábil" : "días hábiles"})`}
+                          </small>
+                        );
+                      })()}
                       {!isAusencia && touched && !noticeDate && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                       {isAusencia && touched && (!noticeDate || !noticeTo) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Las fechas "Desde" y "Hasta" son obligatorias</small>}
                       {isAusencia && touched && noticeDate && noticeTo && noticeTo < noticeDate && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* La fecha "Hasta" no puede ser anterior a la fecha "Desde"</small>}
@@ -1013,7 +1017,8 @@ export default function AbsenceNoticesPage() {
                             className="badge rounded-pill"
                             style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
                           >
-                            {days} {days === 1 ? "día total" : "días totales"} ({businessDays} {businessDays === 1 ? "día hábil" : "días hábiles"})
+                            {days} {days === 1 ? "día total" : "días totales"}
+                            {businessDays !== days && ` (${businessDays} ${businessDays === 1 ? "día hábil" : "días hábiles"})`}
                           </span>
                         )}
                       </div>
