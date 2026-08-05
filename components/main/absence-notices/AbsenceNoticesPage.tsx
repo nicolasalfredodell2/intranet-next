@@ -92,6 +92,10 @@ function formatDateDisplay(iso: string | null | undefined): string {
   return `${d}/${m}/${y}`;
 }
 
+function countDays(start: Date, end: Date): number {
+  return Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+}
+
 function hasAttachment(item: any): boolean {
   return Array.isArray(item.attachments) && item.attachments.length > 0;
 }
@@ -706,6 +710,11 @@ img { max-width: 100%; max-height: calc(100vh - 72px); object-fit: contain; marg
                           />
                         )}
                       </div>
+                      {isAusencia && noticeDate && noticeTo && noticeTo >= noticeDate && (
+                        <small className="fadeIn animated" style={{ marginTop: "4px", display: "block", color: "#cbd5e1", fontSize: "0.72rem" }}>
+                          {countDays(noticeDate, noticeTo)} {countDays(noticeDate, noticeTo) === 1 ? "día total" : "días totales"}
+                        </small>
+                      )}
                       {!isAusencia && touched && !noticeDate && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                       {isAusencia && touched && (!noticeDate || !noticeTo) && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Las fechas "Desde" y "Hasta" son obligatorias</small>}
                       {isAusencia && touched && noticeDate && noticeTo && noticeTo < noticeDate && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* La fecha "Hasta" no puede ser anterior a la fecha "Desde"</small>}
