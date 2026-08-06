@@ -431,34 +431,30 @@ export default function AbsenceNoticeDetailPage() {
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
           <div className="card-body">
             <div className="row">
-              <div className="col-12 col-md-6">
-                <div className="mb-3">
-                  <label className="profile-field-label">Tipo</label>
-                  <div><CategoryBadge label={notice.type?.name} id={notice.type?.id} list={types} /></div>
-                </div>
-                {notice.reason?.name && (
-                  <div className="mb-3">
-                    <label className="profile-field-label">Motivo</label>
-                    <div><CategoryBadge label={notice.reason?.name} id={notice.reason?.id} palette={REASON_PALETTE} list={reasons} /></div>
-                  </div>
-                )}
+              <div className="col-12 col-md-2 mb-3">
+                <label className="profile-field-label">Tipo</label>
+                <div><CategoryBadge label={notice.type?.name} id={notice.type?.id} list={types} /></div>
               </div>
-              <div className="col-12 col-md-6">
-                <div className="mb-3">
-                  <label className="profile-field-label">Creado</label>
-                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(notice.created_at, true)}</p>
+              {notice.reason?.name && (
+                <div className="col-12 col-md-2 mb-3">
+                  <label className="profile-field-label">Motivo</label>
+                  <div><CategoryBadge label={notice.reason?.name} id={notice.reason?.id} palette={REASON_PALETTE} list={reasons} /></div>
                 </div>
-                {notice.notice_to && (
-                  <div className="mb-3">
-                    <label className="profile-field-label">Hasta</label>
-                    <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateDisplay(notice.notice_to)}</p>
-                  </div>
-                )}
-                <div className="mb-1">
-                  <label className="profile-field-label">Descripción</label>
-                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{notice.description || "Sin descripción"}</p>
-                </div>
+              )}
+              <div className="col-12 col-md-2 mb-3">
+                <label className="profile-field-label">Creado</label>
+                <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(notice.created_at, true)}</p>
               </div>
+              <div className="col-12 col-md-6 mb-3">
+                <label className="profile-field-label">Descripción</label>
+                <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{notice.description || "Sin descripción"}</p>
+              </div>
+              {notice.notice_to && (
+                <div className="col-12 col-md-4">
+                  <label className="profile-field-label">Hasta</label>
+                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateDisplay(notice.notice_to)}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
