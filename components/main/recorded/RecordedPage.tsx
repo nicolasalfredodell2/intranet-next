@@ -152,7 +152,7 @@ export default function RecordedPage() {
 
   // Alta de fichada
   const [createDatetime, setCreateDatetime] = useState("");
-  const [createType, setCreateType] = useState("1");
+  const [createType, setCreateType] = useState("");
   const [createTouched, setCreateTouched] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -225,18 +225,18 @@ export default function RecordedPage() {
 
   // ── Alta de fichada ──────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!fileOfUserSelected) { setCreateDatetime(""); setCreateType("1"); setCreateTouched(false); }
+    if (!fileOfUserSelected) { setCreateDatetime(""); setCreateType(""); setCreateTouched(false); }
   }, [fileOfUserSelected]);
 
   async function submitCreateRecord(e: React.FormEvent) {
     e.preventDefault();
     setCreateTouched(true);
-    if (!fileOfUserSelected || !createDatetime) return;
+    if (!fileOfUserSelected || !createDatetime || !createType) return;
     setCreateLoading(true);
     try {
       await createRecord({ datetime: formatDatetimePayload(createDatetime), file: fileOfUserSelected, type_exit_order_id: createType });
       showToast("success", "Fichada creada");
-      setCreateDatetime(""); setCreateType("1"); setCreateTouched(false);
+      setCreateDatetime(""); setCreateType(""); setCreateTouched(false);
       loadRecordeds();
     } catch (err: any) {
       showToast("info", "No se pudo crear la fichada", err.message);
@@ -261,7 +261,6 @@ export default function RecordedPage() {
       const resp = await getAllBossesForLegajo(file);
       const list: any[] = resp?.bosses ? Object.values(resp.bosses) : (Array.isArray(resp) ? resp : []);
       setExitBosses(list);
-      setExitCuilBoss(list.length ? list[0].cuil : "");
     } catch {
       showToast("error", "No se pudieron cargar los jefes");
       setExitBosses([]);
@@ -288,8 +287,7 @@ export default function RecordedPage() {
         cuilBoss: exitCuilBoss,
       });
       showToast("success", "Solicitud de salida generada");
-      setExitType(""); setExitDeparture(""); setExitArrival("");
-      setExitCuilBoss(exitBosses.length ? exitBosses[0].cuil : "");
+      setExitType(""); setExitDeparture(""); setExitArrival(""); setExitCuilBoss("");
       loadRecordeds();
     } catch (err: any) {
       showToast("error", "No se pudo crear la orden", err.message);
@@ -575,15 +573,17 @@ export default function RecordedPage() {
                 <div className={`license-filter-input-wrap${createType ? " license-filter-input-wrap--active" : ""}`}>
                   <i className="pi pi-tag license-filter-icon" />
                   <Dropdown
-                    value={createType}
+                    value={createType || null}
                     options={CREATE_RECORD_TYPE_OPTIONS}
                     optionLabel="label"
                     optionValue="value"
-                    onChange={(e) => setCreateType(e.value)}
+                    onChange={(e) => setCreateType(e.value ?? "")}
+                    placeholder="Seleccioná un tipo"
                     className="license-filter-dropdown"
                     panelClassName="license-filter-dropdown-panel"
                   />
                 </div>
+                {createTouched && !createType && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
               </div>
 
               <div className="col-12 col-lg-4 mb-3 d-flex align-items-end">
