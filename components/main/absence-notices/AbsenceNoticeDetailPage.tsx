@@ -695,11 +695,7 @@ export default function AbsenceNoticeDetailPage() {
             {isDeleting && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
         }
-      >
-        <p style={{ fontSize: "0.88rem", color: "#374151", margin: 0 }}>
-          Esta acción cancelará/eliminará su pedido mientras no esté aprobado ni rechazado.
-        </p>
-      </Dialog>
+      />
     </>
   );
 }
