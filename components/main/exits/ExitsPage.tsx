@@ -1267,7 +1267,7 @@ export default function ExitsPage() {
                 className="btn btn-light text-muted ml-auto"
                 style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
               >
-                Cerrar
+                Volver
               </button>
             </div>
             {loadingActionCreate && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
