@@ -28,6 +28,18 @@ addLocale("es", {
   clear: "Limpiar",
 });
 
+addLocale("es-recorded-create", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  now: "Ahora",
+  clear: "Quitar fechas",
+});
+
 const ICON_BTN_STYLE = { background: "none", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center" } as const;
 
 const CREATE_RECORD_TYPE_OPTIONS = [
@@ -567,8 +579,10 @@ export default function RecordedPage() {
                       showTime
                       hourFormat="24"
                       dateFormat="dd/mm/yy"
-                      locale="es"
+                      locale="es-recorded-create"
                       showButtonBar
+                      showOtherMonths={false}
+                      maxDate={new Date()}
                       placeholder="Seleccioná fecha y hora"
                       className="license-filter-dropdown"
                       panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
@@ -665,8 +679,10 @@ export default function RecordedPage() {
                       showTime
                       hourFormat="24"
                       dateFormat="dd/mm/yy"
-                      locale="es"
+                      locale="es-recorded-create"
                       showButtonBar
+                      showOtherMonths={false}
+                      maxDate={new Date()}
                       placeholder="Seleccioná fecha y hora"
                       className="license-filter-dropdown"
                       panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
@@ -685,8 +701,10 @@ export default function RecordedPage() {
                       showTime
                       hourFormat="24"
                       dateFormat="dd/mm/yy"
-                      locale="es"
+                      locale="es-recorded-create"
                       showButtonBar
+                      showOtherMonths={false}
+                      maxDate={new Date()}
                       placeholder="Seleccioná fecha y hora"
                       className="license-filter-dropdown"
                       panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
