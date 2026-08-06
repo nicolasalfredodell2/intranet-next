@@ -142,6 +142,19 @@ function formatDatetimePayload(value: string): string {
   return `${value.replace("T", " ")}${value.length === 16 ? ":00" : ""}`;
 }
 
+function timeDiffLabel(start: string | undefined | null, end: string | undefined | null): string | null {
+  if (!start || !end || start === "-" || end === "-") return null;
+  const [sh, sm, ss] = start.split(":").map(Number);
+  const [eh, em, es] = end.split(":").map(Number);
+  if ([sh, sm, eh, em].some((n) => Number.isNaN(n))) return null;
+  let diffSeconds = (eh * 3600 + em * 60 + (es || 0)) - (sh * 3600 + sm * 60 + (ss || 0));
+  if (diffSeconds < 0) diffSeconds += 24 * 60 * 60;
+  const hours = Math.floor(diffSeconds / 3600);
+  const minutes = Math.floor((diffSeconds % 3600) / 60);
+  const seconds = diffSeconds % 60;
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
+
 function hostLabel(host: string | undefined | null): string {
   if (host === "RF_IN") return "Reloj Interno";
   if (host === "RF_OUT") return "Reloj Externo";
@@ -881,7 +894,26 @@ export default function RecordedPage() {
                 }
               >
                 <Column header="DÍA" body={(r) => <small>{formatDateDMY(r.date)}</small>} />
-                <Column header="HORARIOS" body={(r) => <small>{[r.hora_salida, r.hora_llegada].filter((h) => h && h !== "-").join(" - ")}</small>} />
+                <Column
+                  header="HORARIOS"
+                  body={(r) => {
+                    const times = [r.hora_salida, r.hora_llegada].filter((h) => h && h !== "-");
+                    const diff = timeDiffLabel(r.hora_salida, r.hora_llegada);
+                    return (
+                      <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+                        <small>{times.join(" - ")}</small>
+                        {diff && (
+                          <span
+                            className="badge rounded-pill"
+                            style={{ background: STATUS_COLORS.muted.bg, color: STATUS_COLORS.muted.color, border: "none", fontWeight: 600, padding: "4px 10px" }}
+                          >
+                            {diff}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
                 <Column
                   header="ESTADO"
                   body={(r) => {
