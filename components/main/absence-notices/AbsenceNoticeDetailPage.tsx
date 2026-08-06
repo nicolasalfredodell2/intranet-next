@@ -7,6 +7,7 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { Sidebar } from "primereact/sidebar";
+import { Button } from "primereact/button";
 import { ProgressBar } from "primereact/progressbar";
 import { Message } from "primereact/message";
 import {
@@ -407,10 +408,7 @@ export default function AbsenceNoticeDetailPage() {
               {notice.status?.name}
             </span>
             {canUserCancelNotice() && (
-              <button type="button" onClick={openDeleteDialog} className="btn btn-danger d-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
-                <i className="pi pi-times-circle" style={{ fontSize: "0.78rem" }} />
-                Cancelar aviso
-              </button>
+              <Button label="Cancelar aviso" severity="danger" size="small" onClick={openDeleteDialog} style={{ borderRadius: "8px", fontWeight: 600, fontSize: "0.72rem", padding: "4px 10px" }} />
             )}
           </div>
 
