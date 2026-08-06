@@ -402,7 +402,6 @@ export default function AbsenceNoticeDetailPage() {
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Detalle del aviso</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{notice.type?.name}</small>
             </div>
             <span className="badge rounded-pill" style={{ background: `${statusColor}1a`, color: statusColor, border: "none", fontWeight: 600, padding: "5px 12px" }}>
               {notice.status?.name}
@@ -428,18 +427,7 @@ export default function AbsenceNoticeDetailPage() {
               </div>
             </>
           )}
-        </div>
 
-        {/* Detalles del aviso */}
-        <div className="card profile-card mt-4">
-          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-info-circle" style={{ color: "#3b82f6", fontSize: "1rem" }} />
-            </div>
-            <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Detalles del aviso</h5>
-            </div>
-          </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
           <div className="card-body">
             <div className="row">
