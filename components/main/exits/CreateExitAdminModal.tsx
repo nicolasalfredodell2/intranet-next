@@ -11,7 +11,7 @@ import { ProgressBar } from "primereact/progressbar";
 import { getAllBossesForLegajo } from "@/lib/services/boss.service";
 import { createExitOrderAdmin } from "@/lib/services/exits.service";
 
-addLocale("es", {
+addLocale("es-exit-create", {
   firstDayOfWeek: 1,
   dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
   dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
@@ -20,7 +20,7 @@ addLocale("es", {
   monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
   today: "Hoy",
   now: "Ahora",
-  clear: "Limpiar",
+  clear: "Quitar fechas",
 });
 
 function toDateTimeInputValue(date: Date): string {
@@ -215,8 +215,10 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
                 showTime
                 hourFormat="24"
                 dateFormat="dd/mm/yy"
-                locale="es"
+                locale="es-exit-create"
                 showButtonBar
+                showOtherMonths={false}
+                disabledDays={[0, 6]}
                 placeholder="Seleccioná fecha y hora"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
@@ -237,8 +239,10 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
                 showTime
                 hourFormat="24"
                 dateFormat="dd/mm/yy"
-                locale="es"
+                locale="es-exit-create"
                 showButtonBar
+                showOtherMonths={false}
+                disabledDays={[0, 6]}
                 placeholder="Seleccioná fecha y hora"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
