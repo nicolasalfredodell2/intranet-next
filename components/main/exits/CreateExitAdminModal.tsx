@@ -222,7 +222,7 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
                 maxDate={new Date()}
                 placeholder="Seleccioná fecha y hora"
                 className="license-filter-dropdown"
-                panelClassName="license-filter-dropdown-panel license-filter-calendar-panel exit-create-calendar-panel"
+                panelClassName="license-filter-dropdown-panel license-filter-calendar-panel compact-time-panel"
               />
             </div>
             {touched && !form.departure_hour && <small className="text-danger fadeIn animated">* Campo obligatorio</small>}
@@ -247,7 +247,7 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
                 maxDate={new Date()}
                 placeholder="Seleccioná fecha y hora"
                 className="license-filter-dropdown"
-                panelClassName="license-filter-dropdown-panel license-filter-calendar-panel exit-create-calendar-panel"
+                panelClassName="license-filter-dropdown-panel license-filter-calendar-panel compact-time-panel"
               />
             </div>
           </div>

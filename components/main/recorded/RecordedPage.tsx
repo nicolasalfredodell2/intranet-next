@@ -585,7 +585,7 @@ export default function RecordedPage() {
                       maxDate={new Date()}
                       placeholder="Seleccioná fecha y hora"
                       className="license-filter-dropdown"
-                      panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                      panelClassName="license-filter-dropdown-panel license-filter-calendar-panel compact-time-panel recorded-datetime-panel"
                     />
                   </div>
                   {createTouched && !createDatetime && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}

@@ -1351,24 +1351,30 @@ input[disabled] {
   padding: 0.3rem 0.6rem !important;
 }
 
-/* Time picker compacto — dialog de crear orden de salida (RRHH) */
-.exit-create-calendar-panel .p-timepicker {
+/* Time picker compacto — calendarios con hora en dialogs/formularios de alta */
+.compact-time-panel .p-timepicker {
   padding: 0.35rem 0 !important;
   gap: 0.5rem !important;
 }
 
-.exit-create-calendar-panel .p-timepicker button {
+.compact-time-panel .p-timepicker button {
   width: 1.6rem !important;
   height: 1.6rem !important;
 }
 
-.exit-create-calendar-panel .p-timepicker button svg {
+.compact-time-panel .p-timepicker button svg {
   width: 0.7rem !important;
   height: 0.7rem !important;
 }
 
-.exit-create-calendar-panel .p-timepicker span {
+.compact-time-panel .p-timepicker span {
   font-size: 0.8rem !important;
+}
+
+/* Panel angosto — calendario "Fecha y hora" de creación de fichadas */
+.recorded-datetime-panel.p-datepicker {
+  width: 260px !important;
+  min-width: 260px !important;
 }
 
 /* Panel del dropdown */
