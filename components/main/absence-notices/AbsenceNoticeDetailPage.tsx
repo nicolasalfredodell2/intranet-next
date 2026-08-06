@@ -449,6 +449,12 @@ export default function AbsenceNoticeDetailPage() {
                   </p>
                 </div>
               )}
+              {notice.type?.name?.toLowerCase().includes("llegada tarde") && (
+                <div className="col-12 col-md-3 mb-3">
+                  <label className="profile-field-label">Para el</label>
+                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateDisplay(notice.notice_date)}</p>
+                </div>
+              )}
               <div className="col-12">
                 <label className="profile-field-label">Descripción</label>
                 <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{notice.description || "Sin descripción"}</p>
