@@ -406,24 +406,22 @@ export default function AbsenceNoticeDetailPage() {
             <span className="badge rounded-pill" style={{ background: `${statusColor}1a`, color: statusColor, border: "none", fontWeight: 600, padding: "5px 12px" }}>
               {notice.status?.name}
             </span>
+            {canUserCancelNotice() && (
+              <button type="button" onClick={openDeleteDialog} className="btn btn-danger d-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
+                <i className="pi pi-times-circle" style={{ fontSize: "0.78rem" }} />
+                Cancelar aviso
+              </button>
+            )}
           </div>
 
-          {(canUserCancelNotice() || checkCanUpload()) && (
+          {checkCanUpload() && (
             <>
               <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
               <div className="d-flex flex-wrap align-items-center px-3 py-3" style={{ gap: "8px" }}>
-                {canUserCancelNotice() && (
-                  <button type="button" onClick={openDeleteDialog} className="btn btn-danger d-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
-                    <i className="pi pi-times-circle" style={{ fontSize: "0.78rem" }} />
-                    Cancelar aviso
-                  </button>
-                )}
-                {checkCanUpload() && (
-                  <button type="button" onClick={openUploadDialog} className="btn btn-primary d-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
-                    <i className="fa-solid fa-file-arrow-up" style={{ fontSize: "0.78rem" }} />
-                    Subir documentación
-                  </button>
-                )}
+                <button type="button" onClick={openUploadDialog} className="btn btn-primary d-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
+                  <i className="fa-solid fa-file-arrow-up" style={{ fontSize: "0.78rem" }} />
+                  Subir documentación
+                </button>
               </div>
             </>
           )}
@@ -431,30 +429,32 @@ export default function AbsenceNoticeDetailPage() {
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
           <div className="card-body">
             <div className="row">
-              <div className="col-12 col-md-2 mb-3">
+              <div className="col-12 col-md-3 mb-3">
                 <label className="profile-field-label">Tipo</label>
                 <div><CategoryBadge label={notice.type?.name} id={notice.type?.id} list={types} /></div>
               </div>
               {notice.reason?.name && (
-                <div className="col-12 col-md-2 mb-3">
+                <div className="col-12 col-md-3 mb-3">
                   <label className="profile-field-label">Motivo</label>
                   <div><CategoryBadge label={notice.reason?.name} id={notice.reason?.id} palette={REASON_PALETTE} list={reasons} /></div>
                 </div>
               )}
-              <div className="col-12 col-md-2 mb-3">
-                <label className="profile-field-label">Creado</label>
+              <div className="col-12 col-md-3 mb-3">
+                <label className="profile-field-label">Creado el</label>
                 <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(notice.created_at, true)}</p>
               </div>
-              <div className="col-12 col-md-6 mb-3">
+              {notice.notice_to && (
+                <div className="col-12 col-md-3 mb-3">
+                  <label className="profile-field-label">Desde - Hasta</label>
+                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>
+                    {formatDateDisplay(notice.notice_date)} - {formatDateDisplay(notice.notice_to)}
+                  </p>
+                </div>
+              )}
+              <div className="col-12">
                 <label className="profile-field-label">Descripción</label>
                 <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{notice.description || "Sin descripción"}</p>
               </div>
-              {notice.notice_to && (
-                <div className="col-12 col-md-4">
-                  <label className="profile-field-label">Hasta</label>
-                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateDisplay(notice.notice_to)}</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
