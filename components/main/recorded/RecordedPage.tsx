@@ -346,6 +346,10 @@ export default function RecordedPage() {
     applyFilters({ page: 1, [typeFilter]: value });
   }
 
+  function clearListFilters() {
+    applyFilters({ page: 1, date: "", status: "", type: "" });
+  }
+
   // ── Modificar / eliminar fichada ──────────────────────────────────────────────
   useEffect(() => {
     if (recordToUpdate) {
@@ -833,6 +837,12 @@ export default function RecordedPage() {
                   />
                 </div>
               </div>
+
+              {(filters.date || filters.status || filters.type) && (
+                <button type="button" className="license-filter-clear" onClick={clearListFilters}>
+                  <i className="pi pi-filter-slash" /> Limpiar filtros
+                </button>
+              )}
             </div>
 
             {isLoadingRecordeds && <ProgressBar mode="indeterminate" style={{ height: "6px" }} className="mt-3" />}
