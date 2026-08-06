@@ -998,6 +998,7 @@ export default function RecordedPage() {
                 dateFormat="dd/mm/yy"
                 locale="es"
                 showButtonBar
+                showOnFocus={false}
                 placeholder="Seleccioná fecha y hora"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
