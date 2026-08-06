@@ -428,6 +428,10 @@ export default function AbsenceNoticeDetailPage() {
           <div className="card-body">
             <div className="row">
               <div className="col-12 col-md-3 mb-3">
+                <label className="profile-field-label">Creado el</label>
+                <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(notice.created_at, true)}</p>
+              </div>
+              <div className="col-12 col-md-3 mb-3">
                 <label className="profile-field-label">Tipo</label>
                 <div><CategoryBadge label={notice.type?.name} id={notice.type?.id} list={types} /></div>
               </div>
@@ -437,10 +441,6 @@ export default function AbsenceNoticeDetailPage() {
                   <div><CategoryBadge label={notice.reason?.name} id={notice.reason?.id} palette={REASON_PALETTE} list={reasons} /></div>
                 </div>
               )}
-              <div className="col-12 col-md-3 mb-3">
-                <label className="profile-field-label">Creado el</label>
-                <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(notice.created_at, true)}</p>
-              </div>
               {notice.notice_to && (
                 <div className="col-12 col-md-3 mb-3">
                   <label className="profile-field-label">Desde - Hasta</label>
@@ -543,8 +543,8 @@ export default function AbsenceNoticeDetailPage() {
         )}
 
         {/* Volver */}
-        <div className="d-flex justify-content-center mt-4 mb-2">
-          <Link href="/main/absence-notices" className="btn btn-primary d-inline-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
+        <div className="d-flex justify-content-end align-items-center mt-4 mb-2">
+          <Link href="/main/absence-notices" className="btn d-inline-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem", background: "#4a3aa7", borderColor: "#4a3aa7", color: "#fff" }}>
             <i className="pi pi-arrow-left" style={{ fontSize: "0.78rem" }} />
             Ir al listado
           </Link>
