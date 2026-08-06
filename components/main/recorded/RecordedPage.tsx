@@ -881,8 +881,7 @@ export default function RecordedPage() {
                 }
               >
                 <Column header="DÍA" body={(r) => <small>{formatDateDMY(r.date)}</small>} />
-                <Column header="SALIDA" body={(r) => <small>{r.table_name === "timestamp" ? r.hora_salida : (r.hora_salida ? r.hora_salida : "-")}</small>} />
-                <Column header="LLEGADA" body={(r) => <small>{r.table_name === "timestamp" ? (r.hora_llegada ? r.hora_llegada : "-") : r.hora_llegada}</small>} />
+                <Column header="HORARIOS" body={(r) => <small>{[r.hora_salida, r.hora_llegada].filter((h) => h && h !== "-").join(" - ")}</small>} />
                 <Column
                   header="ESTADO"
                   body={(r) => {
