@@ -897,28 +897,28 @@ export default function RecordedPage() {
                       {r.canUpdateRecord && (
                         <Tooltip label="Modificar">
                           <button type="button" onClick={() => setRecordToUpdate(r)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
-                            <i className="fa-regular fa-pen-to-square" style={{ fontSize: "0.85rem" }} />
+                            <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
                           </button>
                         </Tooltip>
                       )}
                       {r.canDeleteRecord && (
                         <Tooltip label="Eliminar">
                           <button type="button" onClick={() => setRecordToDelete(r)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
-                            <i className="fa-regular fa-circle-xmark" style={{ fontSize: "0.85rem" }} />
+                            <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
                           </button>
                         </Tooltip>
                       )}
                       {r.canUpdateExitOrder && (
                         <Tooltip label="Modificar">
                           <button type="button" onClick={() => setExitOrderToUpdate(r)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
-                            <i className="fa-regular fa-pen-to-square" style={{ fontSize: "0.85rem" }} />
+                            <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
                           </button>
                         </Tooltip>
                       )}
                       {r.canDeleteExitOrder && (
                         <Tooltip label="Eliminar">
                           <button type="button" onClick={() => setExitOrderToDelete(r)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
-                            <i className="fa-regular fa-circle-xmark" style={{ fontSize: "0.85rem" }} />
+                            <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
                           </button>
                         </Tooltip>
                       )}
