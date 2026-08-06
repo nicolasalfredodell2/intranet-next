@@ -219,6 +219,7 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
                 showButtonBar
                 showOtherMonths={false}
                 disabledDays={[0, 6]}
+                maxDate={new Date()}
                 placeholder="Seleccioná fecha y hora"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
@@ -243,6 +244,7 @@ export default function CreateExitAdminModal({ isOpen, onHide, onCreated }: Prop
                 showButtonBar
                 showOtherMonths={false}
                 disabledDays={[0, 6]}
+                maxDate={new Date()}
                 placeholder="Seleccioná fecha y hora"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
