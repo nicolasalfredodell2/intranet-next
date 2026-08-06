@@ -273,6 +273,10 @@ export default function RecordedPage() {
     }
   }
 
+  function limpiarCreateExitOrder() {
+    setExitType(""); setExitDeparture(""); setExitArrival(""); setExitCuilBoss(""); setExitTouched(false);
+  }
+
   async function submitCreateExitOrder(e: React.FormEvent) {
     e.preventDefault();
     if (exitArrival && new Date(exitDeparture).getTime() > new Date(exitArrival).getTime()) {
@@ -291,7 +295,7 @@ export default function RecordedPage() {
         cuilBoss: exitCuilBoss,
       });
       showToast("success", "Solicitud de salida generada");
-      setExitType(""); setExitDeparture(""); setExitArrival(""); setExitCuilBoss("");
+      limpiarCreateExitOrder();
       loadRecordeds();
     } catch (err: any) {
       showToast("error", "No se pudo crear la orden", err.message);
@@ -633,7 +637,7 @@ export default function RecordedPage() {
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             <form className="animated fadeIn" onSubmit={submitCreateExitOrder} noValidate>
               <div className="row">
-                <div className="col-12 mb-3">
+                <div className="col-12 col-md-6 col-lg-3 mb-3">
                   <label className="profile-field-label">Tipo de salida *</label>
                   <div className={`license-filter-input-wrap${exitType ? " license-filter-input-wrap--active" : ""}`}>
                     <i className="pi pi-tag license-filter-icon" />
@@ -716,17 +720,27 @@ export default function RecordedPage() {
                   </div>
                 )}
 
-                <div className="col-12 col-md-6 col-lg-3 mb-3 d-flex align-items-end">
-                  <button
-                    type="submit"
-                    disabled={exitLoading}
-                    className="btn btn-primary d-flex align-items-center justify-content-center w-100"
-                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
-                  >
-                    <i className={exitLoading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                    {exitLoading ? "Generando salida..." : "Generar salida"}
-                  </button>
-                </div>
+              </div>
+
+              <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
+                <button
+                  type="submit"
+                  disabled={exitLoading}
+                  className="btn btn-primary d-flex align-items-center"
+                  style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+                >
+                  <i className={exitLoading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                  {exitLoading ? "Creando..." : "Crear"}
+                </button>
+                <button
+                  type="button"
+                  disabled={exitLoading}
+                  onClick={limpiarCreateExitOrder}
+                  className="btn btn-light text-muted ml-auto"
+                  style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+                >
+                  Limpiar
+                </button>
               </div>
             </form>
           </div>
