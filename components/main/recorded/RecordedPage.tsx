@@ -675,7 +675,11 @@ export default function RecordedPage() {
                     <i className="pi pi-calendar license-filter-icon" />
                     <Calendar
                       value={exitDeparture ? new Date(exitDeparture) : null}
-                      onChange={(e) => setExitDeparture(e.value ? toDateTimeInputValue(e.value as Date) : "")}
+                      onChange={(e) => {
+                        const value = e.value ? toDateTimeInputValue(e.value as Date) : "";
+                        setExitDeparture(value);
+                        if (!value || (exitArrival && exitArrival < value)) setExitArrival("");
+                      }}
                       showTime
                       hourFormat="24"
                       dateFormat="dd/mm/yy"
@@ -704,6 +708,8 @@ export default function RecordedPage() {
                       locale="es-recorded-create"
                       showButtonBar
                       showOtherMonths={false}
+                      disabled={!exitDeparture}
+                      minDate={exitDeparture ? new Date(exitDeparture) : undefined}
                       maxDate={new Date()}
                       placeholder="Seleccioná fecha y hora"
                       className="license-filter-dropdown"
