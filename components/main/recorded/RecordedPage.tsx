@@ -522,6 +522,7 @@ export default function RecordedPage() {
                 onChange={handleUserChange}
                 onFilter={handleAgentFilter}
                 filter
+                filterInputAutoFocus
                 filterPlaceholder="Busque por apellido o legajo"
                 showClear
                 placeholder="Seleccioná un agente"
