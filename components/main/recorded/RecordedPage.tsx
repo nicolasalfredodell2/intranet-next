@@ -114,6 +114,12 @@ function toDateTimeInputValue(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function endOfDay(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
 function toDateInputValue(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
@@ -718,6 +724,7 @@ export default function RecordedPage() {
                     <Calendar
                       value={exitArrival ? new Date(exitArrival) : null}
                       onChange={(e) => setExitArrival(e.value ? toDateTimeInputValue(e.value as Date) : "")}
+                      onFocus={() => { if (exitDeparture && !exitArrival) setExitArrival(exitDeparture); }}
                       showTime
                       hourFormat="24"
                       dateFormat="dd/mm/yy"
@@ -726,7 +733,7 @@ export default function RecordedPage() {
                       showOtherMonths={false}
                       disabled={!exitDeparture}
                       minDate={exitDeparture ? new Date(exitDeparture) : undefined}
-                      maxDate={new Date()}
+                      maxDate={exitDeparture ? endOfDay(new Date(exitDeparture)) : new Date()}
                       placeholder="Seleccioná fecha y hora"
                       className="license-filter-dropdown"
                       panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
