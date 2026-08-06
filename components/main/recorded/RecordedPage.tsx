@@ -40,6 +40,18 @@ addLocale("es-recorded-create", {
   clear: "Quitar fechas",
 });
 
+addLocale("es-recorded-filter-date", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  now: "Ahora",
+  clear: "Quitar fecha",
+});
+
 const ICON_BTN_STYLE = { background: "none", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center" } as const;
 
 const CREATE_RECORD_TYPE_OPTIONS = [
@@ -798,8 +810,11 @@ export default function RecordedPage() {
                     value={filters.date ? new Date(`${filters.date}T00:00:00`) : null}
                     onChange={(e) => handleFilterChange("date", e.value ? toDateInputValue(e.value as Date) : "")}
                     dateFormat="dd/mm/yy"
-                    locale="es"
+                    locale="es-recorded-filter-date"
                     showButtonBar
+                    showOtherMonths={false}
+                    disabledDays={[0, 6]}
+                    maxDate={new Date()}
                     readOnlyInput
                     placeholder="Día"
                     className="license-filter-dropdown"
