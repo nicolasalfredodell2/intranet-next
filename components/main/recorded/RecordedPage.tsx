@@ -224,8 +224,12 @@ export default function RecordedPage() {
   }
 
   // ── Alta de fichada ──────────────────────────────────────────────────────────
+  function limpiarCreateRecord() {
+    setCreateDatetime(""); setCreateType(""); setCreateTouched(false);
+  }
+
   useEffect(() => {
-    if (!fileOfUserSelected) { setCreateDatetime(""); setCreateType(""); setCreateTouched(false); }
+    if (!fileOfUserSelected) limpiarCreateRecord();
   }, [fileOfUserSelected]);
 
   async function submitCreateRecord(e: React.FormEvent) {
@@ -236,7 +240,7 @@ export default function RecordedPage() {
     try {
       await createRecord({ datetime: formatDatetimePayload(createDatetime), file: fileOfUserSelected, type_exit_order_id: createType });
       showToast("success", "Fichada creada");
-      setCreateDatetime(""); setCreateType(""); setCreateTouched(false);
+      limpiarCreateRecord();
       loadRecordeds();
     } catch (err: any) {
       showToast("info", "No se pudo crear la fichada", err.message);
@@ -547,54 +551,65 @@ export default function RecordedPage() {
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-            <form className="row" onSubmit={submitCreateRecord} noValidate>
-              <div className="col-12 col-md-6 col-lg-4 mb-3">
-                <label className="profile-field-label">Fecha y hora *</label>
-                <div className={`license-filter-input-wrap profile-birthdate-wrap${createDatetime ? " license-filter-input-wrap--active" : ""}`}>
-                  <i className="pi pi-calendar license-filter-icon" />
-                  <Calendar
-                    value={createDatetime ? new Date(createDatetime) : null}
-                    onChange={(e) => setCreateDatetime(e.value ? toDateTimeInputValue(e.value as Date) : "")}
-                    showTime
-                    hourFormat="24"
-                    dateFormat="dd/mm/yy"
-                    locale="es"
-                    showButtonBar
-                    placeholder="Seleccioná fecha y hora"
-                    className="license-filter-dropdown"
-                    panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
-                  />
+            <form className="animated fadeIn" onSubmit={submitCreateRecord} noValidate>
+              <div className="row">
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Fecha y hora *</label>
+                  <div className={`license-filter-input-wrap profile-birthdate-wrap${createDatetime ? " license-filter-input-wrap--active" : ""}`}>
+                    <i className="pi pi-calendar license-filter-icon" />
+                    <Calendar
+                      value={createDatetime ? new Date(createDatetime) : null}
+                      onChange={(e) => setCreateDatetime(e.value ? toDateTimeInputValue(e.value as Date) : "")}
+                      showTime
+                      hourFormat="24"
+                      dateFormat="dd/mm/yy"
+                      locale="es"
+                      showButtonBar
+                      placeholder="Seleccioná fecha y hora"
+                      className="license-filter-dropdown"
+                      panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                    />
+                  </div>
+                  {createTouched && !createDatetime && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
                 </div>
-                {createTouched && !createDatetime && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+
+                <div className="col-12 col-md-6 mb-3">
+                  <label className="profile-field-label">Tipo de fichada *</label>
+                  <div className={`license-filter-input-wrap${createType ? " license-filter-input-wrap--active" : ""}`}>
+                    <i className="pi pi-tag license-filter-icon" />
+                    <Dropdown
+                      value={createType || null}
+                      options={CREATE_RECORD_TYPE_OPTIONS}
+                      optionLabel="label"
+                      optionValue="value"
+                      onChange={(e) => setCreateType(e.value ?? "")}
+                      placeholder="Seleccioná un tipo"
+                      className="license-filter-dropdown"
+                      panelClassName="license-filter-dropdown-panel"
+                    />
+                  </div>
+                  {createTouched && !createType && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
+                </div>
               </div>
 
-              <div className="col-12 col-md-6 col-lg-4 mb-3">
-                <label className="profile-field-label">Tipo de fichada *</label>
-                <div className={`license-filter-input-wrap${createType ? " license-filter-input-wrap--active" : ""}`}>
-                  <i className="pi pi-tag license-filter-icon" />
-                  <Dropdown
-                    value={createType || null}
-                    options={CREATE_RECORD_TYPE_OPTIONS}
-                    optionLabel="label"
-                    optionValue="value"
-                    onChange={(e) => setCreateType(e.value ?? "")}
-                    placeholder="Seleccioná un tipo"
-                    className="license-filter-dropdown"
-                    panelClassName="license-filter-dropdown-panel"
-                  />
-                </div>
-                {createTouched && !createType && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
-              </div>
-
-              <div className="col-12 col-lg-4 mb-3 d-flex align-items-end">
+              <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
                 <button
                   disabled={createLoading}
                   type="submit"
-                  className="btn btn-primary d-flex align-items-center justify-content-center w-100"
+                  className="btn btn-primary d-flex align-items-center"
                   style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
                 >
                   <i className={createLoading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                  {createLoading ? "Generando fichada..." : "Generar fichada"}
+                  {createLoading ? "Creando..." : "Crear"}
+                </button>
+                <button
+                  type="button"
+                  disabled={createLoading}
+                  onClick={limpiarCreateRecord}
+                  className="btn btn-light text-muted ml-auto"
+                  style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+                >
+                  Limpiar
                 </button>
               </div>
             </form>
