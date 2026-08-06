@@ -457,8 +457,8 @@ export default function AbsenceNoticeDetailPage() {
               </div>
               <div className="col-12 col-md-6">
                 <div className="mb-3">
-                  <label className="profile-field-label">Fecha del aviso</label>
-                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateDisplay(notice.notice_date)}</p>
+                  <label className="profile-field-label">Creado</label>
+                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(notice.created_at, true)}</p>
                 </div>
                 {notice.notice_to && (
                   <div className="mb-3">
@@ -492,23 +492,6 @@ export default function AbsenceNoticeDetailPage() {
             </div>
           </div>
         )}
-
-        {/* Fecha de creación */}
-        <div className="card profile-card mt-4">
-          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-calendar" style={{ color: "#eab308", fontSize: "1rem" }} />
-            </div>
-            <div className="flex-grow-1">
-              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Fecha</h5>
-            </div>
-          </div>
-          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
-          <div className="card-body">
-            <label className="profile-field-label">Creado</label>
-            <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(notice.created_at, true)}</p>
-          </div>
-        </div>
 
         {/* Motivo de rechazo */}
         {notice.rejection_reasons && notice.rejection_reasons.length > 0 && (
