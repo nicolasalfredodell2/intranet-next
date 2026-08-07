@@ -281,7 +281,7 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
                   <div key={idx} className="card profile-card" style={{ padding: "16px" }}>
                     <h6 className="mb-2" style={{ textAlign: "left", fontWeight: 700 }}>{chart.title}</h6>
                     {(topLabels.length > 0 || bottomLabels.length > 0) && (
-                      <div className="d-flex flex-column mb-3" style={{ gap: "6px" }}>
+                      <div className="d-flex flex-column mb-3" style={{ gap: "6px", alignItems: "flex-start" }}>
                         {topLabels.length > 0 && (
                           <span
                             className="badge rounded-pill"
