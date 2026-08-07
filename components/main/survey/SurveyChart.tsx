@@ -277,6 +277,18 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
                 const { max: topIndices, min: bottomIndices } = getExtremeIndices(chart.data);
                 const topLabels = topIndices.map((i) => chart.labels[i]);
                 const bottomLabels = bottomIndices.map((i) => chart.labels[i]);
+
+                if (chart.data.length === 0) {
+                  return (
+                    <div key={idx} className="card profile-card" style={{ padding: "16px" }}>
+                      <h6 className="mb-2" style={{ textAlign: "left", fontWeight: 700 }}>{chart.title}</h6>
+                      <span className="badge rounded-pill" style={{ background: "rgba(148,163,184,0.15)", color: "#64748b", fontWeight: 600, padding: "4px 10px", alignSelf: "flex-start" }}>
+                        Nadie respondió esta pregunta aún
+                      </span>
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={idx} className="card profile-card" style={{ padding: "16px" }}>
                     <h6 className="mb-2" style={{ textAlign: "left", fontWeight: 700 }}>{chart.title}</h6>
