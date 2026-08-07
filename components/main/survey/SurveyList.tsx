@@ -224,14 +224,18 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
             style={{ width: "10%" }}
             body={(survey) => {
               const isChanging = surveySelectedForChangeEnable === survey && isLoadingActionChangeEnableSurvey;
+              const color = survey?.enable == 1 ? "#22c55e" : "#dc3545";
+              if (isChanging) {
+                return <small className="animated fadeIn text-muted">Realizando cambio</small>;
+              }
               return (
-                <small
+                <span
                   onClick={() => changeEnable(survey)}
-                  className={`pointer p-1 ${survey?.enable == 1 ? "status-success" : "status-danger"}`}
+                  className="badge rounded-pill pointer animated fadeIn"
+                  style={{ background: `${color}1a`, color, border: "none", fontWeight: 600, padding: "4px 10px" }}
                 >
-                  {!isChanging && <span className="animated fadeIn">{survey?.enable == 1 ? "SI" : "NO"}</span>}
-                  {isChanging && <span className="animated fadeIn text-dark">Realizando cambio</span>}
-                </small>
+                  {survey?.enable == 1 ? "SI" : "NO"}
+                </span>
               );
             }}
           />
