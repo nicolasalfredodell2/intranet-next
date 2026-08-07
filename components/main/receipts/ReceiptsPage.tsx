@@ -7,6 +7,7 @@ import { Dialog } from "primereact/dialog";
 import { ProgressBar } from "primereact/progressbar";
 import { Dropdown } from "primereact/dropdown";
 import { Paginator } from "primereact/paginator";
+import { Eye } from "lucide-react";
 import { getReceipts, getReceiptPDF, sendToFirm } from "@/lib/services/receipts.service";
 
 function Tooltip({ label, children }: { label: string; children: React.ReactNode }) {
@@ -425,9 +426,13 @@ export default function ReceiptsPage() {
                                 type="button"
                                 disabled={!!loadingAction}
                                 onClick={() => openPDF(receiptData)}
-                                style={{ background: "none", border: "none", borderRadius: "8px", padding: "4px 10px", cursor: loadingAction ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#4a6cf7" }}
+                                style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: loadingAction ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "0.75rem", fontWeight: 600, color: "#4a6cf7" }}
                               >
-                                <i className={loadingAction === receiptData.idn ? "pi pi-spin pi-spinner" : "mdi mdi-file-pdf-box"} style={{ fontSize: "1.2rem", color: loadingAction === receiptData.idn ? undefined : "#dc3545" }} />
+                                {loadingAction === receiptData.idn ? (
+                                  <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
+                                ) : (
+                                  <Eye size={18} />
+                                )}
                               </button>
                             </Tooltip>
                           </div>
