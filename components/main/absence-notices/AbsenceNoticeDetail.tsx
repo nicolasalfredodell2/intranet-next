@@ -503,6 +503,15 @@ export default function AbsenceNoticeDetail({ id, onClose, onChanged }: AbsenceN
           </div>
         </div>
 
+        {notice.status?.code === "creado" && isTimeExpired(notice) && !notice.attachments?.length && (
+          <Message
+            severity="warn"
+            className="mt-3 w-100"
+            style={{ justifyContent: "flex-start" }}
+            text={<small>Ya pasaron 48hs desde la creación del aviso, por lo que no se puede subir documentación adjunta.</small>}
+          />
+        )}
+
         {/* Observaciones */}
         {notice.status?.code === "aprobado" && notice.observation && (
           <div className="card profile-card mt-4">
