@@ -617,6 +617,17 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
     </div>
   );
 
+  const uploadDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <i className="fa-solid fa-file-arrow-up" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Subir documentación</p>
+      </div>
+    </div>
+  );
+
   const deleteDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
       <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1202,7 +1213,7 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
 
       {/* Subir documentación */}
       <Dialog
-        header="Subir Documentación"
+        header={uploadDialogHeader}
         visible={!!noticeParaUpload}
         modal
         draggable={false}
@@ -1212,30 +1223,41 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
         style={{ width: "min(480px, 92vw)" }}
         onHide={closeUploadDialog}
         footer={
-          <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-            <button type="button" className="btn btn-outline-secondary" disabled={isUploading} onClick={closeUploadDialog}>
-              Cancelar
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={!uploadFile || isUploading || isCompressing}
-              onClick={subirArchivo}
-            >
-              {!isUploading && !isCompressing && "Subir Documento"}
-              {isCompressing && <><i className="fa-solid fa-circle-notch fa-spin" /> Optimizando...</>}
-              {isUploading && !isCompressing && <><i className="fa-solid fa-circle-notch fa-spin" /> Subiendo...</>}
-            </button>
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                type="button"
+                disabled={!uploadFile || isUploading || isCompressing}
+                onClick={subirArchivo}
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={isUploading || isCompressing ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {isCompressing ? "Optimizando..." : isUploading ? "Subiendo..." : "Subir documento"}
+              </button>
+              <button
+                type="button"
+                disabled={isUploading || isCompressing}
+                onClick={closeUploadDialog}
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Volver
+              </button>
+            </div>
+            {(isUploading || isCompressing) && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
         }
       >
-        <div className="alert alert-info mt-2">
-          <i className="mdi mdi-information-outline mr-2" />
-          <small>Solo se admiten formatos <strong>PNG, JPG, JPEG y PDF</strong>, con un peso máximo de <strong>10MB</strong>.</small>
-        </div>
+        <Message
+          severity="info"
+          className="mb-3 w-100"
+          style={{ justifyContent: "flex-start" }}
+          text={<small>Solo se admiten formatos <strong>PNG, JPG, JPEG y PDF</strong>, con un peso máximo de <strong>10MB</strong>.</small>}
+        />
 
         <div
-          className={`dropzone-area${uploadDrag ? " drag-over" : ""} text-center mt-3`}
+          className={`dropzone-area${uploadDrag ? " drag-over" : ""} text-center`}
           onDragOver={(e) => { e.preventDefault(); setUploadDrag(true); }}
           onDragLeave={() => setUploadDrag(false)}
           onDrop={(e) => {
