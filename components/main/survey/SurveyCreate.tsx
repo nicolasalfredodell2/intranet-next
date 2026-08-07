@@ -36,6 +36,11 @@ export default function SurveyCreate({ onNewSurvey }: SurveyCreateProps) {
     }
   }
 
+  function limpiar() {
+    setName("");
+    setTouched(false);
+  }
+
   return (
     <div className="card profile-card mt-4">
       <AppToast ref={toast} position="bottom-center" />
@@ -53,8 +58,8 @@ export default function SurveyCreate({ onNewSurvey }: SurveyCreateProps) {
 
       <div className="card-body" style={{ padding: "16px 20px 20px" }}>
         <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
-          <div className="row align-items-start">
-            <div className="col-12 col-lg-4 mb-3 mb-lg-0">
+          <div className="row">
+            <div className="col-12 col-lg-4 mb-3">
               <label className="profile-field-label">Nombre *</label>
               <input
                 className="profile-input"
@@ -64,28 +69,38 @@ export default function SurveyCreate({ onNewSurvey }: SurveyCreateProps) {
               />
               {touched && !name && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
-            <div className="col-12 col-lg-4">
-              <button
-                disabled={loading}
-                type="submit"
-                className="btn btn-primary d-flex align-items-center justify-content-center w-100"
-                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
-              >
-                <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                {loading ? "Creando encuesta..." : "Crear encuesta"}
-              </button>
-            </div>
+          </div>
+
+          <Message
+            severity="info"
+            className="mb-3 w-100"
+            style={{ justifyContent: "flex-start" }}
+            text="Las encuestas creadas están deshabilitadas por defecto. Debe crear preguntas para la encuesta y luego habilitarla."
+          />
+
+          <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+            <button
+              disabled={loading}
+              type="submit"
+              className="btn btn-primary d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+            >
+              <i className={loading ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+              {loading ? "Creando encuesta..." : "Crear encuesta"}
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={limpiar}
+              className="btn btn-light text-muted ml-auto"
+              style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+            >
+              Limpiar
+            </button>
           </div>
 
           {loading && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
         </form>
-
-        <Message
-          severity="info"
-          className="mt-3 w-100"
-          style={{ justifyContent: "flex-start" }}
-          text="Las encuestas creadas están deshabilitadas por defecto. Debe crear preguntas para la encuesta y luego habilitarla."
-        />
       </div>
     </div>
   );
