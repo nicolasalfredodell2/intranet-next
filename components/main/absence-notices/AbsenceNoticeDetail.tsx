@@ -470,22 +470,22 @@ export default function AbsenceNoticeDetail({ id, embedded = false, onClose, onC
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
           <div className="card-body">
             <div className="row">
-              <div className="col-12 col-md-3 mb-3">
+              <div className="col-12 mb-3">
                 <label className="profile-field-label">Creado el</label>
                 <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(notice.created_at, true)}</p>
               </div>
-              <div className="col-12 col-md-3 mb-3">
-                <label className="profile-field-label">Tipo</label>
-                <div><CategoryBadge label={notice.type?.name} id={notice.type?.id} list={types} /></div>
-              </div>
               {notice.reason?.name && (
-                <div className="col-12 col-md-3 mb-3">
+                <div className="col-12 col-md-6 mb-3">
                   <label className="profile-field-label">Motivo</label>
                   <div><CategoryBadge label={notice.reason?.name} id={notice.reason?.id} palette={REASON_PALETTE} list={reasons} /></div>
                 </div>
               )}
+              <div className="col-12 col-md-6 mb-3">
+                <label className="profile-field-label">Tipo</label>
+                <div><CategoryBadge label={notice.type?.name} id={notice.type?.id} list={types} /></div>
+              </div>
               {notice.notice_to && (
-                <div className="col-12 col-md-3 mb-3">
+                <div className="col-12 mb-3">
                   <label className="profile-field-label">Desde - Hasta</label>
                   <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
                     <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>
@@ -503,7 +503,7 @@ export default function AbsenceNoticeDetail({ id, embedded = false, onClose, onC
                 </div>
               )}
               {notice.type?.name?.toLowerCase().includes("llegada tarde") && (
-                <div className="col-12 col-md-3 mb-3">
+                <div className="col-12 col-md-6 mb-3">
                   <label className="profile-field-label">Para el</label>
                   <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateDisplay(notice.notice_date)}</p>
                 </div>
