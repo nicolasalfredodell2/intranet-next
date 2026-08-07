@@ -437,22 +437,15 @@ export default function AbsenceNoticeDetail({ id, onClose, onChanged }: AbsenceN
             <span className="badge rounded-pill" style={{ background: `${statusColor}1a`, color: statusColor, border: "none", fontWeight: 600, padding: "5px 12px" }}>
               {notice.status?.name}
             </span>
+            {checkCanUpload() && (
+              <button type="button" onClick={openUploadDialog} className="btn btn-primary d-flex align-items-center" style={{ borderRadius: "8px", fontWeight: 600, fontSize: "0.72rem", padding: "4px 10px" }}>
+                Subir documentación
+              </button>
+            )}
             {canUserCancelNotice() && (
               <Button label="Cancelar aviso" severity="danger" size="small" onClick={openDeleteDialog} style={{ borderRadius: "8px", fontWeight: 600, fontSize: "0.72rem", padding: "4px 10px" }} />
             )}
           </div>
-
-          {checkCanUpload() && (
-            <>
-              <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
-              <div className="d-flex flex-wrap align-items-center px-3 py-3" style={{ gap: "8px" }}>
-                <button type="button" onClick={openUploadDialog} className="btn btn-primary d-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
-                  <i className="fa-solid fa-file-arrow-up" style={{ fontSize: "0.78rem" }} />
-                  Subir documentación
-                </button>
-              </div>
-            </>
-          )}
 
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
           <div className="card-body">
