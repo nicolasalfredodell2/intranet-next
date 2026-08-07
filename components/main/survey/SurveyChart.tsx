@@ -31,6 +31,23 @@ function truncateLabel(label: string): string {
   return `${label.slice(0, MAX_LABEL_LENGTH - 1).trimEnd()}…`;
 }
 
+const HIGHLIGHT_MAX_COLOR = "#16a34a";
+const HIGHLIGHT_MIN_COLOR = "#dc3545";
+
+function getExtremeIndices(data: number[]): { max: number[]; min: number[] } {
+  if (data.length < 2) return { max: [], min: [] };
+  const maxValue = Math.max(...data);
+  const minValue = Math.min(...data);
+  if (maxValue === minValue) return { max: [], min: [] };
+  const max: number[] = [];
+  const min: number[] = [];
+  data.forEach((v, i) => {
+    if (v === maxValue) max.push(i);
+    if (v === minValue) min.push(i);
+  });
+  return { max, min };
+}
+
 const CHART_TYPE_STORAGE_KEY = "survey-chart-type";
 
 type ChartType = "bar" | "bar-horizontal" | "doughnut" | "pie" | "polarArea";
@@ -101,7 +118,7 @@ const LEGEND_BASE = {
   labels: { color: "#475569", font: { size: 10.5 }, boxWidth: 10, boxHeight: 10, padding: 10 },
 };
 
-function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem }) {
+function ChartFor({ chartType, chart, topIndices, bottomIndices }: { chartType: ChartType; chart: ChartItem; topIndices: number[]; bottomIndices: number[] }) {
   const colors = chart.labels.map((_, i) => ANSWER_PALETTE[i % ANSWER_PALETTE.length]);
   const displayLabels = chart.labels.map(truncateLabel);
   const tooltip = {
@@ -111,6 +128,10 @@ function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem
       title: (items: TooltipItem<any>[]) => chart.labels[items[0]?.dataIndex ?? 0] ?? "",
     },
   };
+
+  const highlightColor = (i: number, fallback: string) =>
+    topIndices.includes(i) ? HIGHLIGHT_MAX_COLOR : bottomIndices.includes(i) ? HIGHLIGHT_MIN_COLOR : fallback;
+  const highlightWidth = (i: number, fallback: number) => (topIndices.includes(i) || bottomIndices.includes(i) ? 3 : fallback);
 
   if (chartType === "bar" || chartType === "bar-horizontal") {
     const isHorizontal = chartType === "bar-horizontal";
@@ -122,7 +143,20 @@ function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem
     };
     return (
       <Bar
-        data={{ labels: displayLabels, datasets: [{ label: "Veces seleccionada", data: chart.data, backgroundColor: colors, borderWidth: 0, borderRadius: 6, maxBarThickness: 48 }] }}
+        data={{
+          labels: displayLabels,
+          datasets: [
+            {
+              label: "Veces seleccionada",
+              data: chart.data,
+              backgroundColor: colors,
+              borderColor: chart.labels.map((_, i) => highlightColor(i, "transparent")),
+              borderWidth: chart.labels.map((_, i) => highlightWidth(i, 0)),
+              borderRadius: 6,
+              maxBarThickness: 48,
+            },
+          ],
+        }}
         options={{
           indexAxis: isHorizontal ? "y" : "x",
           responsive: true,
@@ -133,7 +167,17 @@ function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem
     );
   }
 
-  const pieData = { labels: displayLabels, datasets: [{ data: chart.data, backgroundColor: colors, borderColor: "#fff", borderWidth: 2 }] };
+  const pieData = {
+    labels: displayLabels,
+    datasets: [
+      {
+        data: chart.data,
+        backgroundColor: colors,
+        borderColor: chart.labels.map((_, i) => highlightColor(i, "#fff")),
+        borderWidth: chart.labels.map((_, i) => highlightWidth(i, 2)),
+      },
+    ],
+  };
   const pieOptions = { responsive: true, plugins: { legend: LEGEND_BASE, tooltip } };
 
   if (chartType === "doughnut") return <Doughnut data={pieData} options={pieOptions} />;
@@ -229,12 +273,37 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
 
           {!isLoadingChart && charts.length > 0 && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", marginTop: "16px" }}>
-              {charts.map((chart, idx) => (
-                <div key={idx} className="card profile-card" style={{ padding: "16px" }}>
-                  <h6 className="mb-3" style={{ textAlign: "left", fontWeight: 700 }}>{chart.title}</h6>
-                  <ChartFor chartType={chartType} chart={chart} />
-                </div>
-              ))}
+              {charts.map((chart, idx) => {
+                const { max: topIndices, min: bottomIndices } = getExtremeIndices(chart.data);
+                const topLabels = topIndices.map((i) => chart.labels[i]);
+                const bottomLabels = bottomIndices.map((i) => chart.labels[i]);
+                return (
+                  <div key={idx} className="card profile-card" style={{ padding: "16px" }}>
+                    <h6 className="mb-2" style={{ textAlign: "left", fontWeight: 700 }}>{chart.title}</h6>
+                    {(topLabels.length > 0 || bottomLabels.length > 0) && (
+                      <div className="d-flex flex-column mb-3" style={{ gap: "6px" }}>
+                        {topLabels.length > 0 && (
+                          <span
+                            className="badge rounded-pill"
+                            style={{ background: "rgba(22,163,74,0.12)", color: HIGHLIGHT_MAX_COLOR, fontWeight: 600, padding: "4px 10px", whiteSpace: "normal", wordBreak: "break-word", maxWidth: "100%", textAlign: "left" }}
+                          >
+                            {topLabels.length > 1 ? "Más votadas: " : "Más votada: "}{topLabels.join(", ")}
+                          </span>
+                        )}
+                        {bottomLabels.length > 0 && (
+                          <span
+                            className="badge rounded-pill"
+                            style={{ background: "rgba(220,53,69,0.10)", color: HIGHLIGHT_MIN_COLOR, fontWeight: 600, padding: "4px 10px", whiteSpace: "normal", wordBreak: "break-word", maxWidth: "100%", textAlign: "left" }}
+                          >
+                            {bottomLabels.length > 1 ? "Menos votadas: " : "Menos votada: "}{bottomLabels.join(", ")}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    <ChartFor chartType={chartType} chart={chart} topIndices={topIndices} bottomIndices={bottomIndices} />
+                  </div>
+                );
+              })}
             </div>
           )}
 
