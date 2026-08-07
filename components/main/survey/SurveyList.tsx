@@ -7,6 +7,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Paginator } from "primereact/paginator";
 import { Dropdown } from "primereact/dropdown";
+import { InputSwitch } from "primereact/inputswitch";
 import { Pencil, ClipboardList, ChartPie, Trash2 } from "lucide-react";
 import { enableSurvey, disableSurvey } from "@/lib/services/survey.service";
 import SurveyUpdate from "./SurveyUpdate";
@@ -224,18 +225,21 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
             style={{ width: "10%" }}
             body={(survey) => {
               const isChanging = surveySelectedForChangeEnable === survey && isLoadingActionChangeEnableSurvey;
-              const color = survey?.enable == 1 ? "#22c55e" : "#dc3545";
-              if (isChanging) {
-                return <small className="animated fadeIn text-muted">Realizando cambio</small>;
-              }
               return (
-                <span
-                  onClick={() => changeEnable(survey)}
-                  className="badge rounded-pill pointer animated fadeIn"
-                  style={{ background: `${color}1a`, color, border: "none", fontWeight: 600, padding: "4px 10px" }}
-                >
-                  {survey?.enable == 1 ? "SI" : "NO"}
-                </span>
+                <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+                  <div
+                    onClick={() => !isChanging && changeEnable(survey)}
+                    style={{ display: "inline-flex", cursor: isChanging ? "not-allowed" : "pointer" }}
+                  >
+                    <InputSwitch
+                      checked={survey?.enable == 1}
+                      disabled={isChanging}
+                      onChange={() => {}}
+                      style={{ transform: "scale(0.75)", transformOrigin: "left center", pointerEvents: "none" }}
+                    />
+                  </div>
+                  {isChanging && <small className="animated fadeIn text-muted">Realizando cambio</small>}
+                </div>
               );
             }}
           />
