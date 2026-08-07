@@ -10,6 +10,7 @@ import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
 import { Paginator } from "primereact/paginator";
 import { ProgressBar } from "primereact/progressbar";
+import { Eye, Trash2 } from "lucide-react";
 import { getAllBosses } from "@/lib/services/boss.service";
 import { getDataUser } from "@/lib/services/perfil.service";
 import {
@@ -938,9 +939,13 @@ export default function ExitsPage() {
                                   <button
                                     type="button"
                                     onClick={() => openPdfExit(item)}
-                                    style={{ background: "none", border: "none", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
+                                    style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
                                   >
-                                    <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "mdi mdi-file-pdf-box"} style={{ fontSize: "1.2rem", color: loadingActionOpenPdfExit === item.id ? undefined : "#dc3545" }} />
+                                    {loadingActionOpenPdfExit === item.id ? (
+                                      <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
+                                    ) : (
+                                      <Eye size={18} />
+                                    )}
                                   </button>
                                 </Tooltip>
                               )}
@@ -951,7 +956,7 @@ export default function ExitsPage() {
                                     onClick={() => openModalCancelExit(item)}
                                     style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545" }}
                                   >
-                                    <i className="pi pi-times" style={{ fontSize: "0.85rem" }} />
+                                    <Trash2 size={14} />
                                   </button>
                                 </Tooltip>
                               )}
@@ -1155,9 +1160,13 @@ export default function ExitsPage() {
                                       <button
                                         type="button"
                                         onClick={() => openPdfExit(item, "admin")}
-                                        style={{ background: "none", border: "none", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
+                                        style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
                                       >
-                                        <i className={loadingActionOpenPdfExit === item.id ? "pi pi-spin pi-spinner" : "mdi mdi-file-pdf-box"} style={{ fontSize: "1.2rem", color: loadingActionOpenPdfExit === item.id ? undefined : "#dc3545" }} />
+                                        {loadingActionOpenPdfExit === item.id ? (
+                                          <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
+                                        ) : (
+                                          <Eye size={18} />
+                                        )}
                                       </button>
                                     </Tooltip>
                                   )}
