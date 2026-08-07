@@ -4,14 +4,43 @@ import { useEffect, useRef, useState } from "react";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip as ChartTooltip, type TooltipItem } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Dropdown } from "primereact/dropdown";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  RadialLinearScale,
+  BarElement,
+  ArcElement,
+  Legend,
+  Tooltip as ChartTooltip,
+  type TooltipItem,
+} from "chart.js";
+import { Bar, Doughnut, Pie, PolarArea } from "react-chartjs-2";
 import { ChartPie } from "lucide-react";
 import { loadSurveyReport } from "@/lib/services/survey.service";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTooltip);
+ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, BarElement, ArcElement, Legend, ChartTooltip);
 
 const ANSWER_PALETTE = ["#4a6cf7", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#4a3aa7", "#0ea5e9", "#e34948"];
+
+const CHART_TYPE_STORAGE_KEY = "survey-chart-type";
+
+type ChartType = "bar" | "bar-horizontal" | "doughnut" | "pie" | "polarArea";
+
+const CHART_TYPE_OPTIONS: { label: string; value: ChartType }[] = [
+  { label: "Barras verticales", value: "bar" },
+  { label: "Barras horizontales", value: "bar-horizontal" },
+  { label: "Dona", value: "doughnut" },
+  { label: "Torta", value: "pie" },
+  { label: "Área polar", value: "polarArea" },
+];
+
+function getStoredChartType(): ChartType {
+  if (typeof window === "undefined") return "bar";
+  const stored = localStorage.getItem(CHART_TYPE_STORAGE_KEY);
+  return (CHART_TYPE_OPTIONS.find((o) => o.value === stored)?.value ?? "bar") as ChartType;
+}
 
 interface ChartItem {
   title: string;
@@ -53,10 +82,74 @@ function getChartWidth(chart: ChartItem): string {
   return "100%";
 }
 
+const TOOLTIP_BASE = {
+  backgroundColor: "#1e293b",
+  padding: 10,
+  cornerRadius: 8,
+  titleFont: { size: 12, weight: 600 as const },
+  bodyFont: { size: 11 },
+  callbacks: {
+    label: (item: TooltipItem<any>) => {
+      const v = Number(item.raw);
+      return ` ${v} ${v === 1 ? "vez" : "veces"}`;
+    },
+  },
+};
+
+const LEGEND_BASE = {
+  position: "bottom" as const,
+  labels: { color: "#475569", font: { size: 10.5 }, boxWidth: 10, boxHeight: 10, padding: 10 },
+};
+
+function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem }) {
+  const colors = chart.labels.map((_, i) => ANSWER_PALETTE[i % ANSWER_PALETTE.length]);
+
+  if (chartType === "bar" || chartType === "bar-horizontal") {
+    const isHorizontal = chartType === "bar-horizontal";
+    const categoryAxis = { ticks: { font: { size: 11 }, color: "#475569" }, grid: { display: false } };
+    const valueAxis = {
+      beginAtZero: true,
+      ticks: { stepSize: 1, font: { size: 10 }, color: "#94a3b8", callback: (v: number) => (Number.isInteger(v) ? v : "") },
+      grid: { color: "rgba(0,0,0,0.05)" },
+    };
+    return (
+      <Bar
+        data={{ labels: chart.labels, datasets: [{ label: "Veces seleccionada", data: chart.data, backgroundColor: colors, borderWidth: 0, borderRadius: 6, maxBarThickness: 48 }] }}
+        options={{
+          indexAxis: isHorizontal ? "y" : "x",
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: (isHorizontal ? { x: valueAxis, y: categoryAxis } : { x: categoryAxis, y: valueAxis }) as any,
+          plugins: { legend: { display: false }, tooltip: TOOLTIP_BASE },
+        }}
+      />
+    );
+  }
+
+  const pieData = { labels: chart.labels, datasets: [{ data: chart.data, backgroundColor: colors, borderColor: "#fff", borderWidth: 2 }] };
+  const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: LEGEND_BASE, tooltip: TOOLTIP_BASE } };
+
+  if (chartType === "doughnut") return <Doughnut data={pieData} options={pieOptions} />;
+  if (chartType === "pie") return <Pie data={pieData} options={pieOptions} />;
+
+  return (
+    <PolarArea
+      data={pieData}
+      options={{
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { r: { ticks: { display: false }, grid: { color: "rgba(0,0,0,0.05)" }, angleLines: { color: "rgba(0,0,0,0.05)" } } },
+        plugins: { legend: LEGEND_BASE, tooltip: TOOLTIP_BASE },
+      }}
+    />
+  );
+}
+
 export default function SurveyChart({ visible, survey, onClose }: SurveyChartProps) {
   const toast = useRef<Toast>(null);
   const [charts, setCharts] = useState<ChartItem[]>([]);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
+  const [chartType, setChartType] = useState<ChartType>(getStoredChartType);
 
   useEffect(() => {
     if (visible && survey) loadChart(survey);
@@ -75,6 +168,11 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
     } finally {
       setIsLoadingChart(false);
     }
+  }
+
+  function handleChartTypeChange(value: ChartType) {
+    setChartType(value);
+    if (typeof window !== "undefined") localStorage.setItem(CHART_TYPE_STORAGE_KEY, value);
   }
 
   const chartDialogHeader = (
@@ -103,6 +201,20 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
         style={{ height: "75vh", width: "min(60vw, 96vw)" }}
         onHide={onClose}
       >
+        {!isLoadingChart && charts.length > 0 && (
+          <div className="d-flex align-items-center justify-content-end" style={{ gap: "8px", marginBottom: "8px" }}>
+            <small style={{ color: "#94a3b8" }}>Tipo de gráfico</small>
+            <Dropdown
+              value={chartType}
+              options={CHART_TYPE_OPTIONS}
+              onChange={(e) => handleChartTypeChange(e.value)}
+              className="license-filter-dropdown"
+              panelClassName="license-filter-dropdown-panel"
+              style={{ width: 200 }}
+            />
+          </div>
+        )}
+
         <div className="row justify-content-center" style={{ minHeight: "70vh" }}>
           {isLoadingChart && (
             <div className="col-12 d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "50vh", color: "#94a3b8" }}>
@@ -117,54 +229,7 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
             <div key={idx} className="text-center" style={{ width: getChartWidth(chart), padding: "16px" }}>
               <h6 className="mb-3"><small>{chart.title}</small></h6>
               <div style={{ height: 260, width: "100%" }}>
-                <Bar
-                  data={{
-                    labels: chart.labels,
-                    datasets: [
-                      {
-                        label: "Veces seleccionada",
-                        data: chart.data,
-                        backgroundColor: chart.labels.map((_, i) => ANSWER_PALETTE[i % ANSWER_PALETTE.length]),
-                        borderWidth: 0,
-                        borderRadius: 6,
-                        maxBarThickness: 48,
-                      },
-                    ],
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                      x: {
-                        ticks: { font: { size: 11 }, color: "#475569" },
-                        grid: { display: false },
-                      },
-                      y: {
-                        beginAtZero: true,
-                        ticks: {
-                          stepSize: 1,
-                          font: { size: 10 },
-                          color: "#94a3b8",
-                          callback: (value) => (Number.isInteger(value) ? value : ""),
-                        },
-                        grid: { color: "rgba(0,0,0,0.05)" },
-                      },
-                    },
-                    plugins: {
-                      legend: { display: false },
-                      tooltip: {
-                        backgroundColor: "#1e293b",
-                        padding: 10,
-                        cornerRadius: 8,
-                        titleFont: { size: 12, weight: 600 },
-                        bodyFont: { size: 11 },
-                        callbacks: {
-                          label: (item: TooltipItem<"bar">) => `${item.formattedValue} ${Number(item.raw) === 1 ? "vez" : "veces"}`,
-                        },
-                      },
-                    },
-                  }}
-                />
+                <ChartFor chartType={chartType} chart={chart} />
               </div>
             </div>
           ))}
