@@ -542,8 +542,8 @@ export default function RecordedPage() {
         {/* Header card */}
         <div className="card profile-card">
           <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-clock" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-clock" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Editar fichadas</h5>
@@ -555,8 +555,8 @@ export default function RecordedPage() {
         {/* Buscar agente */}
         <div className="card profile-card mt-4">
           <div className="d-flex align-items-center flex-wrap px-3 py-3" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-search" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-search" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar agente</h5>
@@ -589,8 +589,8 @@ export default function RecordedPage() {
         {fileOfUserSelected && (
         <div className="card profile-card mt-4 fadeIn animated">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-sign-in" style={{ color: "#059669", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-sign-in" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Creación de fichadas</h5>
@@ -671,8 +671,8 @@ export default function RecordedPage() {
         {fileOfUserSelected && (
         <div className="card profile-card mt-4 fadeIn animated">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-sign-out" style={{ color: "#059669", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-sign-out" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Creación de órdenes de salida</h5>
@@ -808,8 +808,8 @@ export default function RecordedPage() {
         {fileOfUserSelected && (
         <div className="card profile-card license-main-card mt-4 fadeIn animated">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#e8edff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-list" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-list" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de ingresos, egresos y salidas</h5>
