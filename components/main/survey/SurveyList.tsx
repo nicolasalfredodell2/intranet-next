@@ -258,7 +258,7 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
                     <ClipboardList size={14} />
                   </button>
                 </Tooltip>
-                <Tooltip label="Gráfico">
+                <Tooltip label="Estadísticas">
                   <button type="button" onClick={() => openModalShowChartSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #bae6fd", color: "#0ea5e9" }}>
                     <ChartPie size={14} />
                   </button>
