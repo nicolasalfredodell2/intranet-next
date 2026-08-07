@@ -243,7 +243,7 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
-export default function AbsenceNoticesPage() {
+export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeId?: string } = {}) {
   const toast = useRef<Toast>(null);
 
   const [types, setTypes] = useState<any[]>([]);
@@ -291,13 +291,38 @@ export default function AbsenceNoticesPage() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
 
-  const [selectedNoticeId, setSelectedNoticeId] = useState<string | number | null>(null);
+  const [selectedNoticeId, setSelectedNoticeId] = useState<string | number | null>(initialNoticeId ?? null);
 
   useEffect(() => {
     loadConfig();
     loadNotices();
     loadRecipients();
   }, []);
+
+  // Mantiene la URL sincronizada con el drawer de detalle sin navegar de pagina.
+  useEffect(() => {
+    function handlePopState(e: PopStateEvent) {
+      setSelectedNoticeId(e.state?.absenceNoticeId ?? null);
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  function openNoticeDetail(id: string | number) {
+    const url = `/main/absence-notices/${id}`;
+    if (selectedNoticeId) window.history.replaceState({ absenceNoticeId: id }, "", url);
+    else window.history.pushState({ absenceNoticeId: id }, "", url);
+    setSelectedNoticeId(id);
+  }
+
+  function closeNoticeDetail() {
+    if (window.history.state?.absenceNoticeId) {
+      window.history.back();
+    } else {
+      setSelectedNoticeId(null);
+      window.history.replaceState({}, "", "/main/absence-notices");
+    }
+  }
 
   // Debounce del filtro de descripción
   useEffect(() => {
@@ -1098,7 +1123,7 @@ export default function AbsenceNoticesPage() {
                       )}
 
                       <Tooltip label="Ver detalle">
-                        <button type="button" onClick={() => setSelectedNoticeId(n.id)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                        <button type="button" onClick={() => openNoticeDetail(n.id)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
                           <i className="pi pi-external-link" style={{ fontSize: "0.85rem" }} />
                         </button>
                       </Tooltip>
@@ -1161,14 +1186,13 @@ export default function AbsenceNoticesPage() {
         visible={!!selectedNoticeId}
         position="right"
         showCloseIcon
-        onHide={() => setSelectedNoticeId(null)}
+        onHide={closeNoticeDetail}
         style={{ width: "min(720px, 95vw)" }}
       >
         {selectedNoticeId && (
           <AbsenceNoticeDetail
             id={selectedNoticeId}
-            embedded
-            onClose={() => setSelectedNoticeId(null)}
+            onClose={closeNoticeDetail}
             onChanged={() => loadNotices(page, filterForm, perPage)}
           />
         )}

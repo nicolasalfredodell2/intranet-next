@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
@@ -209,15 +207,12 @@ function AttachmentItem({ attachment, highlighted, isDownloading, onOpen }: { at
 
 interface AbsenceNoticeDetailProps {
   id: string | number | null | undefined;
-  /** Cuando se muestra embebido en un drawer, en vez de navegar se usa onClose/onChanged. */
-  embedded?: boolean;
-  onClose?: () => void;
+  onClose: () => void;
   onChanged?: () => void;
 }
 
-export default function AbsenceNoticeDetail({ id, embedded = false, onClose, onChanged }: AbsenceNoticeDetailProps) {
+export default function AbsenceNoticeDetail({ id, onClose, onChanged }: AbsenceNoticeDetailProps) {
   const toast = useRef<Toast>(null);
-  const router = useRouter();
   const noticeId = id !== null && id !== undefined ? String(id) : undefined;
 
   const [notice, setNotice] = useState<any>(null);
@@ -319,8 +314,7 @@ export default function AbsenceNoticeDetail({ id, embedded = false, onClose, onC
       setDisplayDeleteDialog(false);
       toast.current?.show({ severity: "success", summary: "Aviso cancelado/eliminado" });
       onChanged?.();
-      if (embedded) onClose?.();
-      else router.push("/main/absence-notices");
+      onClose();
     } catch {
       toast.current?.show({ severity: "error", summary: "No se pudo cancelar/eliminar el aviso" });
     } finally {
@@ -416,16 +410,9 @@ export default function AbsenceNoticeDetail({ id, embedded = false, onClose, onC
             <i className="pi pi-inbox" style={{ fontSize: "2.5rem", color: "#cbd5e1", display: "block", marginBottom: "12px" }} />
             <h5 style={{ color: "#1e293b" }}>No se encontró el aviso</h5>
             <p style={{ color: "#94a3b8" }}>El aviso que busca no existe.</p>
-            {embedded ? (
-              <button type="button" onClick={onClose} className="btn btn-primary d-inline-flex align-items-center mt-2" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
-                Cerrar
-              </button>
-            ) : (
-              <Link href="/main/absence-notices" className="btn btn-primary d-inline-flex align-items-center mt-2" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
-                <i className="pi pi-arrow-left" style={{ fontSize: "0.78rem" }} />
-                Ir al listado
-              </Link>
-            )}
+            <button type="button" onClick={onClose} className="btn btn-primary d-inline-flex align-items-center mt-2" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
+              Cerrar
+            </button>
           </div>
         </div>
       </div>
@@ -598,16 +585,6 @@ export default function AbsenceNoticeDetail({ id, embedded = false, onClose, onC
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {/* Volver */}
-        {!embedded && (
-          <div className="d-flex justify-content-end align-items-center mt-4 mb-2">
-            <Link href="/main/absence-notices" className="btn d-inline-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem", background: "#4a3aa7", borderColor: "#4a3aa7", color: "#fff" }}>
-              <i className="pi pi-arrow-left" style={{ fontSize: "0.78rem" }} />
-              Ir al listado
-            </Link>
           </div>
         )}
       </div>
