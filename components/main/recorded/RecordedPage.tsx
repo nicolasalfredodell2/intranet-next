@@ -818,6 +818,10 @@ export default function RecordedPage() {
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de ingresos, egresos y salidas</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Fichadas y órdenes de salida del agente seleccionado</small>
             </div>
+            <button type="button" onClick={() => loadRecordeds()} disabled={isLoadingRecordeds} className="d-flex align-items-center" style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b", gap: "6px", fontSize: "0.82rem", fontWeight: 600 }}>
+              <i className={isLoadingRecordeds ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.85rem" }} />
+              Recargar
+            </button>
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
