@@ -109,19 +109,6 @@ function formatDateTime(value: string | null | undefined): string {
   return `${d}/${m}/${y} ${hh}:${mm}`;
 }
 
-function formatRejectionDate(value: string | null | undefined): string {
-  if (!value) return "";
-  const normalized = value.includes("T") || value.includes(" ") ? value.replace(" ", "T") : `${value}T00:00:00`;
-  const date = new Date(normalized);
-  if (isNaN(date.getTime())) return value;
-  const d = String(date.getDate()).padStart(2, "0");
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const y = date.getFullYear();
-  const hh = String(date.getHours()).padStart(2, "0");
-  const ss = String(date.getSeconds()).padStart(2, "0");
-  return `${d}/${m}/${y} ${hh}:${ss}`;
-}
-
 function countDays(start: Date, end: Date): number {
   return Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
 }
@@ -285,7 +272,6 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
   const [uploadDrag, setUploadDrag] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const [historyAttachments, setHistoryAttachments] = useState<any[] | null>(null);
 
   const [isDownloadingFile, setIsDownloadingFile] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
@@ -587,10 +573,6 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
       .finally(() => setIsUploading(false));
   }
 
-  function abrirModalHistorial(attachments: any[]) {
-    setHistoryAttachments([...attachments].sort((a, b) => b.id - a.id));
-  }
-
   async function abrirArchivo(attachment: any) {
     if (!attachment?.id) return;
     setIsDownloadingFile(true);
@@ -643,21 +625,6 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
       <div>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Eliminar aviso</p>
         <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Esta acción no se puede deshacer</small>
-      </div>
-    </div>
-  );
-
-  const donanteSangreReason = reasons.find((r) => r.name?.toLowerCase().includes("donante de sangre"));
-  const ultimoSubidoColor = donanteSangreReason ? colorByIndex(donanteSangreReason.id, reasons, REASON_PALETTE) : REASON_PALETTE[1];
-
-  const historyDialogHeader = (
-    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
-      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <i className="pi pi-history" style={{ color: "#3b82f6", fontSize: "1rem" }} />
-      </div>
-      <div>
-        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Historial de archivos</p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Documentación adjuntada para este aviso</small>
       </div>
     </div>
   );
@@ -1096,14 +1063,6 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
                             </Tooltip>
                           )}
 
-                          {n.attachments?.length > 1 && (
-                            <Tooltip label="Ver historial de archivos">
-                              <button type="button" onClick={() => abrirModalHistorial(n.attachments)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
-                                <i className="pi pi-history" style={{ fontSize: "0.85rem" }} />
-                              </button>
-                            </Tooltip>
-                          )}
-
                           {checkCanUpload(n) && (
                             <Tooltip label="Subir documentación">
                               <button type="button" onClick={() => abrirModalUpload(n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
@@ -1336,87 +1295,6 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
         )}
       </Dialog>
 
-      {/* Historial de archivos */}
-      <Dialog
-        header={historyDialogHeader}
-        visible={!!historyAttachments}
-        modal
-        draggable={false}
-        resizable={false}
-        dismissableMask
-        style={{ width: "min(480px, 92vw)" }}
-        onHide={() => setHistoryAttachments(null)}
-        footer={
-          <button
-            type="button"
-            onClick={() => setHistoryAttachments(null)}
-            className="btn btn-light text-muted ml-auto"
-            style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
-          >
-            Volver
-          </button>
-        }
-      >
-        <div style={{ maxHeight: "60vh", overflowY: "auto" }} className="fadeIn animated">
-          {(historyAttachments ?? []).map((file, i) => (
-            <div key={file.id} className="mb-2" style={{ border: "1.5px solid #e2e8f0", borderRadius: "10px", padding: "12px 14px" }}>
-              <div className="mb-2">
-                <div className="d-flex align-items-center justify-content-between" style={{ gap: "8px" }}>
-                  <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
-                    <i className="pi pi-file-pdf" style={{ color: "#dc3545", fontSize: "1rem", flexShrink: 0 }} />
-                    <span style={{ fontSize: "0.86rem", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {file.name}
-                    </span>
-                  </div>
-                  <Tooltip label="Ver documento">
-                    <button
-                      type="button"
-                      onClick={() => abrirArchivo(file)}
-                      style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6", fontSize: "0.78rem", fontWeight: 600, gap: "6px", flexShrink: 0 }}
-                    >
-                      <i className="pi pi-eye" style={{ fontSize: "0.78rem" }} />
-                      Ver
-                    </button>
-                  </Tooltip>
-                </div>
-                <div className="d-flex align-items-center" style={{ gap: "8px", marginTop: "2px", marginLeft: "24px" }}>
-                  <small style={{ color: "#94a3b8", fontSize: "0.72rem" }}>
-                    Subido el {formatDateTime(file.created_at)}
-                  </small>
-                  {i === 0 && (
-                    <span
-                      className="badge rounded-pill"
-                      style={{ background: `${ultimoSubidoColor}1a`, color: ultimoSubidoColor, border: "none", fontWeight: 600, padding: "4px 10px", fontSize: "0.62rem" }}
-                    >
-                      Último subido
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {file.rejection_reasons && file.rejection_reasons.length > 0 && (
-                <Message
-                  severity="error"
-                  className="mt-2 w-100"
-                  style={{ justifyContent: "flex-start" }}
-                  text={
-                    <div>
-                      {file.rejection_reasons.map((reason: any, idx: number) => (
-                        <div key={idx} className={idx > 0 ? "mt-2" : ""}>
-                          <small style={{ fontWeight: 700, display: "block" }}>
-                            Rechazado el {formatRejectionDate(reason.created_at)}
-                          </small>
-                          <small style={{ display: "block" }}>{reason.reason}</small>
-                        </div>
-                      ))}
-                    </div>
-                  }
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      </Dialog>
     </>
   );
 }
