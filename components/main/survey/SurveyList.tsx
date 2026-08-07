@@ -5,6 +5,7 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
+import { Paginator } from "primereact/paginator";
 import { enableSurvey, disableSurvey } from "@/lib/services/survey.service";
 import SurveyUpdate from "./SurveyUpdate";
 import SurveyQuestions from "./SurveyQuestions";
@@ -58,6 +59,9 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
 
   const [isOpenModalShowChartSurvey, setIsOpenModalShowChartSurvey] = useState(false);
   const [surveySelectedForShowChartSurvey, setSurveySelectedForShowChartSurvey] = useState<any>(null);
+
+  const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
 
   function changeEnable(survey: any) {
     if (isLoadingActionChangeEnableSurvey) return;
@@ -140,11 +144,9 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
 
       <div className="card-body" style={{ padding: "16px 20px 20px" }}>
         <DataTable
-          value={surveys}
+          value={surveys.slice(first, first + rows)}
           loading={isLoadingSurveys}
-          stripedRows
-          rowHover
-          className="p-datatable-sm"
+          className="p-datatable-sm license-table"
           emptyMessage={
             <div className="license-empty">
               <i className="pi pi-inbox" />
@@ -198,6 +200,21 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
             )}
           />
         </DataTable>
+
+        <Paginator
+          className="mt-2"
+          first={first}
+          rows={rows}
+          totalRecords={surveys.length}
+          rowsPerPageOptions={[10, 15, 20]}
+          onPageChange={(e) => { setFirst(e.first); setRows(e.rows); }}
+          pageLinkSize={3}
+          rightContent={
+            <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
+              {surveys.length} {surveys.length === 1 ? "encuesta" : "encuestas"}
+            </span>
+          }
+        />
       </div>
 
       <SurveyUpdate
