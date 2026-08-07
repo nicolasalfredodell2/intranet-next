@@ -6,11 +6,18 @@ import AppToast from "@/components/common/AppToast";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Paginator } from "primereact/paginator";
+import { Dropdown } from "primereact/dropdown";
+import { Pencil, ClipboardList, ChartPie, CircleX } from "lucide-react";
 import { enableSurvey, disableSurvey } from "@/lib/services/survey.service";
 import SurveyUpdate from "./SurveyUpdate";
 import SurveyQuestions from "./SurveyQuestions";
 import SurveyDelete from "./SurveyDelete";
 import SurveyChart from "./SurveyChart";
+
+const ENABLED_OPTIONS = [
+  { label: "Habilitada", value: "1" },
+  { label: "Deshabilitada", value: "0" },
+];
 
 const ICON_BTN_STYLE = { background: "none", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center" } as const;
 
@@ -62,6 +69,9 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
 
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [enabledFilter, setEnabledFilter] = useState("");
 
   function changeEnable(survey: any) {
     if (isLoadingActionChangeEnableSurvey) return;
@@ -127,6 +137,28 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
     setSurveys((prev) => prev.filter((s) => s.id !== survey.id));
   }
 
+  function updateSearchTerm(value: string) {
+    setSearchTerm(value);
+    setFirst(0);
+  }
+
+  function updateEnabledFilter(value: string) {
+    setEnabledFilter(value);
+    setFirst(0);
+  }
+
+  function clearFilters() {
+    setSearchTerm("");
+    setEnabledFilter("");
+    setFirst(0);
+  }
+
+  const filteredSurveys = surveys.filter((s) => {
+    if (searchTerm && !s.name?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (enabledFilter && String(s.enable) !== enabledFilter) return false;
+    return true;
+  });
+
   return (
     <div className="card profile-card mt-4">
       <AppToast ref={toast} position="bottom-center" />
@@ -143,8 +175,40 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
       <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
       <div className="card-body" style={{ padding: "16px 20px 20px" }}>
+        <div className="license-filter-bar mb-3">
+          <div className="license-filter-bar-inputs">
+            <div className={`license-filter-input-wrap${searchTerm ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-search license-filter-icon" />
+              <input
+                className="license-filter-input"
+                style={{ paddingLeft: "32px" }}
+                placeholder="Buscar por nombre…"
+                value={searchTerm}
+                onChange={(e) => updateSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className={`license-filter-input-wrap${enabledFilter ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-flag license-filter-icon" />
+              <Dropdown
+                value={enabledFilter || null}
+                options={ENABLED_OPTIONS}
+                onChange={(e) => updateEnabledFilter(e.value ?? "")}
+                placeholder="Estado"
+                showClear
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+            </div>
+          </div>
+          {(searchTerm || enabledFilter) && (
+            <button type="button" className="license-filter-clear" onClick={clearFilters}>
+              <i className="pi pi-filter-slash" /> Limpiar filtros
+            </button>
+          )}
+        </div>
+
         <DataTable
-          value={surveys.slice(first, first + rows)}
+          value={filteredSurveys.slice(first, first + rows)}
           loading={isLoadingSurveys}
           className="p-datatable-sm license-table"
           emptyMessage={
@@ -178,22 +242,22 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
               <div className="d-flex align-items-center" style={{ gap: "6px" }}>
                 <Tooltip label="Modificar">
                   <button type="button" onClick={() => openModalUpdateSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
-                    <i className="fa-regular fa-pen-to-square" style={{ fontSize: "0.85rem" }} />
+                    <Pencil size={14} />
                   </button>
                 </Tooltip>
                 <Tooltip label="Preguntas">
                   <button type="button" onClick={() => openModalListQuestionsOfSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e0d9f7", color: "#4a3aa7" }}>
-                    <i className="fa-solid fa-clipboard-question" style={{ fontSize: "0.85rem" }} />
+                    <ClipboardList size={14} />
                   </button>
                 </Tooltip>
                 <Tooltip label="Gráfico">
                   <button type="button" onClick={() => openModalShowChartSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #bae6fd", color: "#0ea5e9" }}>
-                    <i className="fa-solid fa-chart-pie" style={{ fontSize: "0.85rem" }} />
+                    <ChartPie size={14} />
                   </button>
                 </Tooltip>
                 <Tooltip label="Eliminar">
                   <button type="button" onClick={() => openModalDeleteSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
-                    <i className="fa-regular fa-circle-xmark" style={{ fontSize: "0.85rem" }} />
+                    <CircleX size={14} />
                   </button>
                 </Tooltip>
               </div>
@@ -205,13 +269,13 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
           className="mt-2"
           first={first}
           rows={rows}
-          totalRecords={surveys.length}
+          totalRecords={filteredSurveys.length}
           rowsPerPageOptions={[10, 15, 20]}
           onPageChange={(e) => { setFirst(e.first); setRows(e.rows); }}
           pageLinkSize={3}
           rightContent={
             <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500, paddingRight: "4px" }}>
-              {surveys.length} {surveys.length === 1 ? "encuesta" : "encuestas"}
+              {filteredSurveys.length} {filteredSurveys.length === 1 ? "encuesta" : "encuestas"}
             </span>
           }
         />
