@@ -75,13 +75,6 @@ function generateGraphic(question: any): ChartItem {
   return { title: question?.name, labels, data };
 }
 
-function getChartWidth(chart: ChartItem): string {
-  const answersCount = chart.labels.length;
-  if (answersCount <= 2) return "33.33%";
-  if (answersCount <= 6) return "66.66%";
-  return "100%";
-}
-
 const TOOLTIP_BASE = {
   backgroundColor: "#1e293b",
   padding: 10,
@@ -118,7 +111,6 @@ function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem
         options={{
           indexAxis: isHorizontal ? "y" : "x",
           responsive: true,
-          maintainAspectRatio: false,
           scales: (isHorizontal ? { x: valueAxis, y: categoryAxis } : { x: categoryAxis, y: valueAxis }) as any,
           plugins: { legend: { display: false }, tooltip: TOOLTIP_BASE },
         }}
@@ -127,7 +119,7 @@ function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem
   }
 
   const pieData = { labels: chart.labels, datasets: [{ data: chart.data, backgroundColor: colors, borderColor: "#fff", borderWidth: 2 }] };
-  const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: LEGEND_BASE, tooltip: TOOLTIP_BASE } };
+  const pieOptions = { responsive: true, plugins: { legend: LEGEND_BASE, tooltip: TOOLTIP_BASE } };
 
   if (chartType === "doughnut") return <Doughnut data={pieData} options={pieOptions} />;
   if (chartType === "pie") return <Pie data={pieData} options={pieOptions} />;
@@ -137,7 +129,6 @@ function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem
       data={pieData}
       options={{
         responsive: true,
-        maintainAspectRatio: false,
         scales: { r: { ticks: { display: false }, grid: { color: "rgba(0,0,0,0.05)" }, angleLines: { color: "rgba(0,0,0,0.05)" } } },
         plugins: { legend: LEGEND_BASE, tooltip: TOOLTIP_BASE },
       }}
@@ -211,9 +202,9 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
         style={{ height: "75vh", width: "min(60vw, 96vw)" }}
         onHide={onClose}
       >
-        <div className="row justify-content-center" style={{ minHeight: "70vh" }}>
+        <div>
           {isLoadingChart && (
-            <div className="col-12 d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "50vh", color: "#94a3b8" }}>
+            <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "50vh", color: "#94a3b8" }}>
               <div className="spinner-border" role="status">
                 <span className="sr-only">Cargando...</span>
               </div>
@@ -221,17 +212,19 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
             </div>
           )}
 
-          {!isLoadingChart && charts.map((chart, idx) => (
-            <div key={idx} className="text-center" style={{ width: getChartWidth(chart), padding: "16px" }}>
-              <h6 className="mb-3"><small>{chart.title}</small></h6>
-              <div style={{ height: 260, width: "100%" }}>
-                <ChartFor chartType={chartType} chart={chart} />
-              </div>
+          {!isLoadingChart && charts.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+              {charts.map((chart, idx) => (
+                <div key={idx} style={{ padding: "16px" }}>
+                  <h6 className="mb-3" style={{ textAlign: "left", fontWeight: 700 }}>{chart.title}</h6>
+                  <ChartFor chartType={chartType} chart={chart} />
+                </div>
+              ))}
             </div>
-          ))}
+          )}
 
           {!isLoadingChart && charts.length === 0 && (
-            <div className="col-12 text-center" style={{ padding: "40px" }}>
+            <div className="text-center" style={{ padding: "40px" }}>
               <p style={{ color: "#94a3b8" }}>No hay preguntas con respuestas para graficar.</p>
             </div>
           )}
