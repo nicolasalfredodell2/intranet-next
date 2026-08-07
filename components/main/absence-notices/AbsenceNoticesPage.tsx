@@ -1249,13 +1249,6 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
           </div>
         }
       >
-        <Message
-          severity="info"
-          className="mb-3 w-100"
-          style={{ justifyContent: "flex-start" }}
-          text={<small>Solo se admiten formatos <strong>PNG, JPG, JPEG y PDF</strong>, con un peso máximo de <strong>10MB</strong>.</small>}
-        />
-
         <div
           className={`dropzone-area${uploadDrag ? " drag-over" : ""} text-center`}
           onDragOver={(e) => { e.preventDefault(); setUploadDrag(true); }}
@@ -1284,8 +1277,10 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
 
           {!isCompressing && !uploadFile && (
             <div>
-              <i className="fa-solid fa-cloud-arrow-up mb-2 text-primary" style={{ fontSize: "1.5rem" }} /><br />
               Arrastra tu archivo aquí o haz clic para seleccionar
+              <small className="text-muted d-block mt-1" style={{ fontSize: "0.7rem" }}>
+                <strong>PNG, JPG, JPEG o PDF</strong> — <strong>MÁX. 10MB</strong>
+              </small>
             </div>
           )}
 
