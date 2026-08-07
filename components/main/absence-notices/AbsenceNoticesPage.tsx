@@ -15,7 +15,7 @@ import { Message } from "primereact/message";
 import { addLocale } from "primereact/api";
 import imageCompression from "browser-image-compression";
 import { PDFDocument } from "pdf-lib";
-import { ClockAlert } from "lucide-react";
+import { ClockAlert, File as FileIcon, FileUp } from "lucide-react";
 import {
   getNoticesConfig,
   getMyNotices,
@@ -620,7 +620,7 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
   const uploadDialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
       <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <i className="fa-solid fa-file-arrow-up" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+        <FileUp size={16} color="#3b82f6" />
       </div>
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Subir documentación</p>
@@ -1060,7 +1060,7 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
                             ) : (
                               <Tooltip label="Ver último archivo subido">
                                 <button type="button" onClick={() => abrirArchivo(getUltimoAdjunto(n))} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
-                                  <i className="fa-solid fa-file" style={{ fontSize: "0.85rem" }} />
+                                  <FileIcon size={14} />
                                 </button>
                               </Tooltip>
                             )
@@ -1077,7 +1077,7 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
                           {checkCanUpload(n) && (
                             <Tooltip label="Subir documentación">
                               <button type="button" onClick={() => abrirModalUpload(n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
-                                <i className="fa-solid fa-file-arrow-up" style={{ fontSize: "0.85rem" }} />
+                                <FileUp size={14} />
                               </button>
                             </Tooltip>
                           )}
