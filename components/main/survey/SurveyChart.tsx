@@ -24,6 +24,13 @@ ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, BarElement, ArcE
 
 const ANSWER_PALETTE = ["#4a6cf7", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#4a3aa7", "#0ea5e9", "#e34948"];
 
+const MAX_LABEL_LENGTH = 22;
+
+function truncateLabel(label: string): string {
+  if (!label || label.length <= MAX_LABEL_LENGTH) return label;
+  return `${label.slice(0, MAX_LABEL_LENGTH - 1).trimEnd()}…`;
+}
+
 const CHART_TYPE_STORAGE_KEY = "survey-chart-type";
 
 type ChartType = "bar" | "bar-horizontal" | "doughnut" | "pie" | "polarArea";
@@ -96,6 +103,14 @@ const LEGEND_BASE = {
 
 function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem }) {
   const colors = chart.labels.map((_, i) => ANSWER_PALETTE[i % ANSWER_PALETTE.length]);
+  const displayLabels = chart.labels.map(truncateLabel);
+  const tooltip = {
+    ...TOOLTIP_BASE,
+    callbacks: {
+      ...TOOLTIP_BASE.callbacks,
+      title: (items: TooltipItem<any>[]) => chart.labels[items[0]?.dataIndex ?? 0] ?? "",
+    },
+  };
 
   if (chartType === "bar" || chartType === "bar-horizontal") {
     const isHorizontal = chartType === "bar-horizontal";
@@ -107,19 +122,19 @@ function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem
     };
     return (
       <Bar
-        data={{ labels: chart.labels, datasets: [{ label: "Veces seleccionada", data: chart.data, backgroundColor: colors, borderWidth: 0, borderRadius: 6, maxBarThickness: 48 }] }}
+        data={{ labels: displayLabels, datasets: [{ label: "Veces seleccionada", data: chart.data, backgroundColor: colors, borderWidth: 0, borderRadius: 6, maxBarThickness: 48 }] }}
         options={{
           indexAxis: isHorizontal ? "y" : "x",
           responsive: true,
           scales: (isHorizontal ? { x: valueAxis, y: categoryAxis } : { x: categoryAxis, y: valueAxis }) as any,
-          plugins: { legend: { display: false }, tooltip: TOOLTIP_BASE },
+          plugins: { legend: { display: false }, tooltip },
         }}
       />
     );
   }
 
-  const pieData = { labels: chart.labels, datasets: [{ data: chart.data, backgroundColor: colors, borderColor: "#fff", borderWidth: 2 }] };
-  const pieOptions = { responsive: true, plugins: { legend: LEGEND_BASE, tooltip: TOOLTIP_BASE } };
+  const pieData = { labels: displayLabels, datasets: [{ data: chart.data, backgroundColor: colors, borderColor: "#fff", borderWidth: 2 }] };
+  const pieOptions = { responsive: true, plugins: { legend: LEGEND_BASE, tooltip } };
 
   if (chartType === "doughnut") return <Doughnut data={pieData} options={pieOptions} />;
   if (chartType === "pie") return <Pie data={pieData} options={pieOptions} />;
@@ -130,7 +145,7 @@ function ChartFor({ chartType, chart }: { chartType: ChartType; chart: ChartItem
       options={{
         responsive: true,
         scales: { r: { ticks: { display: false }, grid: { color: "rgba(0,0,0,0.05)" }, angleLines: { color: "rgba(0,0,0,0.05)" } } },
-        plugins: { legend: LEGEND_BASE, tooltip: TOOLTIP_BASE },
+        plugins: { legend: LEGEND_BASE, tooltip },
       }}
     />
   );
@@ -213,9 +228,9 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
           )}
 
           {!isLoadingChart && charts.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", marginTop: "16px" }}>
               {charts.map((chart, idx) => (
-                <div key={idx} style={{ padding: "16px" }}>
+                <div key={idx} className="card profile-card" style={{ padding: "16px" }}>
                   <h6 className="mb-3" style={{ textAlign: "left", fontWeight: 700 }}>{chart.title}</h6>
                   <ChartFor chartType={chartType} chart={chart} />
                 </div>
