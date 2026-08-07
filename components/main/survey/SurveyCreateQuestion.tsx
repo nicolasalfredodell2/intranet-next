@@ -41,6 +41,11 @@ export default function SurveyCreateQuestion({ survey, onNewQuestion }: SurveyCr
     }
   }
 
+  function limpiar() {
+    setName("");
+    setTouched(false);
+  }
+
   return (
     <form className="animated fadeIn" onSubmit={handleSubmit} noValidate>
       <AppToast ref={toast} position="bottom-center" />
@@ -58,15 +63,26 @@ export default function SurveyCreateQuestion({ survey, onNewQuestion }: SurveyCr
         </div>
       </div>
 
-      <button
-        disabled={isCreating || !name}
-        type="submit"
-        className="btn btn-primary d-flex align-items-center"
-        style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
-      >
-        <i className={isCreating ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-        {isCreating ? "Creando pregunta..." : "Crear pregunta"}
-      </button>
+      <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+        <button
+          disabled={isCreating || !name}
+          type="submit"
+          className="btn btn-primary d-flex align-items-center"
+          style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+        >
+          <i className={isCreating ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+          {isCreating ? "Creando pregunta..." : "Crear pregunta"}
+        </button>
+        <button
+          type="button"
+          disabled={isCreating}
+          onClick={limpiar}
+          className="btn btn-light text-muted ml-auto"
+          style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+        >
+          Limpiar
+        </button>
+      </div>
     </form>
   );
 }
