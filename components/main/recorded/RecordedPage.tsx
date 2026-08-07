@@ -554,7 +554,7 @@ export default function RecordedPage() {
 
         {/* Buscar agente */}
         <div className="card profile-card mt-4">
-          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+          <div className="d-flex align-items-center flex-wrap px-3 py-3" style={{ gap: "12px" }}>
             <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <i className="pi pi-search" style={{ color: "#3b82f6", fontSize: "1rem" }} />
             </div>
@@ -562,10 +562,7 @@ export default function RecordedPage() {
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar agente</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Seleccioná un agente para gestionar sus fichadas</small>
             </div>
-          </div>
-          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
-          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-            <div className={`license-filter-input-wrap${fileOfUserSelected ? " license-filter-input-wrap--active" : ""}`} style={{ maxWidth: 420 }}>
+            <div className={`license-filter-input-wrap${fileOfUserSelected ? " license-filter-input-wrap--active" : ""}`} style={{ width: 320, maxWidth: "100%" }}>
               <i className="pi pi-user license-filter-icon" />
               <Dropdown
                 value={fileOfUserSelected || null}
