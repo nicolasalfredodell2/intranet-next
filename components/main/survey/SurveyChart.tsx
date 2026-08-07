@@ -108,7 +108,7 @@ const TOOLTIP_BASE = {
   callbacks: {
     label: (item: TooltipItem<any>) => {
       const v = Number(item.raw);
-      return ` ${v} ${v === 1 ? "vez" : "veces"}`;
+      return ` ${v} ${v === 1 ? "voto" : "votos"}`;
     },
   },
 };
@@ -180,18 +180,32 @@ function ChartFor({ chartType, chart, topIndices, bottomIndices }: { chartType: 
   };
   const pieOptions = { responsive: true, plugins: { legend: LEGEND_BASE, tooltip } };
 
-  if (chartType === "doughnut") return <Doughnut data={pieData} options={pieOptions} />;
-  if (chartType === "pie") return <Pie data={pieData} options={pieOptions} />;
+  if (chartType === "doughnut") {
+    return (
+      <div style={{ maxWidth: 220, margin: "0 auto" }}>
+        <Doughnut data={pieData} options={pieOptions} />
+      </div>
+    );
+  }
+  if (chartType === "pie") {
+    return (
+      <div style={{ maxWidth: 220, margin: "0 auto" }}>
+        <Pie data={pieData} options={pieOptions} />
+      </div>
+    );
+  }
 
   return (
-    <PolarArea
-      data={pieData}
-      options={{
-        responsive: true,
-        scales: { r: { ticks: { display: false }, grid: { color: "rgba(0,0,0,0.05)" }, angleLines: { color: "rgba(0,0,0,0.05)" } } },
-        plugins: { legend: LEGEND_BASE, tooltip },
-      }}
-    />
+    <div style={{ maxWidth: 220, margin: "0 auto" }}>
+      <PolarArea
+        data={pieData}
+        options={{
+          responsive: true,
+          scales: { r: { ticks: { display: false }, grid: { color: "rgba(0,0,0,0.05)" }, angleLines: { color: "rgba(0,0,0,0.05)" } } },
+          plugins: { legend: LEGEND_BASE, tooltip },
+        }}
+      />
+    </div>
   );
 }
 
