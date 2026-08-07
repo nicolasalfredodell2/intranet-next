@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
@@ -27,6 +26,7 @@ import {
   uploadNoticeFile,
   getNoticeFile,
 } from "@/lib/services/absence-notices.service";
+import AbsenceNoticeDetail from "./AbsenceNoticeDetail";
 
 addLocale("es-avisos", {
   firstDayOfWeek: 1,
@@ -290,6 +290,8 @@ export default function AbsenceNoticesPage() {
   const [isDownloadingFile, setIsDownloadingFile] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
+
+  const [selectedNoticeId, setSelectedNoticeId] = useState<string | number | null>(null);
 
   useEffect(() => {
     loadConfig();
@@ -1096,9 +1098,9 @@ export default function AbsenceNoticesPage() {
                       )}
 
                       <Tooltip label="Ver detalle">
-                        <Link href={`/main/absence-notices/${n.id}`} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                        <button type="button" onClick={() => setSelectedNoticeId(n.id)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
                           <i className="pi pi-external-link" style={{ fontSize: "0.85rem" }} />
-                        </Link>
+                        </button>
                       </Tooltip>
                     </div>
                   )}
@@ -1151,6 +1153,24 @@ export default function AbsenceNoticesPage() {
         )}
         {previewFile?.type === "pdf" && (
           <iframe src={previewFile.url} title={previewFile.name} style={{ width: "100%", height: "calc(100vh - 120px)", border: "none" }} />
+        )}
+      </Sidebar>
+
+      {/* Detalle del aviso */}
+      <Sidebar
+        visible={!!selectedNoticeId}
+        position="right"
+        showCloseIcon
+        onHide={() => setSelectedNoticeId(null)}
+        style={{ width: "min(720px, 95vw)" }}
+      >
+        {selectedNoticeId && (
+          <AbsenceNoticeDetail
+            id={selectedNoticeId}
+            embedded
+            onClose={() => setSelectedNoticeId(null)}
+            onChanged={() => loadNotices(page, filterForm, perPage)}
+          />
         )}
       </Sidebar>
 
