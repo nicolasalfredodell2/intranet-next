@@ -59,7 +59,6 @@ export default function SurveyUpdate({ visible, survey, onClose, onUpdated }: Su
       </div>
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificación de encuesta</p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{survey?.name}</small>
       </div>
     </div>
   );
