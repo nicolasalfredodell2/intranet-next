@@ -176,15 +176,25 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
   }
 
   const chartDialogHeader = (
-    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+    <div className="d-flex align-items-center" style={{ gap: "12px", width: "100%", paddingRight: "12px" }}>
       <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <ChartPie size={18} color="#0ea5e9" />
       </div>
-      <div style={{ minWidth: 0 }}>
+      <div className="flex-grow-1" style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
           {isLoadingChart ? "Cargando gráficos" : "Estadísticas"}
         </p>
       </div>
+      {!isLoadingChart && charts.length > 0 && (
+        <Dropdown
+          value={chartType}
+          options={CHART_TYPE_OPTIONS}
+          onChange={(e) => handleChartTypeChange(e.value)}
+          className="chart-type-select"
+          panelClassName="license-filter-dropdown-panel"
+          style={{ width: 190, border: "1.5px solid #dbeafe", borderRadius: "8px" }}
+        />
+      )}
     </div>
   );
 
@@ -201,20 +211,6 @@ export default function SurveyChart({ visible, survey, onClose }: SurveyChartPro
         style={{ height: "75vh", width: "min(60vw, 96vw)" }}
         onHide={onClose}
       >
-        {!isLoadingChart && charts.length > 0 && (
-          <div className="d-flex align-items-center justify-content-end" style={{ gap: "8px", marginBottom: "8px" }}>
-            <small style={{ color: "#94a3b8" }}>Tipo de gráfico</small>
-            <Dropdown
-              value={chartType}
-              options={CHART_TYPE_OPTIONS}
-              onChange={(e) => handleChartTypeChange(e.value)}
-              className="license-filter-dropdown"
-              panelClassName="license-filter-dropdown-panel"
-              style={{ width: 200 }}
-            />
-          </div>
-        )}
-
         <div className="row justify-content-center" style={{ minHeight: "70vh" }}>
           {isLoadingChart && (
             <div className="col-12 d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "50vh", color: "#94a3b8" }}>

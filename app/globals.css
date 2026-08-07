@@ -1260,6 +1260,15 @@ input[disabled] {
   color: #cbd5e1 !important;
 }
 
+.chart-type-select .p-dropdown-label {
+  font-size: 0.75rem !important;
+  padding: 4px 8px !important;
+}
+
+.chart-type-select .p-dropdown-trigger {
+  width: 2rem;
+}
+
 .license-filter-dropdown .p-dropdown-trigger {
   color: #94a3b8;
   padding-right: 2px;
