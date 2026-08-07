@@ -45,6 +45,33 @@ function formatDateTime(value: string | null | undefined, withSeconds = false): 
   return `${d}/${m}/${y} ${hh}:${mm}:${ss}`;
 }
 
+function countDays(start: Date, end: Date): number {
+  return Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+}
+
+function countBusinessDays(start: Date, end: Date): number {
+  let count = 0;
+  const current = new Date(start);
+  while (current <= end) {
+    const day = current.getDay();
+    if (day !== 0 && day !== 6) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
+function daysRangeLabel(from: string | null | undefined, to: string | null | undefined): string | null {
+  if (!from || !to) return null;
+  const start = new Date(`${from}T00:00:00`);
+  const end = new Date(`${to}T00:00:00`);
+  if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return null;
+  const totalDays = countDays(start, end);
+  const businessDays = countBusinessDays(start, end);
+  const totalLabel = `${totalDays} ${totalDays === 1 ? "día total" : "días totales"}`;
+  if (businessDays === totalDays) return totalLabel;
+  return `${totalLabel} (${businessDays} ${businessDays === 1 ? "día hábil" : "días hábiles"})`;
+}
+
 const DIACRITICS_RE = new RegExp("[\\u0300-\\u036f]", "g");
 
 // Misma paleta de estado usada en el listado de "Mis avisos".
@@ -444,9 +471,19 @@ export default function AbsenceNoticeDetailPage() {
               {notice.notice_to && (
                 <div className="col-12 col-md-3 mb-3">
                   <label className="profile-field-label">Desde - Hasta</label>
-                  <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>
-                    {formatDateDisplay(notice.notice_date)} - {formatDateDisplay(notice.notice_to)}
-                  </p>
+                  <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
+                    <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>
+                      {formatDateDisplay(notice.notice_date)} - {formatDateDisplay(notice.notice_to)}
+                    </p>
+                    {daysRangeLabel(notice.notice_date, notice.notice_to) && (
+                      <span
+                        className="badge rounded-pill"
+                        style={{ background: "rgba(100,116,139,0.10)", color: "#64748b", border: "none", fontWeight: 600, padding: "4px 10px" }}
+                      >
+                        {daysRangeLabel(notice.notice_date, notice.notice_to)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
               {notice.type?.name?.toLowerCase().includes("llegada tarde") && (
