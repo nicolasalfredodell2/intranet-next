@@ -7,7 +7,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Paginator } from "primereact/paginator";
 import { Dropdown } from "primereact/dropdown";
-import { Pencil, ClipboardList, ChartPie, CircleX } from "lucide-react";
+import { Pencil, ClipboardList, ChartPie, Trash2 } from "lucide-react";
 import { enableSurvey, disableSurvey } from "@/lib/services/survey.service";
 import SurveyUpdate from "./SurveyUpdate";
 import SurveyQuestions from "./SurveyQuestions";
@@ -240,7 +240,7 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
             }}
           />
           <Column
-            header="ACCIONES"
+            header=""
             style={{ width: "10%" }}
             body={(survey) => (
               <div className="d-flex align-items-center" style={{ gap: "6px" }}>
@@ -261,7 +261,7 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys }: Su
                 </Tooltip>
                 <Tooltip label="Eliminar">
                   <button type="button" onClick={() => openModalDeleteSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
-                    <CircleX size={14} />
+                    <Trash2 size={14} />
                   </button>
                 </Tooltip>
               </div>
