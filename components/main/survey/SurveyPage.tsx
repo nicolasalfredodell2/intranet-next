@@ -65,7 +65,7 @@ export default function SurveyPage() {
 
         <SurveyCreate onNewSurvey={addSurvey} />
 
-        <SurveyList isLoadingSurveys={isLoadingSurveys} surveys={surveys} setSurveys={setSurveys} />
+        <SurveyList isLoadingSurveys={isLoadingSurveys} surveys={surveys} setSurveys={setSurveys} onReload={loadItems} />
       </div>
     </>
   );
