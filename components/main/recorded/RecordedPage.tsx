@@ -156,8 +156,8 @@ function timeDiffLabel(start: string | undefined | null, end: string | undefined
 }
 
 function hostLabel(host: string | undefined | null): string {
-  if (host === "RF_IN") return "Reloj Interno";
-  if (host === "RF_OUT") return "Reloj Externo";
+  if (host === "RF_IN") return "Reloj de entrada";
+  if (host === "RF_OUT") return "Reloj de salida";
   if (host === "RRHH") return "Creado manualmente";
   return "-";
 }
