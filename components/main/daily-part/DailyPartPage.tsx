@@ -108,13 +108,67 @@ export default function DailyPartPage() {
     XLSX.writeFile(workbook as any, `Parte diario del ${day} de ${MONTH_NAMES[month]} de ${year}.xlsx`);
   }
 
+  async function loadAsDataUrl(path: string): Promise<string | null> {
+    try {
+      const res = await fetch(path);
+      const blob = await res.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return null;
+    }
+  }
+
   async function exportPdf() {
     setIsGeneratingPdf(true);
     try {
       const { default: jsPDF } = await import("jspdf");
       const { default: autoTable } = await import("jspdf-autotable");
       const doc = new jsPDF();
-      autoTable(doc, { head: [["Legajo", "Nombre", "Llegó tarde", "Tiempo excedido", "Fichadas del día", "Horario laboral"]], body: buildExportRows().map((r) => Object.values(r)) });
+      const logo = await loadAsDataUrl("/img/trib-cuentas-escudo.png");
+      const fontDataUrl = await loadAsDataUrl("/fonts/Montserrat-Variable.ttf");
+      const fontBase64 = fontDataUrl?.split(",")[1] ?? null;
+
+      let fontName = "helvetica";
+      if (fontBase64) {
+        doc.addFileToVFS("Montserrat.ttf", fontBase64);
+        doc.addFont("Montserrat.ttf", "Montserrat", "normal");
+        fontName = "Montserrat";
+      }
+      doc.setFont(fontName, "normal");
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const marginX = 14;
+      const textX = marginX + (logo ? 20 : 0);
+
+      if (logo) doc.addImage(logo, "PNG", marginX, 10, 16, 16);
+
+      doc.setFontSize(15);
+      doc.setTextColor(30, 41, 59);
+      doc.text("Tribunal de Cuentas de Río Negro", textX, 17);
+
+      doc.setFontSize(10.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Parte diario del ${day} de ${MONTH_NAMES[month]} de ${year}`, textX, 23.5);
+
+      doc.setDrawColor(100, 116, 139);
+      doc.setLineWidth(0.6);
+      doc.line(marginX, 29, pageWidth - marginX, 29);
+
+      autoTable(doc, {
+        startY: 35,
+        head: [["Legajo", "Nombre", "Llegó tarde", "Tiempo excedido", "Fichadas del día", "Horario laboral"]],
+        body: buildExportRows().map((r) => Object.values(r)),
+        margin: { left: marginX, right: marginX },
+        styles: { font: fontName, fontSize: 8.5, cellPadding: 3, textColor: [51, 65, 85] },
+        headStyles: { fillColor: [100, 116, 139], textColor: 255 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+      });
+
       const blob = doc.output("blob");
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
       setPdfUrl(URL.createObjectURL(blob));
