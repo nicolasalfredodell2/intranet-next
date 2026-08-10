@@ -202,6 +202,7 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
                 locale="es-horas-extras-create"
                 showButtonBar
                 showOtherMonths={false}
+                disabledDays={[0, 6]}
                 placeholder="Seleccioná una fecha"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
@@ -219,6 +220,7 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
                 locale="es-horas-extras-create"
                 showButtonBar
                 showOtherMonths={false}
+                disabledDays={[0, 6]}
                 minDate={form.begin_date ? new Date(`${form.begin_date}T00:00:00`) : undefined}
                 placeholder="Seleccioná una fecha"
                 className="license-filter-dropdown"
