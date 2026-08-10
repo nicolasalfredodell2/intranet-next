@@ -101,12 +101,25 @@ function timeToMinutes(time: string): number | null {
   return h * 60 + m;
 }
 
+function parseValues(value: unknown): Record<string, any> {
+  if (!value) return {};
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return {};
+    }
+  }
+  return value as Record<string, any>;
+}
+
 function splitAuditsByNewValues(audits: any[]): any[] {
-  return audits.slice(1).flatMap((obj: any) =>
-    Object.keys(obj.new_values ?? {})
+  return audits.slice(1).flatMap((obj: any) => {
+    const newValues = parseValues(obj.new_values);
+    return Object.keys(newValues)
       .filter((key) => ["shift", "start_time", "end_time", "status"].includes(key))
-      .map((key) => ({ ...obj, new_values: { [key]: obj.new_values[key] } }))
-  );
+      .map((key) => ({ ...obj, new_values: { [key]: newValues[key] } }));
+  });
 }
 
 interface Props {
@@ -131,7 +144,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
   const [formEdit, setFormEdit] = useState(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [auditsOpen, setAuditsOpen] = useState<any[] | null>(null);
+  const [auditsOpen, setAuditsOpen] = useState<any | null>(null);
   const [timeStampsOpen, setTimeStampsOpen] = useState<any>(null);
 
   useEffect(() => {
@@ -526,7 +539,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
             body={(detail) =>
               detail.audits && detail.audits.length > 0 ? (
                 <Tooltip label="Ver detalle">
-                  <button type="button" onClick={() => setAuditsOpen(detail.audits)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                  <button type="button" onClick={() => setAuditsOpen(detail)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
                     <i className="pi pi-external-link" style={{ fontSize: "0.85rem" }} />
                   </button>
                 </Tooltip>
@@ -553,7 +566,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
         </DataTable>
       </Dialog>
 
-      <OvertimesAuditsDialog visible={!!auditsOpen} onHide={() => setAuditsOpen(null)} audits={auditsOpen ?? []} />
+      <OvertimesAuditsDialog visible={!!auditsOpen} onHide={() => setAuditsOpen(null)} audits={auditsOpen?.audits ?? []} date={auditsOpen?.start_time} />
       <OvertimesTimeStampsDialog visible={!!timeStampsOpen} onHide={() => setTimeStampsOpen(null)} overtime={timeStampsOpen} />
     </>
   );
