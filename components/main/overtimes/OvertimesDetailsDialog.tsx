@@ -566,7 +566,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
         </DataTable>
       </Dialog>
 
-      <OvertimesAuditsDialog visible={!!auditsOpen} onHide={() => setAuditsOpen(null)} audits={auditsOpen?.audits ?? []} date={auditsOpen?.start_time} />
+      <OvertimesAuditsDialog visible={!!auditsOpen} onHide={() => setAuditsOpen(null)} audits={auditsOpen?.audits ?? []} date={auditsOpen?.start_time} agentName={user?.lastname_name} />
       <OvertimesTimeStampsDialog visible={!!timeStampsOpen} onHide={() => setTimeStampsOpen(null)} overtime={timeStampsOpen} />
     </>
   );

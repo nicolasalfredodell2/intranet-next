@@ -67,9 +67,10 @@ interface Props {
   onHide: () => void;
   audits: any[];
   date?: string;
+  agentName?: string;
 }
 
-export default function OvertimesAuditsDialog({ visible, onHide, audits, date }: Props) {
+export default function OvertimesAuditsDialog({ visible, onHide, audits, date, agentName }: Props) {
   const dialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
       <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -77,7 +78,10 @@ export default function OvertimesAuditsDialog({ visible, onHide, audits, date }:
       </div>
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Auditorías</p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{date ? formatDate(date) : ""}</small>
+        <div className="d-flex align-items-center flex-wrap" style={{ gap: "6px" }}>
+          {agentName && <span className="license-dialog-year-badge">{agentName}</span>}
+          {date && <span className="license-dialog-year-badge">{formatDate(date)}</span>}
+        </div>
       </div>
     </div>
   );
