@@ -310,7 +310,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
           {isLoading ? "Cargando detalles de" : "Detalles de"} {user?.lastname_name}
         </p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Legajo: {user?.file}</small>
+        <span className="license-dialog-year-badge">Legajo {user?.file}</span>
       </div>
     </div>
   );

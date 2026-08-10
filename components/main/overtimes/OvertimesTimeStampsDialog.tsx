@@ -62,7 +62,10 @@ export default function OvertimesTimeStampsDialog({ visible, onHide, overtime }:
       </div>
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Fichadas del día</p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{overtime?.start_time ? formatDate(overtime.start_time) : ""}</small>
+        <div className="d-flex align-items-center flex-wrap" style={{ gap: "6px" }}>
+          {overtime?.people?.lastname_name && <span className="license-dialog-year-badge">{overtime.people.lastname_name}</span>}
+          {overtime?.start_time && <span className="license-dialog-year-badge">{formatDate(overtime.start_time)}</span>}
+        </div>
       </div>
     </div>
   );
@@ -71,7 +74,7 @@ export default function OvertimesTimeStampsDialog({ visible, onHide, overtime }:
     <>
       <AppToast ref={toast} position="bottom-center" />
 
-      <Dialog header={dialogHeader} visible={visible} position="bottom" draggable dismissableMask onHide={onHide} style={{ width: "30vw" }}>
+      <Dialog header={dialogHeader} visible={visible} position="bottom" draggable={false} dismissableMask onHide={onHide} style={{ width: "30vw" }}>
         <DataTable
           value={timeStamps}
           loading={isLoading}
