@@ -104,10 +104,37 @@ export default function DailyPartPage() {
   }
 
   async function exportExcel() {
-    const XLSX = await import("xlsx");
-    const worksheet = XLSX.utils.json_to_sheet(buildExportRows());
-    const workbook = { Sheets: { data: worksheet }, SheetNames: ["data"] };
-    XLSX.writeFile(workbook as any, `Parte diario del ${day} de ${MONTH_NAMES[month]} de ${year}.xlsx`);
+    const ExcelJS = await import("exceljs");
+    const rows = buildExportRows();
+    const headers = rows.length > 0 ? Object.keys(rows[0]) : ["Legajo", "Nombre", "Llegó tarde", "Tiempo excedido", "Fichadas del día", "Horario laboral"];
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Parte diario");
+
+    worksheet.columns = headers.map((header) => {
+      const maxLen = rows.reduce((max, row) => Math.max(max, String((row as any)[header] ?? "").length), header.length);
+      return { header, key: header, width: Math.min(Math.max(maxLen + 2, 10), 40) };
+    });
+
+    rows.forEach((row) => worksheet.addRow(row));
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.font = { color: { argb: "FF64748B" }, bold: true };
+    });
+
+    worksheet.getColumn("Legajo").eachCell({ includeEmpty: false }, (cell, rowNumber) => {
+      if (rowNumber === 1) return;
+      cell.alignment = { horizontal: "left" };
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Parte diario del ${day} de ${MONTH_NAMES[month]} de ${year}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   async function loadAsDataUrl(path: string): Promise<string | null> {
