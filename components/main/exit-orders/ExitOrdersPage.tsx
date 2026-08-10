@@ -12,6 +12,7 @@ import { Checkbox } from "primereact/checkbox";
 import { addLocale } from "primereact/api";
 import { DoorOpen, FileSpreadsheet, FileText, Search, List } from "lucide-react";
 import { loadExitOrdersMonthlyReport } from "@/lib/services/exit-orders-report.service";
+import ExitOrdersDetailsDialog from "./ExitOrdersDetailsDialog";
 
 addLocale("es", {
   firstDayOfWeek: 1,
@@ -466,6 +467,14 @@ export default function ExitOrdersPage() {
       >
         {pdfUrl && <iframe src={pdfUrl} style={{ flex: 1, width: "100%", border: "none" }} title="Órdenes de salidas PDF" />}
       </Sidebar>
+
+      <ExitOrdersDetailsDialog
+        visible={isOpenModalDetails}
+        onHide={() => setIsOpenModalDetails(false)}
+        user={userSelected}
+        year={year}
+        month={month}
+      />
     </>
   );
 }

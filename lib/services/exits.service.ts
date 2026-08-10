@@ -59,6 +59,16 @@ export async function loadExitOrdersAdmin(
   return res.json();
 }
 
+export async function loadExitOrdersAdminByUser(
+  pagination: { limit: number; page: number; status?: string; type?: string; user_lastname?: string },
+  data: { user_id: number | string; month_exit_order: string }
+): Promise<any> {
+  const url = `${API}admin/all-exit-orders?limit=${pagination.limit}&page=${pagination.page}&user_id=${data.user_id}&month_exit_order=${data.month_exit_order}`;
+  const res = await fetch(url, { method: "POST", headers: { ...authHeaders(), "Content-Type": "application/json" }, body: JSON.stringify(pagination) });
+  if (!res.ok) throw new Error("No se pudieron cargar las salidas");
+  return res.json();
+}
+
 export async function updateExitOrderAdmin(files: File[], data: any, id: string): Promise<any> {
   const fd = new FormData();
   fd.append("departure_hour", data.departure_hour);
