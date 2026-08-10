@@ -8,7 +8,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Dropdown } from "primereact/dropdown";
 import { Sidebar } from "primereact/sidebar";
-import { CalendarCheck, FileSpreadsheet, FileText } from "lucide-react";
+import { CalendarCheck, FileSpreadsheet, FileText, List } from "lucide-react";
 import { loadDailyPart } from "@/lib/services/daily-part.service";
 
 const MONTH_NAMES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
@@ -257,7 +257,17 @@ export default function DailyPartPage() {
 
         {/* List card */}
         <div className="card profile-card mt-4">
-          <div className="card-body">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <List size={18} color="#eab308" />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de fichadas</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Detalle de agentes con fichadas del día</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             <div className="d-flex justify-content-end mb-3">
               <button
                 type="button"

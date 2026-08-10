@@ -7,7 +7,7 @@ import { ProgressBar } from "primereact/progressbar";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Sidebar } from "primereact/sidebar";
-import { Timer, FileSpreadsheet, FileText, Search } from "lucide-react";
+import { Timer, FileSpreadsheet, FileText, Search, List } from "lucide-react";
 import { loadOvertimes } from "@/lib/services/overtimes.service";
 import OvertimesDetailsDialog from "./OvertimesDetailsDialog";
 
@@ -216,7 +216,7 @@ export default function OvertimesPage() {
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Overtimes</h5>
-              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{MONTH_NAMES[month - 1]} de {year}</small>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Horas extra trabajadas por agente</small>
             </div>
             {!isLoading && reports.length > 0 && (
               <div className="d-flex align-items-center" style={{ gap: "8px" }}>
@@ -246,53 +246,57 @@ export default function OvertimesPage() {
 
         {/* Filters card */}
         <div className="card profile-card mt-4">
-          <div className="card-body">
-            <div className="d-flex align-items-center flex-wrap mb-3" style={{ gap: "12px" }}>
-              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Search size={18} color="#eab308" />
-              </div>
-              <div>
-                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar overtimes</h5>
-                <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Seleccioná el año y mes para consultar el listado</small>
-              </div>
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Search size={18} color="#eab308" />
             </div>
-
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar overtimes</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Seleccioná el año y mes para consultar el listado</small>
+            </div>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             <div className="license-filter-bar">
-              <div className="license-filter-bar-inputs">
-                <div className="license-filter-input-wrap" style={{ maxWidth: "140px" }}>
-                  <i className="pi pi-calendar license-filter-icon" />
-                  <input
-                    className="license-filter-input"
-                    style={{ paddingLeft: "0" }}
-                    placeholder="Año"
-                    type="number"
-                    max={actuallyYear}
-                    value={year}
-                    onChange={(e) => setYear(Number(e.target.value))}
-                  />
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <div className="license-filter-input-wrap" style={{ flex: 1 }}>
+                    <i className="pi pi-calendar license-filter-icon" />
+                    <input
+                      className="license-filter-input"
+                      style={{ paddingLeft: "0" }}
+                      placeholder="Año"
+                      type="number"
+                      max={actuallyYear}
+                      value={year}
+                      onChange={(e) => setYear(Number(e.target.value))}
+                    />
+                  </div>
+                  <div className="license-filter-input-wrap" style={{ flex: 1 }}>
+                    <i className="pi pi-calendar license-filter-icon" />
+                    <input
+                      className="license-filter-input"
+                      style={{ paddingLeft: "0" }}
+                      placeholder="Mes"
+                      type="number"
+                      min={1}
+                      max={12}
+                      value={month}
+                      onChange={(e) => setMonth(Number(e.target.value))}
+                    />
+                  </div>
                 </div>
-                <div className="license-filter-input-wrap" style={{ maxWidth: "140px" }}>
-                  <i className="pi pi-calendar license-filter-icon" />
-                  <input
-                    className="license-filter-input"
-                    style={{ paddingLeft: "0" }}
-                    placeholder="Mes"
-                    type="number"
-                    min={1}
-                    max={12}
-                    value={month}
-                    onChange={(e) => setMonth(Number(e.target.value))}
-                  />
+                <div>
+                  <button
+                    type="button"
+                    disabled={isLoading || !year || !month || month < 1 || month > 12}
+                    onClick={loadReports}
+                    className="btn btn-sm btn-info"
+                    style={{ borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem" }}
+                  >
+                    {isLoading ? "BUSCANDO" : "BUSCAR"}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  disabled={isLoading || !year || !month || month < 1 || month > 12}
-                  onClick={loadReports}
-                  className="btn btn-sm btn-info"
-                  style={{ borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem" }}
-                >
-                  {isLoading ? "BUSCANDO" : "BUSCAR"}
-                </button>
               </div>
             </div>
           </div>
@@ -300,20 +304,27 @@ export default function OvertimesPage() {
 
         {/* List card */}
         <div className="card profile-card mt-4">
-          <div className="card-body">
-            <div className="d-flex justify-content-end mb-3">
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={loadReports}
-                className="btn btn-light d-flex align-items-center"
-                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
-              >
-                <i className={isLoading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
-                Recargar
-              </button>
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <List size={18} color="#eab308" />
             </div>
-
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de overtimes</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Suma total de horas extra por agente</small>
+            </div>
+            <button
+              type="button"
+              disabled={isLoading}
+              onClick={loadReports}
+              className="btn btn-light d-flex align-items-center"
+              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+            >
+              <i className={isLoading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+              Recargar
+            </button>
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+          <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             <div className="license-filter-bar mb-3">
               <div className="license-filter-bar-inputs">
                 <div className={`license-filter-input-wrap${nameFilter ? " license-filter-input-wrap--active" : ""}`}>
