@@ -275,36 +275,24 @@ export default function OvertimesPage() {
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
             <div className="row">
               <div className="col-12 col-md-6 mb-3">
-                <label className="profile-field-label">Año *</label>
+                <label className="profile-field-label">Mes y año *</label>
                 <div className="license-filter-input-wrap profile-birthdate-wrap">
                   <i className="pi pi-calendar license-filter-icon" />
                   <Calendar
-                    value={year ? new Date(year, 0, 1) : null}
-                    onChange={(e) => setYear(e.value ? (e.value as Date).getFullYear() : 0)}
-                    view="year"
-                    dateFormat="yy"
+                    value={year && month ? new Date(year, month - 1, 1) : null}
+                    onChange={(e) => {
+                      const date = e.value as Date | null;
+                      setYear(date ? date.getFullYear() : 0);
+                      setMonth(date ? date.getMonth() + 1 : 0);
+                    }}
+                    view="month"
+                    dateFormat="mm/yy"
                     locale="es"
                     minDate={new Date(MIN_YEAR, 0, 1)}
-                    maxDate={new Date(actuallyYear, 0, 1)}
-                    placeholder="Año"
+                    maxDate={new Date(actuallyYear, now.getMonth(), 1)}
+                    placeholder="Mes y año"
                     className="license-filter-dropdown"
                     panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
-                  />
-                </div>
-              </div>
-              <div className="col-12 col-md-6 mb-3">
-                <label className="profile-field-label">Mes *</label>
-                <div className="license-filter-input-wrap">
-                  <i className="pi pi-calendar license-filter-icon" />
-                  <input
-                    className="license-filter-input"
-                    style={{ paddingLeft: "0" }}
-                    placeholder="Mes"
-                    type="number"
-                    min={1}
-                    max={12}
-                    value={month}
-                    onChange={(e) => setMonth(Number(e.target.value))}
                   />
                 </div>
               </div>
