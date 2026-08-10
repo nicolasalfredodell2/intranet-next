@@ -64,7 +64,7 @@ export default function HorasExtrasDetailsDialog({ visible, onHide, horaExtra, o
       shift: horaExtra.shift ?? "",
       user_id: horaExtra.user_id ?? "",
       work_planner_id: horaExtra.work_planner_id ?? "",
-      work_planner_type_id: horaExtra.work_planner_type_id ?? "",
+      work_planner_type_id: horaExtra.work_planner_type_id != null ? String(horaExtra.work_planner_type_id) : "",
     });
   }, [horaExtra]);
 
@@ -72,7 +72,7 @@ export default function HorasExtrasDetailsDialog({ visible, onHide, horaExtra, o
     if (!horaExtra) return false;
     return !(
       form.work_planner_id === horaExtra.work_planner_id &&
-      form.work_planner_type_id === horaExtra.work_planner_type_id &&
+      form.work_planner_type_id === String(horaExtra.work_planner_type_id ?? "") &&
       form.shift === horaExtra.shift &&
       form.begin_date === horaExtra.begin_date &&
       form.end_date === horaExtra.end_date
