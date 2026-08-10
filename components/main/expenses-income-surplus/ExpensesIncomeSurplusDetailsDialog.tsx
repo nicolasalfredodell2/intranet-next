@@ -191,6 +191,18 @@ export default function ExpensesIncomeSurplusDetailsDialog({ visible, onHide, us
                 minDate={year && month ? new Date(year, month - 1, 1) : undefined}
                 maxDate={year && month ? new Date(year, month - 1, new Date(year, month, 0).getDate()) : undefined}
                 enabledDates={availableDateObjects}
+                dateTemplate={(date) => {
+                  const key = `${date.year}-${String(date.month + 1).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+                  const hasRecord = availableDates.includes(key);
+                  return (
+                    <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", color: hasRecord ? "#0ea5e9" : undefined, fontWeight: hasRecord ? 700 : undefined }}>
+                      {date.day}
+                      {hasRecord && (
+                        <span style={{ position: "absolute", bottom: 2, width: 4, height: 4, borderRadius: "50%", background: "#0ea5e9" }} />
+                      )}
+                    </span>
+                  );
+                }}
                 readOnlyInput
                 placeholder="Día"
                 className="license-filter-dropdown"
