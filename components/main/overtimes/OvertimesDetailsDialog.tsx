@@ -5,6 +5,7 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
+import { Badge } from "primereact/badge";
 import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
 import { DataTable } from "primereact/datatable";
@@ -43,6 +44,13 @@ const STATUS_META: Record<string, { label: string; className: string }> = {
   Cancel: { label: "Cancelado", className: "danger" },
   Done: { label: "Finalizado", className: "success" },
   Pending: { label: "Pendiente aprobación", className: "muted" },
+};
+
+const STATUS_BADGE_COLORS: Record<string, { bg: string; color: string }> = {
+  warning: { bg: "rgba(255,193,7,0.12)", color: "#b45309" },
+  danger: { bg: "rgba(220,53,69,0.10)", color: "#dc3545" },
+  success: { bg: "rgba(5,150,105,0.10)", color: "#059669" },
+  muted: { bg: "rgba(100,116,139,0.10)", color: "#64748b" },
 };
 
 const EMPTY_FORM = { end_time: "", start_time: "", shift: "", status: "" };
@@ -275,7 +283,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
     <>
       <AppToast ref={toast} position="bottom-center" />
 
-      <Dialog header={dialogHeader} visible={visible} draggable={false} modal onHide={handleHide} style={{ width: "95vw" }}>
+      <Dialog header={dialogHeader} visible={visible} draggable={false} modal dismissableMask onHide={handleHide} style={{ width: "95vw" }}>
         <div className="license-filter-bar mb-3">
           <div className="license-filter-bar-inputs">
             <div className={`license-filter-input-wrap${dateFilter ? " license-filter-input-wrap--active" : ""}`}>
@@ -374,8 +382,19 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
                   style={{ fontSize: "0.8rem", minWidth: "180px" }}
                 />
               ) : (
-                <span onClick={() => selectOvertime(detail)} className={`fadeIn animated pointer p-1 status-${detail.class}`}>
-                  <small>{detail.status}</small>
+                <span onClick={() => selectOvertime(detail)} className="fadeIn animated pointer">
+                  <span
+                    className="badge rounded-pill"
+                    style={{
+                      background: (STATUS_BADGE_COLORS[detail.class] ?? STATUS_BADGE_COLORS.muted).bg,
+                      color: (STATUS_BADGE_COLORS[detail.class] ?? STATUS_BADGE_COLORS.muted).color,
+                      border: "none",
+                      fontWeight: 600,
+                      padding: "4px 10px",
+                    }}
+                  >
+                    {detail.status}
+                  </span>
                 </span>
               )
             }
@@ -412,9 +431,12 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
                   onChange={(e) => setFormEdit((p) => ({ ...p, start_time: e.target.value }))}
                 />
               ) : (
-                <div onClick={() => selectOvertime(detail)}>
+                <div onClick={() => selectOvertime(detail)} className="d-flex align-items-center" style={{ gap: "6px" }}>
                   {detail.start_time ? (
-                    <small className={`fadeIn animated${detail.start_time_fixed == 1 ? " border border-warning" : ""}`}>{formatTime(detail.start_time)}</small>
+                    <>
+                      <small className="fadeIn animated">{formatTime(detail.start_time)}</small>
+                      {detail.start_time_fixed == 1 && <Badge severity="warning" value="Fijo" className="fadeIn animated" />}
+                    </>
                   ) : (
                     <small className="fadeIn animated">--</small>
                   )}
