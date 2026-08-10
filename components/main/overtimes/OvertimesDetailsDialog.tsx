@@ -5,7 +5,6 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
-import { Badge } from "primereact/badge";
 import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
 import { DataTable } from "primereact/datatable";
@@ -431,12 +430,18 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
                   onChange={(e) => setFormEdit((p) => ({ ...p, start_time: e.target.value }))}
                 />
               ) : (
-                <div onClick={() => selectOvertime(detail)} className="d-flex align-items-center" style={{ gap: "6px" }}>
+                <div onClick={() => selectOvertime(detail)}>
                   {detail.start_time ? (
-                    <>
+                    detail.start_time_fixed == 1 ? (
+                      <span
+                        className="badge rounded-pill fadeIn animated"
+                        style={{ background: STATUS_BADGE_COLORS.warning.bg, color: STATUS_BADGE_COLORS.warning.color, border: "none", fontWeight: 600, padding: "4px 10px" }}
+                      >
+                        {formatTime(detail.start_time)}
+                      </span>
+                    ) : (
                       <small className="fadeIn animated">{formatTime(detail.start_time)}</small>
-                      {detail.start_time_fixed == 1 && <Badge severity="warning" value="Fijo" className="fadeIn animated" />}
-                    </>
+                    )
                   ) : (
                     <small className="fadeIn animated">--</small>
                   )}
@@ -459,7 +464,16 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
               ) : (
                 <div onClick={() => selectOvertime(detail)}>
                   {detail.end_time ? (
-                    <small className={`fadeIn animated${detail.end_time_fixed == 1 ? " border border-warning" : ""}`}>{formatTime(detail.end_time)}</small>
+                    detail.end_time_fixed == 1 ? (
+                      <span
+                        className="badge rounded-pill fadeIn animated"
+                        style={{ background: STATUS_BADGE_COLORS.warning.bg, color: STATUS_BADGE_COLORS.warning.color, border: "none", fontWeight: 600, padding: "4px 10px" }}
+                      >
+                        {formatTime(detail.end_time)}
+                      </span>
+                    ) : (
+                      <small className="fadeIn animated">{formatTime(detail.end_time)}</small>
+                    )
                   ) : (
                     <small className="fadeIn animated">--</small>
                   )}
@@ -475,7 +489,18 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
           <Column header="FICHADAS DEL DÍA" body={(detail) => <small className="pointer text-primary" onClick={() => setTimeStampsOpen(detail)}>Ver detalle</small>} />
 
           <Column
-            header="ACCIONES"
+            header="AUDITORÍA"
+            body={(detail) =>
+              detail.audits && detail.audits.length > 0 ? (
+                <small className="pointer text-primary" onClick={() => setAuditsOpen(detail.audits)}>Ver detalle</small>
+              ) : (
+                <small className="text-muted">Sin detalle</small>
+              )
+            }
+          />
+
+          <Column
+            header=""
             body={(detail) => (
               <div className="d-flex align-items-center" style={{ gap: "10px" }}>
                 <Pencil size={14} className="pointer text-info" onClick={() => selectOvertime(detail)} />
@@ -487,17 +512,6 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
                   ))}
               </div>
             )}
-          />
-
-          <Column
-            header="AUDITORÍA"
-            body={(detail) =>
-              detail.audits && detail.audits.length > 0 ? (
-                <small className="pointer text-primary" onClick={() => setAuditsOpen(detail.audits)}>Ver detalle</small>
-              ) : (
-                <small className="text-muted">Sin detalle</small>
-              )
-            }
           />
         </DataTable>
       </Dialog>
