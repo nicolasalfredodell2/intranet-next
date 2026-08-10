@@ -7,7 +7,7 @@ import { ProgressBar } from "primereact/progressbar";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Sidebar } from "primereact/sidebar";
-import { Timer, FileSpreadsheet, FileText } from "lucide-react";
+import { Timer, FileSpreadsheet, FileText, Search } from "lucide-react";
 import { loadOvertimes } from "@/lib/services/overtimes.service";
 import OvertimesDetailsDialog from "./OvertimesDetailsDialog";
 
@@ -77,7 +77,7 @@ export default function OvertimesPage() {
 
   function buildExportRows() {
     return filtered.map((item) => ({
-      "Persona": item.people_lastname_name,
+      "Agente": item.people_lastname_name,
       "Suma total": item.minutes,
     }));
   }
@@ -85,7 +85,7 @@ export default function OvertimesPage() {
   async function exportExcel() {
     const ExcelJS = await import("exceljs");
     const rows = buildExportRows();
-    const headers = rows.length > 0 ? Object.keys(rows[0]) : ["Persona", "Suma total"];
+    const headers = rows.length > 0 ? Object.keys(rows[0]) : ["Agente", "Suma total"];
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Overtimes");
@@ -164,7 +164,7 @@ export default function OvertimesPage() {
 
       autoTable(doc, {
         startY: 35,
-        head: [["Persona", "Suma total"]],
+        head: [["Agente", "Suma total"]],
         body: buildExportRows().map((r) => Object.values(r)),
         margin: { left: marginX, right: marginX },
         styles: { font: fontName, fontSize: 8.5, cellPadding: 3, textColor: [51, 65, 85] },
@@ -211,8 +211,8 @@ export default function OvertimesPage() {
         {/* Header card */}
         <div className="card profile-card">
           <div className="d-flex align-items-center flex-wrap px-3 pt-3 pb-3" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#ffedd5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Timer size={18} color="#f97316" />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Timer size={18} color="#eab308" />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Overtimes</h5>
@@ -244,10 +244,20 @@ export default function OvertimesPage() {
           </div>
         </div>
 
-        {/* List card */}
+        {/* Filters card */}
         <div className="card profile-card mt-4">
           <div className="card-body">
-            <div className="license-filter-bar mb-3">
+            <div className="d-flex align-items-center flex-wrap mb-3" style={{ gap: "12px" }}>
+              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Search size={18} color="#eab308" />
+              </div>
+              <div>
+                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Buscar overtimes</h5>
+                <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Seleccioná el año y mes para consultar el listado</small>
+              </div>
+            </div>
+
+            <div className="license-filter-bar">
               <div className="license-filter-bar-inputs">
                 <div className="license-filter-input-wrap" style={{ maxWidth: "140px" }}>
                   <i className="pi pi-calendar license-filter-icon" />
@@ -283,6 +293,29 @@ export default function OvertimesPage() {
                 >
                   {isLoading ? "BUSCANDO" : "BUSCAR"}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* List card */}
+        <div className="card profile-card mt-4">
+          <div className="card-body">
+            <div className="d-flex justify-content-end mb-3">
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={loadReports}
+                className="btn btn-light d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+              >
+                <i className={isLoading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+                Recargar
+              </button>
+            </div>
+
+            <div className="license-filter-bar mb-3">
+              <div className="license-filter-bar-inputs">
                 <div className={`license-filter-input-wrap${nameFilter ? " license-filter-input-wrap--active" : ""}`}>
                   <i className="pi pi-search license-filter-icon" />
                   <input
@@ -294,6 +327,11 @@ export default function OvertimesPage() {
                   />
                 </div>
               </div>
+              {nameFilter && (
+                <button type="button" className="license-filter-clear" onClick={() => setNameFilter("")}>
+                  <i className="pi pi-filter-slash" /> Limpiar filtros
+                </button>
+              )}
             </div>
 
             {isLoading && <ProgressBar mode="indeterminate" style={{ height: "6px" }} className="mb-3" />}
@@ -321,7 +359,7 @@ export default function OvertimesPage() {
                 </div>
               }
             >
-              <Column header="PERSONA" sortable field="people_lastname_name" body={(item) => <small>{item.people_lastname_name}</small>} />
+              <Column header="AGENTE" sortable field="people_lastname_name" body={(item) => <small>{item.people_lastname_name}</small>} />
               <Column header="SUMA TOTAL" sortable field="minutesInNumber" style={{ width: "16%" }} body={(item) => <small className="p-1">{item.minutes}</small>} />
               <Column
                 header="ACCIONES"
