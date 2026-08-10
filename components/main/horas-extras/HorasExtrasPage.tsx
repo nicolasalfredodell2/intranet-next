@@ -264,7 +264,13 @@ export default function HorasExtrasPage() {
   }
 
   function removeHoraExtra(horaExtraForRemove: any) {
-    setReports((prev) => prev.filter((horaExtra) => horaExtra.id !== horaExtraForRemove.id));
+    setReports((prev) =>
+      prev.map((horaExtra) =>
+        horaExtra.id === horaExtraForRemove.id
+          ? { ...horaExtra, begin_date: null, end_date: null, shift: null, work_planner_id: null, work_planner_type_id: null }
+          : horaExtra
+      )
+    );
   }
 
   return (
