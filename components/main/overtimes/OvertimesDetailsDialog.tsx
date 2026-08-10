@@ -5,12 +5,26 @@ import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
+import { Calendar } from "primereact/calendar";
+import { addLocale } from "primereact/api";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Pencil, Save } from "lucide-react";
+import { Clock, Pencil, Save } from "lucide-react";
 import { loadOvertimesByUser, updateOvertime } from "@/lib/services/overtimes.service";
 import OvertimesAuditsDialog from "./OvertimesAuditsDialog";
 import OvertimesTimeStampsDialog from "./OvertimesTimeStampsDialog";
+
+addLocale("es", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  now: "Ahora",
+  clear: "Quitar fecha",
+});
 
 const STATUS_OPTIONS = [
   { label: "Pendiente de aprobación", value: "Pending" },
@@ -80,6 +94,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
   const [isLoading, setIsLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("");
   const [shiftFilter, setShiftFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
 
   const [selectedForEdit, setSelectedForEdit] = useState<any>(null);
   const [formEdit, setFormEdit] = useState(EMPTY_FORM);
@@ -169,6 +184,33 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
     );
   }, [formEdit, selectedForEdit]);
 
+  const availableDates = useMemo(() => {
+    const list = new Set<string>();
+    detailsUser.forEach((detail) => {
+      if (detail.start_time) list.add(detail.start_time.split(/[T ]/)[0]);
+    });
+    return [...list];
+  }, [detailsUser]);
+
+  const availableDateObjects = useMemo(() => availableDates.map((d) => new Date(`${d}T00:00:00`)), [availableDates]);
+
+  const filterMonthLabel = useMemo(() => {
+    if (!year || !month) return "";
+    const label = new Date(year, month - 1, 1).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }, [year, month]);
+
+  const filteredDetails = useMemo(() => {
+    if (!dateFilter) return detailsUser;
+    return detailsUser.filter((detail) => detail.start_time && detail.start_time.split(/[T ]/)[0] === dateFilter);
+  }, [detailsUser, dateFilter]);
+
+  function clearFilters() {
+    setStatusFilter("");
+    setShiftFilter("");
+    setDateFilter("");
+  }
+
   async function handleUpdate() {
     if (isSaving || !canUpdate || !selectedForEdit) return;
 
@@ -211,20 +253,70 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
     setFormEdit(EMPTY_FORM);
     setAuditsOpen(null);
     setTimeStampsOpen(null);
+    clearFilters();
     onHide();
   }
 
-  const headerText = isLoading
-    ? `Cargando detalles de ${user?.lastname_name}. Legajo: ${user?.file}`
-    : `Detalles de ${user?.lastname_name}. Legajo: ${user?.file}`;
+  const dialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Clock size={18} color="#eab308" />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>
+          {isLoading ? "Cargando detalles de" : "Detalles de"} {user?.lastname_name}
+        </p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Legajo: {user?.file}</small>
+      </div>
+    </div>
+  );
 
   return (
     <>
       <AppToast ref={toast} position="bottom-center" />
 
-      <Dialog header={headerText} visible={visible} draggable={false} modal onHide={handleHide} style={{ width: "95vw" }}>
+      <Dialog header={dialogHeader} visible={visible} draggable={false} modal onHide={handleHide} style={{ width: "95vw" }}>
         <div className="license-filter-bar mb-3">
           <div className="license-filter-bar-inputs">
+            <div className={`license-filter-input-wrap${dateFilter ? " license-filter-input-wrap--active" : ""}`}>
+              <i className="pi pi-calendar license-filter-icon" />
+              <small style={{ color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", marginRight: "6px" }}>{filterMonthLabel}</small>
+              <Calendar
+                value={dateFilter ? new Date(`${dateFilter}T00:00:00`) : null}
+                onChange={(e) => {
+                  const d = e.value as Date | null;
+                  setDateFilter(d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : "");
+                }}
+                dateFormat="dd/mm/yy"
+                locale="es"
+                showOtherMonths={false}
+                minDate={year && month ? new Date(year, month - 1, 1) : undefined}
+                maxDate={year && month ? new Date(year, month - 1, new Date(year, month, 0).getDate()) : undefined}
+                enabledDates={availableDateObjects}
+                dateTemplate={(date) => {
+                  const key = `${date.year}-${String(date.month + 1).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+                  const hasOvertime = availableDates.includes(key);
+                  return (
+                    <span style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", color: hasOvertime ? "#0ea5e9" : undefined, fontWeight: hasOvertime ? 700 : undefined }}>
+                      {date.day}
+                      {hasOvertime && (
+                        <span style={{ position: "absolute", bottom: 2, width: 4, height: 4, borderRadius: "50%", background: "#0ea5e9" }} />
+                      )}
+                    </span>
+                  );
+                }}
+                readOnlyInput
+                placeholder="Día"
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel license-filter-calendar-panel overtimes-detail-date-panel"
+                pt={{
+                  previousButton: { style: { visibility: "hidden", pointerEvents: "none" } },
+                  nextButton: { style: { visibility: "hidden", pointerEvents: "none" } },
+                  monthTitle: { style: { pointerEvents: "none", cursor: "default" } },
+                  yearTitle: { style: { pointerEvents: "none", cursor: "default" } },
+                }}
+              />
+            </div>
             <div className={`license-filter-input-wrap${statusFilter ? " license-filter-input-wrap--active" : ""}`}>
               <i className="pi pi-flag license-filter-icon" />
               <Dropdown
@@ -250,10 +342,15 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
               />
             </div>
           </div>
+          {(dateFilter || statusFilter || shiftFilter) && (
+            <button type="button" className="license-filter-clear" onClick={clearFilters}>
+              <i className="pi pi-filter-slash" /> Limpiar filtros
+            </button>
+          )}
         </div>
 
         <DataTable
-          value={detailsUser}
+          value={filteredDetails}
           loading={isLoading}
           scrollable
           scrollHeight="400px"

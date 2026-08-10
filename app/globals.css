@@ -1386,6 +1386,11 @@ input[disabled] {
   min-width: 260px !important;
 }
 
+/* Filtro de fecha del detalle de overtimes — sin resaltado de "hoy" */
+.overtimes-detail-date-panel .p-datepicker-today > span {
+  background: transparent !important;
+}
+
 /* Panel del dropdown */
 .license-filter-dropdown-panel {
   border: 1px solid #e2e8f0 !important;
