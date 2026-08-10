@@ -47,10 +47,12 @@ interface Props {
   visible: boolean;
   onHide: () => void;
   horaExtra: any;
+  year: number;
+  month: number;
   onCreated: () => void;
 }
 
-export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, onCreated }: Props) {
+export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, year, month, onCreated }: Props) {
   const toast = useRef<Toast>(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [isCreating, setIsCreating] = useState(false);
@@ -58,6 +60,21 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
   useEffect(() => {
     if (horaExtra?.user_id) setForm((p) => ({ ...p, user_id: horaExtra.user_id }));
   }, [horaExtra]);
+
+  const filterMonthLabel = useMemo(() => {
+    if (!year || !month) return "";
+    const label = new Date(year, month - 1, 1).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }, [year, month]);
+
+  const monthStart = year && month ? new Date(year, month - 1, 1) : undefined;
+  const monthEnd = year && month ? new Date(year, month - 1, new Date(year, month, 0).getDate()) : undefined;
+  const lockedMonthPt = {
+    previousButton: { style: { visibility: "hidden" as const, pointerEvents: "none" as const } },
+    nextButton: { style: { visibility: "hidden" as const, pointerEvents: "none" as const } },
+    monthTitle: { style: { pointerEvents: "none" as const, cursor: "default" as const } },
+    yearTitle: { style: { pointerEvents: "none" as const, cursor: "default" as const } },
+  };
 
   const canCreate = useMemo(() => {
     return !!(form.work_planner_type_id && form.shift && form.begin_date && form.end_date);
@@ -195,17 +212,21 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
             <label className="profile-field-label">Fecha inicio</label>
             <div className="license-filter-input-wrap profile-birthdate-wrap">
               <i className="pi pi-calendar license-filter-icon" />
+              <small style={{ color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", marginRight: "6px" }}>{filterMonthLabel}</small>
               <Calendar
                 value={form.begin_date ? new Date(`${form.begin_date}T00:00:00`) : null}
                 onChange={(e) => setForm((p) => ({ ...p, begin_date: e.value ? toDateInputValue(e.value as Date) : "" }))}
                 dateFormat="dd/mm/yy"
                 locale="es-horas-extras-create"
-                showButtonBar
                 showOtherMonths={false}
                 disabledDays={[0, 6]}
+                viewDate={monthStart}
+                minDate={monthStart}
+                maxDate={monthEnd}
                 placeholder="Seleccioná una fecha"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                pt={lockedMonthPt}
               />
             </div>
           </div>
@@ -213,18 +234,21 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
             <label className="profile-field-label">Fecha fin</label>
             <div className="license-filter-input-wrap profile-birthdate-wrap">
               <i className="pi pi-calendar license-filter-icon" />
+              <small style={{ color: "#94a3b8", fontWeight: 600, whiteSpace: "nowrap", marginRight: "6px" }}>{filterMonthLabel}</small>
               <Calendar
                 value={form.end_date ? new Date(`${form.end_date}T00:00:00`) : null}
                 onChange={(e) => setForm((p) => ({ ...p, end_date: e.value ? toDateInputValue(e.value as Date) : "" }))}
                 dateFormat="dd/mm/yy"
                 locale="es-horas-extras-create"
-                showButtonBar
                 showOtherMonths={false}
                 disabledDays={[0, 6]}
-                minDate={form.begin_date ? new Date(`${form.begin_date}T00:00:00`) : undefined}
+                viewDate={monthStart}
+                minDate={form.begin_date ? new Date(`${form.begin_date}T00:00:00`) : monthStart}
+                maxDate={monthEnd}
                 placeholder="Seleccioná una fecha"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                pt={lockedMonthPt}
               />
             </div>
           </div>

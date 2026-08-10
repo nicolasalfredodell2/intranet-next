@@ -501,6 +501,8 @@ export default function HorasExtrasPage() {
         visible={isOpenModalCreate}
         onHide={() => setIsOpenModalCreate(false)}
         horaExtra={horaExtraSelected}
+        year={year}
+        month={month}
         onCreated={loadReports}
       />
 
