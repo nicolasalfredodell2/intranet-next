@@ -29,7 +29,9 @@ function normalizeReportItem(item: any) {
   return {
     ...item,
     is_late_string: item.is_late == 1 ? "Si" : "No",
+    hour_in_diff_minutes: item.hour_in_diff ?? 0,
     hour_in_diff: formatHourInDiff(item.hour_in_diff),
+    check_first: (item.check ?? "").split(",")[0]?.trim() ?? "",
     check: (item.check ?? "").replaceAll(",", " / "),
   };
 }
@@ -326,8 +328,8 @@ export default function DailyPartPage() {
                   </span>
                 )}
               />
-              <Column header="TIEMPO EXCEDIDO" body={(item) => <small>{item.hour_in_diff}</small>} />
-              <Column header="FICHADAS DEL DÍA" body={(item) => <small>{item.check}</small>} />
+              <Column header="TIEMPO EXCEDIDO" sortable field="hour_in_diff_minutes" body={(item) => <small>{item.hour_in_diff}</small>} />
+              <Column header="FICHADAS DEL DÍA" sortable field="check_first" body={(item) => <small>{item.check}</small>} />
               <Column header="HORARIO LABORAL" body={(item) => <small>{item.working?.hour_in} - {item.working?.hour_out}</small>} />
             </DataTable>
           </div>
