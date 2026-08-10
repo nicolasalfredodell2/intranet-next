@@ -8,10 +8,10 @@ import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
 import { ProgressBar } from "primereact/progressbar";
-import { Plus } from "lucide-react";
-import { createHoraExtra } from "@/lib/services/horas-extras.service";
+import { Pencil } from "lucide-react";
+import { updateHoraExtra } from "@/lib/services/horas-extras.service";
 
-addLocale("es-horas-extras-create", {
+addLocale("es-horas-extras-details", {
   firstDayOfWeek: 1,
   dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
   dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
@@ -34,7 +34,7 @@ const SHIFT_OPTIONS = [
   { label: "Vespertino", value: "VESPERTINO" },
 ];
 
-const EMPTY_FORM = { begin_date: "", end_date: "", shift: "", user_id: "", work_planner_type_id: "2" };
+const EMPTY_FORM = { begin_date: "", end_date: "", shift: "", user_id: "", work_planner_id: "", work_planner_type_id: "" };
 
 function toDateInputValue(date: Date): string {
   const y = date.getFullYear();
@@ -47,64 +47,82 @@ interface Props {
   visible: boolean;
   onHide: () => void;
   horaExtra: any;
-  onCreated: () => void;
+  onUpdated: (horaExtra: any) => void;
+  onRemoved: (horaExtra: any) => void;
 }
 
-export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, onCreated }: Props) {
+export default function HorasExtrasDetailsDialog({ visible, onHide, horaExtra, onUpdated, onRemoved }: Props) {
   const toast = useRef<Toast>(null);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    if (horaExtra?.user_id) setForm((p) => ({ ...p, user_id: horaExtra.user_id }));
+    if (!horaExtra) return;
+    setForm({
+      begin_date: horaExtra.begin_date ?? "",
+      end_date: horaExtra.end_date ?? "",
+      shift: horaExtra.shift ?? "",
+      user_id: horaExtra.user_id ?? "",
+      work_planner_id: horaExtra.work_planner_id ?? "",
+      work_planner_type_id: horaExtra.work_planner_type_id ?? "",
+    });
   }, [horaExtra]);
 
-  const canCreate = useMemo(() => {
-    return !!(form.work_planner_type_id && form.shift && form.begin_date && form.end_date);
-  }, [form]);
-
-  function resetForm() {
-    setForm({ ...EMPTY_FORM, user_id: horaExtra?.user_id ?? "" });
-  }
+  const canUpdate = useMemo(() => {
+    if (!horaExtra) return false;
+    return !(
+      form.work_planner_id === horaExtra.work_planner_id &&
+      form.work_planner_type_id === horaExtra.work_planner_type_id &&
+      form.shift === horaExtra.shift &&
+      form.begin_date === horaExtra.begin_date &&
+      form.end_date === horaExtra.end_date
+    );
+  }, [form, horaExtra]);
 
   function closeModal() {
-    resetForm();
+    if (isUpdating) return;
     onHide();
   }
 
-  async function create() {
-    if (isCreating) return;
+  async function update() {
+    if (isUpdating || !canUpdate) return;
 
     if (form.end_date < form.begin_date) {
       toast.current?.show({ severity: "info", summary: "La Fecha Fin no puede ser menor a la Fecha Inicio" });
       return;
     }
 
-    setIsCreating(true);
+    setIsUpdating(true);
     try {
-      await createHoraExtra(form);
-      toast.current?.show({ severity: "success", summary: form.work_planner_type_id === "1" ? "Compensatorio creado" : "Hora extra creada" });
-      resetForm();
-      onCreated();
+      await updateHoraExtra(form, form.work_planner_id);
+
+      toast.current?.show({ severity: "success", summary: "Hora extra actualizada" });
+
+      onUpdated({
+        ...horaExtra,
+        begin_date: form.begin_date,
+        end_date: form.end_date,
+        shift: form.shift,
+        work_planner_type_id: form.work_planner_type_id,
+      });
+
+      if (form.work_planner_type_id === "1") onRemoved(horaExtra);
+
       onHide();
     } catch {
-      toast.current?.show({
-        severity: "error",
-        summary: form.work_planner_type_id === "1" ? "No se pudo crear el compensatorio" : "No se pudo crear la hora extra",
-        detail: "Inténtelo más tarde",
-      });
+      toast.current?.show({ severity: "error", summary: "No se pudo modificar la hora extra", detail: "Inténtelo más tarde" });
     } finally {
-      setIsCreating(false);
+      setIsUpdating(false);
     }
   }
 
   const dialogHeader = (
     <div className="d-flex align-items-center" style={{ gap: "12px" }}>
-      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <Plus size={18} color="#eab308" />
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Pencil size={18} color="#3b82f6" />
       </div>
       <div style={{ minWidth: 0 }}>
-        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Crear hora extra</p>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar</p>
         <div className="d-flex align-items-center flex-wrap" style={{ gap: "6px" }}>
           <span className="license-dialog-year-badge">{horaExtra?.lastname_name}</span>
           <span className="license-dialog-year-badge">Legajo {String(horaExtra?.internal ?? "").split("/")[0]}</span>
@@ -131,18 +149,18 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
           <div>
             <div className="d-flex align-items-center" style={{ gap: "8px" }}>
               <button
-                disabled={isCreating || !canCreate}
-                onClick={create}
+                disabled={isUpdating || !canUpdate}
+                onClick={update}
                 type="button"
                 className="btn btn-primary d-flex align-items-center"
                 style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
               >
-                <i className={isCreating ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                {isCreating ? "Creando..." : "Crear"}
+                <i className={isUpdating ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {isUpdating ? "Guardando..." : "Guardar"}
               </button>
               <button
-                disabled={isCreating}
-                onClick={resetForm}
+                disabled={isUpdating}
+                onClick={() => setForm(EMPTY_FORM)}
                 type="button"
                 className="btn btn-light text-muted"
                 style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
@@ -150,16 +168,16 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
                 Limpiar
               </button>
               <button
-                disabled={isCreating}
+                disabled={isUpdating}
                 onClick={closeModal}
                 type="button"
                 className="btn btn-light text-muted ml-auto"
                 style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
               >
-                Cancelar
+                Volver
               </button>
             </div>
-            {isCreating && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+            {isUpdating && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
           </div>
         }
       >
@@ -169,9 +187,10 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
             <div className="license-filter-input-wrap">
               <i className="pi pi-tag license-filter-icon" />
               <Dropdown
-                value={form.work_planner_type_id}
+                value={form.work_planner_type_id || null}
                 options={TYPE_OPTIONS}
                 onChange={(e) => setForm((p) => ({ ...p, work_planner_type_id: e.value }))}
+                placeholder="Seleccioná un tipo"
                 className="license-filter-dropdown"
                 panelClassName="license-filter-dropdown-panel"
               />
@@ -199,7 +218,7 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
                 value={form.begin_date ? new Date(`${form.begin_date}T00:00:00`) : null}
                 onChange={(e) => setForm((p) => ({ ...p, begin_date: e.value ? toDateInputValue(e.value as Date) : "" }))}
                 dateFormat="dd/mm/yy"
-                locale="es-horas-extras-create"
+                locale="es-horas-extras-details"
                 showButtonBar
                 showOtherMonths={false}
                 placeholder="Seleccioná una fecha"
@@ -216,7 +235,7 @@ export default function HorasExtrasCreateDialog({ visible, onHide, horaExtra, on
                 value={form.end_date ? new Date(`${form.end_date}T00:00:00`) : null}
                 onChange={(e) => setForm((p) => ({ ...p, end_date: e.value ? toDateInputValue(e.value as Date) : "" }))}
                 dateFormat="dd/mm/yy"
-                locale="es-horas-extras-create"
+                locale="es-horas-extras-details"
                 showButtonBar
                 showOtherMonths={false}
                 minDate={form.begin_date ? new Date(`${form.begin_date}T00:00:00`) : undefined}

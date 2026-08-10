@@ -13,6 +13,7 @@ import { Hourglass, FileSpreadsheet, FileText, Search, List, Plus, Pencil, XCirc
 import { loadAllHorasExtras } from "@/lib/services/horas-extras.service";
 import HorasExtrasCreateDialog from "./HorasExtrasCreateDialog";
 import HorasExtrasDeleteDialog from "./HorasExtrasDeleteDialog";
+import HorasExtrasDetailsDialog from "./HorasExtrasDetailsDialog";
 
 addLocale("es", {
   firstDayOfWeek: 1,
@@ -502,6 +503,14 @@ export default function HorasExtrasPage() {
         onHide={() => setIsOpenModalDelete(false)}
         horaExtra={horaExtraSelected}
         onDeleted={removeHoraExtra}
+      />
+
+      <HorasExtrasDetailsDialog
+        visible={isOpenModalDetails}
+        onHide={() => setIsOpenModalDetails(false)}
+        horaExtra={horaExtraSelected}
+        onUpdated={updateHoraExtra}
+        onRemoved={removeHoraExtra}
       />
     </>
   );
