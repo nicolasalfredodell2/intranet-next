@@ -7,6 +7,7 @@ import { ProgressBar } from "primereact/progressbar";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Dropdown } from "primereact/dropdown";
+import { Sidebar } from "primereact/sidebar";
 import { CalendarCheck, FileSpreadsheet, FileText } from "lucide-react";
 import { loadDailyPart } from "@/lib/services/daily-part.service";
 
@@ -47,6 +48,9 @@ export default function DailyPartPage() {
   const [fileFilter, setFileFilter] = useState("");
   const [nameFilter, setNameFilter] = useState("");
   const [lateFilter, setLateFilter] = useState("");
+
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   useEffect(() => {
     loadReportDaily();
@@ -105,11 +109,25 @@ export default function DailyPartPage() {
   }
 
   async function exportPdf() {
-    const { default: jsPDF } = await import("jspdf");
-    const { default: autoTable } = await import("jspdf-autotable");
-    const doc = new jsPDF();
-    autoTable(doc, { head: [["Legajo", "Nombre", "Llegó tarde", "Tiempo excedido", "Fichadas del día", "Horario laboral"]], body: buildExportRows().map((r) => Object.values(r)) });
-    doc.save(`Parte diario del ${day} de ${MONTH_NAMES[month]} de ${year}.pdf`);
+    setIsGeneratingPdf(true);
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const { default: autoTable } = await import("jspdf-autotable");
+      const doc = new jsPDF();
+      autoTable(doc, { head: [["Legajo", "Nombre", "Llegó tarde", "Tiempo excedido", "Fichadas del día", "Horario laboral"]], body: buildExportRows().map((r) => Object.values(r)) });
+      const blob = doc.output("blob");
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(URL.createObjectURL(blob));
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se pudo generar el PDF" });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }
+
+  function closePdfPreview() {
+    if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    setPdfUrl(null);
   }
 
   return (
@@ -141,11 +159,12 @@ export default function DailyPartPage() {
                 </button>
                 <button
                   type="button"
+                  disabled={isGeneratingPdf}
                   onClick={exportPdf}
                   className="btn btn-light d-flex align-items-center"
                   style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#dc3545" }}
                 >
-                  <FileText size={14} />
+                  {isGeneratingPdf ? <i className="pi pi-spin pi-spinner" style={{ fontSize: "0.78rem" }} /> : <FileText size={14} />}
                   PDF
                 </button>
               </div>
@@ -260,6 +279,28 @@ export default function DailyPartPage() {
           </div>
         </div>
       </div>
+
+      <Sidebar
+        visible={!!pdfUrl}
+        onHide={closePdfPreview}
+        position="right"
+        dismissable
+        style={{ width: "min(700px, 92vw)", display: "flex", flexDirection: "column" }}
+        header={
+          <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <FileText size={18} color="#dc3545" />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Parte diario</p>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{day} de {MONTH_NAMES[month]} de {year}</small>
+            </div>
+          </div>
+        }
+        pt={{ content: { style: { flex: 1, padding: 0, display: "flex", height: "100%" } } }}
+      >
+        {pdfUrl && <iframe src={pdfUrl} style={{ flex: 1, width: "100%", border: "none" }} title="Parte diario PDF" />}
+      </Sidebar>
     </>
   );
 }
