@@ -1458,6 +1458,11 @@ input[disabled] {
   padding: 8px 12px !important;
 }
 
+.license-table .p-sortable-column-icon {
+  width: 0.7rem !important;
+  height: 0.7rem !important;
+}
+
 /* Table cells */
 .license-cell-primary {
   color: #374151;
