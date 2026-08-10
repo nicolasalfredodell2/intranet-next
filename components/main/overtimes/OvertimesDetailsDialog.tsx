@@ -7,9 +7,10 @@ import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
 import { Calendar } from "primereact/calendar";
 import { addLocale } from "primereact/api";
+import { ProgressBar } from "primereact/progressbar";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Clock, Pencil, Save } from "lucide-react";
+import { Clock, Pencil } from "lucide-react";
 import { loadOvertimesByUser, updateOvertime } from "@/lib/services/overtimes.service";
 import OvertimesAuditsDialog from "./OvertimesAuditsDialog";
 import OvertimesTimeStampsDialog from "./OvertimesTimeStampsDialog";
@@ -140,7 +141,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
   const [shiftFilter, setShiftFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
 
-  const [selectedForEdit, setSelectedForEdit] = useState<any>(null);
+  const [editingOvertime, setEditingOvertime] = useState<any>(null);
   const [formEdit, setFormEdit] = useState(EMPTY_FORM);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -201,32 +202,32 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
     }
   }
 
-  function selectOvertime(detail: any) {
-    if (!selectedForEdit || selectedForEdit.id !== detail.id) {
-      setSelectedForEdit(detail);
-      setFormEdit({
-        end_time: detail.end_time ? formatTime(detail.end_time) : "",
-        start_time: detail.start_time ? formatTime(detail.start_time) : "",
-        shift: detail.shift,
-        status: detail.statusEnglish,
-      });
-      return;
-    }
-    setSelectedForEdit(null);
+  function openEditDialog(detail: any) {
+    setEditingOvertime(detail);
+    setFormEdit({
+      end_time: detail.end_time ? formatTime(detail.end_time) : "",
+      start_time: detail.start_time ? formatTime(detail.start_time) : "",
+      shift: detail.shift,
+      status: detail.statusEnglish,
+    });
+  }
+
+  function closeEditDialog() {
+    setEditingOvertime(null);
     setFormEdit(EMPTY_FORM);
   }
 
   const canUpdate = useMemo(() => {
-    if (!selectedForEdit) return false;
-    const startTimeFromSelection = selectedForEdit.start_time ? formatTime(selectedForEdit.start_time) : "00:00:00";
-    const endTimeFromSelection = selectedForEdit.end_time ? formatTime(selectedForEdit.end_time) : "00:00:00";
+    if (!editingOvertime) return false;
+    const startTimeFromSelection = editingOvertime.start_time ? formatTime(editingOvertime.start_time) : "00:00:00";
+    const endTimeFromSelection = editingOvertime.end_time ? formatTime(editingOvertime.end_time) : "00:00:00";
     return !(
-      formEdit.shift === selectedForEdit.shift &&
-      formEdit.status === selectedForEdit.statusEnglish &&
+      formEdit.shift === editingOvertime.shift &&
+      formEdit.status === editingOvertime.statusEnglish &&
       formEdit.end_time === endTimeFromSelection &&
       formEdit.start_time === startTimeFromSelection
     );
-  }, [formEdit, selectedForEdit]);
+  }, [formEdit, editingOvertime]);
 
   const availableDates = useMemo(() => {
     const list = new Set<string>();
@@ -256,7 +257,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
   }
 
   async function handleUpdate() {
-    if (isSaving || !canUpdate || !selectedForEdit) return;
+    if (isSaving || !canUpdate || !editingOvertime) return;
 
     if (formEdit.end_time && (timeToMinutes(formEdit.start_time) ?? 0) > (timeToMinutes(formEdit.end_time) ?? 0)) {
       toast.current?.show({ severity: "info", summary: "La hora de Ingreso debe ser menor a la hora de Egreso" });
@@ -270,20 +271,19 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
         status: formEdit.status,
         shift: formEdit.shift,
         end_time:
-          selectedForEdit.end_time || formEdit.end_time
-            ? `${selectedForEdit.end_time ? selectedForEdit.start_time.split(/[T ]/)[0] : new Date(selectedForEdit.start_time).toISOString().split("T")[0]} ${formEdit.end_time}`
+          editingOvertime.end_time || formEdit.end_time
+            ? `${editingOvertime.end_time ? editingOvertime.start_time.split(/[T ]/)[0] : new Date(editingOvertime.start_time).toISOString().split("T")[0]} ${formEdit.end_time}`
             : null,
         start_time:
-          selectedForEdit.start_time || formEdit.start_time
-            ? `${selectedForEdit.start_time ? selectedForEdit.start_time.split(/[T ]/)[0] : todayStr} ${formEdit.start_time}`
+          editingOvertime.start_time || formEdit.start_time
+            ? `${editingOvertime.start_time ? editingOvertime.start_time.split(/[T ]/)[0] : todayStr} ${formEdit.start_time}`
             : null,
       };
 
-      await updateOvertime(payload, selectedForEdit.id, user.id);
+      await updateOvertime(payload, editingOvertime.id, user.id);
 
       toast.current?.show({ severity: "success", summary: "Overtime actualizada" });
-      setSelectedForEdit(null);
-      setFormEdit(EMPTY_FORM);
+      closeEditDialog();
       loadDetails();
     } catch {
       toast.current?.show({ severity: "error", summary: "No se pudo realizar la modificación", detail: "Inténtelo más tarde" });
@@ -293,8 +293,7 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
   }
 
   function handleHide() {
-    setSelectedForEdit(null);
-    setFormEdit(EMPTY_FORM);
+    closeEditDialog();
     setAuditsOpen(null);
     setTimeStampsOpen(null);
     clearFilters();
@@ -311,6 +310,18 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
           {isLoading ? "Cargando detalles de" : "Detalles de"} {user?.lastname_name}
         </p>
         <span className="license-dialog-year-badge">Legajo {user?.file}</span>
+      </div>
+    </div>
+  );
+
+  const editDialogHeader = (
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Pencil size={18} color="#3b82f6" />
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar overtime</p>
+        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Editá el estado, tipo y horarios del registro</small>
       </div>
     </div>
   );
@@ -408,81 +419,42 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
         >
           <Column
             header="ESTADO"
-            body={(detail) =>
-              selectedForEdit?.id === detail.id ? (
-                <Dropdown
-                  value={formEdit.status}
-                  options={STATUS_OPTIONS}
-                  onChange={(e) => setFormEdit((p) => ({ ...p, status: e.value }))}
-                  className="fadeIn animated"
-                  style={{ fontSize: "0.8rem", minWidth: "180px" }}
-                />
-              ) : (
-                <span onClick={() => selectOvertime(detail)} className="fadeIn animated pointer">
-                  <span
-                    className="badge rounded-pill"
-                    style={{
-                      background: (STATUS_BADGE_COLORS[detail.class] ?? STATUS_BADGE_COLORS.muted).bg,
-                      color: (STATUS_BADGE_COLORS[detail.class] ?? STATUS_BADGE_COLORS.muted).color,
-                      border: "none",
-                      fontWeight: 600,
-                      padding: "4px 10px",
-                    }}
-                  >
-                    {detail.status}
-                  </span>
-                </span>
-              )
-            }
+            body={(detail) => (
+              <span
+                className="badge rounded-pill"
+                style={{
+                  background: (STATUS_BADGE_COLORS[detail.class] ?? STATUS_BADGE_COLORS.muted).bg,
+                  color: (STATUS_BADGE_COLORS[detail.class] ?? STATUS_BADGE_COLORS.muted).color,
+                  border: "none",
+                  fontWeight: 600,
+                  padding: "4px 10px",
+                }}
+              >
+                {detail.status}
+              </span>
+            )}
           />
 
-          <Column
-            header="TIPO"
-            body={(detail) =>
-              selectedForEdit?.id === detail.id ? (
-                <Dropdown
-                  value={formEdit.shift}
-                  options={SHIFT_OPTIONS}
-                  onChange={(e) => setFormEdit((p) => ({ ...p, shift: e.value }))}
-                  className="fadeIn animated"
-                  style={{ fontSize: "0.8rem", minWidth: "150px" }}
-                />
-              ) : (
-                <small onClick={() => selectOvertime(detail)} className="fadeIn animated pointer">{detail.shift}</small>
-              )
-            }
-          />
+          <Column header="TIPO" body={(detail) => <small>{detail.shift}</small>} />
 
-          <Column header="FECHA" body={(detail) => detail.start_time && <small className="fadeIn animated">{formatDate(detail.start_time)}</small>} />
+          <Column header="FECHA" body={(detail) => detail.start_time && <small>{formatDate(detail.start_time)}</small>} />
 
           <Column
             header="INGRESO"
             body={(detail) =>
-              selectedForEdit?.id === detail.id ? (
-                <input
-                  className="form-control form-control-sm fadeIn animated"
-                  type="time"
-                  step={1}
-                  value={formEdit.start_time}
-                  onChange={(e) => setFormEdit((p) => ({ ...p, start_time: e.target.value }))}
-                />
+              detail.start_time ? (
+                detail.start_time_fixed == 1 ? (
+                  <span
+                    className="badge rounded-pill"
+                    style={{ background: STATUS_BADGE_COLORS.warning.bg, color: STATUS_BADGE_COLORS.warning.color, border: "none", fontWeight: 600, padding: "4px 10px" }}
+                  >
+                    {formatTime(detail.start_time)}
+                  </span>
+                ) : (
+                  <small>{formatTime(detail.start_time)}</small>
+                )
               ) : (
-                <div onClick={() => selectOvertime(detail)}>
-                  {detail.start_time ? (
-                    detail.start_time_fixed == 1 ? (
-                      <span
-                        className="badge rounded-pill fadeIn animated"
-                        style={{ background: STATUS_BADGE_COLORS.warning.bg, color: STATUS_BADGE_COLORS.warning.color, border: "none", fontWeight: 600, padding: "4px 10px" }}
-                      >
-                        {formatTime(detail.start_time)}
-                      </span>
-                    ) : (
-                      <small className="fadeIn animated">{formatTime(detail.start_time)}</small>
-                    )
-                  ) : (
-                    <small className="fadeIn animated">--</small>
-                  )}
-                </div>
+                <small>--</small>
               )
             }
           />
@@ -490,31 +462,19 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
           <Column
             header="EGRESO"
             body={(detail) =>
-              selectedForEdit?.id === detail.id ? (
-                <input
-                  className="form-control form-control-sm fadeIn animated"
-                  type="time"
-                  step={1}
-                  value={formEdit.end_time}
-                  onChange={(e) => setFormEdit((p) => ({ ...p, end_time: e.target.value }))}
-                />
+              detail.end_time ? (
+                detail.end_time_fixed == 1 ? (
+                  <span
+                    className="badge rounded-pill"
+                    style={{ background: STATUS_BADGE_COLORS.warning.bg, color: STATUS_BADGE_COLORS.warning.color, border: "none", fontWeight: 600, padding: "4px 10px" }}
+                  >
+                    {formatTime(detail.end_time)}
+                  </span>
+                ) : (
+                  <small>{formatTime(detail.end_time)}</small>
+                )
               ) : (
-                <div onClick={() => selectOvertime(detail)}>
-                  {detail.end_time ? (
-                    detail.end_time_fixed == 1 ? (
-                      <span
-                        className="badge rounded-pill fadeIn animated"
-                        style={{ background: STATUS_BADGE_COLORS.warning.bg, color: STATUS_BADGE_COLORS.warning.color, border: "none", fontWeight: 600, padding: "4px 10px" }}
-                      >
-                        {formatTime(detail.end_time)}
-                      </span>
-                    ) : (
-                      <small className="fadeIn animated">{formatTime(detail.end_time)}</small>
-                    )
-                  ) : (
-                    <small className="fadeIn animated">--</small>
-                  )}
-                </div>
+                <small>--</small>
               )
             }
           />
@@ -552,18 +512,101 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
           <Column
             header=""
             body={(detail) => (
-              <div className="d-flex align-items-center" style={{ gap: "10px" }}>
-                <Pencil size={14} className="pointer text-info" onClick={() => selectOvertime(detail)} />
-                {selectedForEdit?.id === detail.id &&
-                  (isSaving ? (
-                    <i className="pi pi-spin pi-spinner text-info fadeIn animated" />
-                  ) : (
-                    <Save size={14} className={`fadeIn animated pointer ${canUpdate ? "text-info" : "text-muted"}`} onClick={handleUpdate} />
-                  ))}
-              </div>
+              <Tooltip label="Modificar">
+                <button type="button" onClick={() => openEditDialog(detail)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
+                  <Pencil size={14} />
+                </button>
+              </Tooltip>
             )}
           />
         </DataTable>
+      </Dialog>
+
+      <Dialog
+        header={editDialogHeader}
+        visible={!!editingOvertime}
+        modal
+        draggable={false}
+        resizable={false}
+        closable={false}
+        dismissableMask
+        style={{ width: "min(560px, 92vw)" }}
+        onHide={closeEditDialog}
+        footer={
+          <div>
+            <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+              <button
+                disabled={isSaving || !canUpdate}
+                onClick={handleUpdate}
+                type="button"
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={isSaving ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
+                {isSaving ? "Guardando..." : "Guardar"}
+              </button>
+              <button
+                disabled={isSaving}
+                onClick={closeEditDialog}
+                type="button"
+                className="btn btn-light text-muted ml-auto"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Cancelar
+              </button>
+            </div>
+            {isSaving && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
+          </div>
+        }
+      >
+        <div className="row">
+          <div className="col-12 col-md-6 mb-3">
+            <label className="profile-field-label">Estado</label>
+            <div className="license-filter-input-wrap">
+              <i className="pi pi-flag license-filter-icon" />
+              <Dropdown
+                value={formEdit.status}
+                options={STATUS_OPTIONS}
+                onChange={(e) => setFormEdit((p) => ({ ...p, status: e.value }))}
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+            </div>
+          </div>
+          <div className="col-12 col-md-6 mb-3">
+            <label className="profile-field-label">Tipo</label>
+            <div className="license-filter-input-wrap">
+              <i className="pi pi-sun license-filter-icon" />
+              <Dropdown
+                value={formEdit.shift}
+                options={SHIFT_OPTIONS}
+                onChange={(e) => setFormEdit((p) => ({ ...p, shift: e.value }))}
+                className="license-filter-dropdown"
+                panelClassName="license-filter-dropdown-panel"
+              />
+            </div>
+          </div>
+          <div className="col-12 col-md-6 mb-3">
+            <label className="profile-field-label">Ingreso</label>
+            <input
+              className="form-control form-control-sm"
+              type="time"
+              step={1}
+              value={formEdit.start_time}
+              onChange={(e) => setFormEdit((p) => ({ ...p, start_time: e.target.value }))}
+            />
+          </div>
+          <div className="col-12 col-md-6 mb-3">
+            <label className="profile-field-label">Egreso</label>
+            <input
+              className="form-control form-control-sm"
+              type="time"
+              step={1}
+              value={formEdit.end_time}
+              onChange={(e) => setFormEdit((p) => ({ ...p, end_time: e.target.value }))}
+            />
+          </div>
+        </div>
       </Dialog>
 
       <OvertimesAuditsDialog visible={!!auditsOpen} onHide={() => setAuditsOpen(null)} audits={auditsOpen?.audits ?? []} date={auditsOpen?.start_time} agentName={user?.lastname_name} />
