@@ -5,6 +5,12 @@ import { useTimeclock } from "@/lib/hooks/useTimeclock";
 import { loadDailyPart } from "@/lib/services/daily-part.service";
 import TimeclockTimelineChart from "./TimeclockTimelineChart";
 
+function displayHostLabel(hostLabel: string): string {
+  if (hostLabel === "Reloj externo") return "Reloj de entrada";
+  if (hostLabel === "Reloj interno") return "Reloj de salida";
+  return hostLabel;
+}
+
 function subtractDays(dateStr: string, days: number): string {
   const d = new Date(`${dateStr}T00:00:00`);
   d.setDate(d.getDate() - days);
@@ -152,7 +158,7 @@ export default function IncomePage() {
                   </div>
                   <div className="flex-grow-1" style={{ minWidth: 0 }}>
                     <p className="mb-0" style={{ fontSize: "0.85rem", fontWeight: 600, color: "#1e293b" }}>{r.title}</p>
-                    <small style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{r.hostLabel}</small>
+                    <small style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{displayHostLabel(r.hostLabel)}</small>
                   </div>
                   <span style={{ fontSize: "0.82rem", fontWeight: 700, color: r.isEntry ? "#059669" : "#dc3545", whiteSpace: "nowrap" }}>
                     {r.time}
