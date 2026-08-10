@@ -156,6 +156,19 @@ export default function DailyPartPage() {
         {/* List card */}
         <div className="card profile-card mt-4">
           <div className="card-body">
+            <div className="d-flex justify-content-end mb-3">
+              <button
+                type="button"
+                disabled={isLoading}
+                onClick={loadReportDaily}
+                className="btn btn-light d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+              >
+                <i className={isLoading ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+                Recargar
+              </button>
+            </div>
+
             <div className="license-filter-bar mb-3">
               <div className="license-filter-bar-inputs">
                 <div className={`license-filter-input-wrap${fileFilter ? " license-filter-input-wrap--active" : ""}`}>
@@ -211,6 +224,11 @@ export default function DailyPartPage() {
               paginator
               rows={10}
               rowsPerPageOptions={[10, 25, 50]}
+              paginatorRight={
+                <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500 }}>
+                  {filtered.length} {filtered.length === 1 ? "agente" : "agentes"}
+                </span>
+              }
               className="p-datatable-sm license-table"
               emptyMessage={
                 <div className="license-empty">
