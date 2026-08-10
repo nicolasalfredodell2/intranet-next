@@ -547,12 +547,21 @@ export default function OvertimesDetailsDialog({ visible, onHide, user, year, mo
               </button>
               <button
                 disabled={isSaving}
+                onClick={() => setFormEdit(EMPTY_FORM)}
+                type="button"
+                className="btn btn-light text-muted"
+                style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
+              >
+                Limpiar
+              </button>
+              <button
+                disabled={isSaving}
                 onClick={closeEditDialog}
                 type="button"
                 className="btn btn-light text-muted ml-auto"
                 style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}
               >
-                Cancelar
+                Volver
               </button>
             </div>
             {isSaving && <ProgressBar mode="indeterminate" style={{ height: "3px", borderRadius: "2px" }} className="mt-2" />}
