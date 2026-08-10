@@ -1047,6 +1047,21 @@ export default function AbsenceNoticesPage({ initialNoticeId }: { initialNoticeI
                   }}
                 />
                 <Column
+                  header="OBSERVACIONES"
+                  style={{ maxWidth: 220 }}
+                  body={(n) => (
+                    n.observation ? (
+                      <Tooltip label={n.observation}>
+                        <small style={{ display: "block", maxWidth: 210, wordBreak: "break-word" }}>
+                          {n.observation.length > 40 ? `${n.observation.slice(0, 40)}...` : n.observation}
+                        </small>
+                      </Tooltip>
+                    ) : (
+                      <small style={{ color: "#cbd5e1" }}>-</small>
+                    )
+                  )}
+                />
+                <Column
                   header=""
                   body={(n) => (
                     <div className="d-flex align-items-center" style={{ gap: "6px" }}>
