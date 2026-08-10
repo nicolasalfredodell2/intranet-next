@@ -7,9 +7,25 @@ import { ProgressBar } from "primereact/progressbar";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Sidebar } from "primereact/sidebar";
+import { Calendar } from "primereact/calendar";
+import { addLocale } from "primereact/api";
 import { Timer, FileSpreadsheet, FileText, Search, List } from "lucide-react";
 import { loadOvertimes } from "@/lib/services/overtimes.service";
 import OvertimesDetailsDialog from "./OvertimesDetailsDialog";
+
+addLocale("es", {
+  firstDayOfWeek: 1,
+  dayNames: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+  dayNamesShort: ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+  dayNamesMin: ["Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sa"],
+  monthNames: ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+  monthNamesShort: ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+  today: "Hoy",
+  now: "Ahora",
+  clear: "Limpiar",
+});
+
+const MIN_YEAR = 1990;
 
 const MONTH_NAMES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
@@ -257,47 +273,54 @@ export default function OvertimesPage() {
           </div>
           <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
           <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-            <div className="license-filter-bar">
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <div className="license-filter-input-wrap" style={{ flex: 1 }}>
-                    <i className="pi pi-calendar license-filter-icon" />
-                    <input
-                      className="license-filter-input"
-                      style={{ paddingLeft: "0" }}
-                      placeholder="Año"
-                      type="number"
-                      max={actuallyYear}
-                      value={year}
-                      onChange={(e) => setYear(Number(e.target.value))}
-                    />
-                  </div>
-                  <div className="license-filter-input-wrap" style={{ flex: 1 }}>
-                    <i className="pi pi-calendar license-filter-icon" />
-                    <input
-                      className="license-filter-input"
-                      style={{ paddingLeft: "0" }}
-                      placeholder="Mes"
-                      type="number"
-                      min={1}
-                      max={12}
-                      value={month}
-                      onChange={(e) => setMonth(Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    disabled={isLoading || !year || !month || month < 1 || month > 12}
-                    onClick={loadReports}
-                    className="btn btn-sm btn-info"
-                    style={{ borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem" }}
-                  >
-                    {isLoading ? "BUSCANDO" : "BUSCAR"}
-                  </button>
+            <div className="row">
+              <div className="col-12 col-md-6 mb-3">
+                <label className="profile-field-label">Año *</label>
+                <div className="license-filter-input-wrap profile-birthdate-wrap">
+                  <i className="pi pi-calendar license-filter-icon" />
+                  <Calendar
+                    value={year ? new Date(year, 0, 1) : null}
+                    onChange={(e) => setYear(e.value ? (e.value as Date).getFullYear() : 0)}
+                    view="year"
+                    dateFormat="yy"
+                    locale="es"
+                    minDate={new Date(MIN_YEAR, 0, 1)}
+                    maxDate={new Date(actuallyYear, 0, 1)}
+                    placeholder="Año"
+                    className="license-filter-dropdown"
+                    panelClassName="license-filter-dropdown-panel license-filter-calendar-panel"
+                  />
                 </div>
               </div>
+              <div className="col-12 col-md-6 mb-3">
+                <label className="profile-field-label">Mes *</label>
+                <div className="license-filter-input-wrap">
+                  <i className="pi pi-calendar license-filter-icon" />
+                  <input
+                    className="license-filter-input"
+                    style={{ paddingLeft: "0" }}
+                    placeholder="Mes"
+                    type="number"
+                    min={1}
+                    max={12}
+                    value={month}
+                    onChange={(e) => setMonth(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
+              <button
+                type="button"
+                disabled={isLoading || !year || !month || month < 1 || month > 12}
+                onClick={loadReports}
+                className="btn btn-primary d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                <i className={isLoading ? "pi pi-spin pi-spinner" : "pi pi-search"} style={{ fontSize: "0.78rem" }} />
+                {isLoading ? "Buscando..." : "Buscar"}
+              </button>
             </div>
           </div>
         </div>
