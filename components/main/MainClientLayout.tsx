@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "./Navbar";
 import NavbarLateral from "./NavbarLateral";
+import ChatSoporteButton from "@/components/common/ChatSoporteButton";
 
 export default function MainClientLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -43,6 +44,8 @@ export default function MainClientLayout({ children }: { children: React.ReactNo
       <div className="page-wrapper">
         <div className="container-fluid">{children}</div>
       </div>
+
+      <ChatSoporteButton />
 
       {showLogoutModal && (
         <div

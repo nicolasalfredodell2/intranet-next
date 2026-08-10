@@ -11,6 +11,7 @@ import Questions from "./Questions";
 import CalendarWidget from "./CalendarWidget";
 import AreasScroll from "./AreasScroll";
 import Shorts from "./Shorts";
+import ChatSoporteButton from "@/components/common/ChatSoporteButton";
 
 import { getTodayBirthdays } from "@/lib/services/calendar.service";
 import { getActivatedBanners } from "@/lib/services/banners.service";
@@ -49,11 +50,8 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
   const [shorts, setShorts] = useState<any[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLogged, setIsLogged] = useState(false);
 
   useEffect(() => {
-    setIsLogged(!!localStorage.getItem("token"));
-
     Promise.all([
       getTodayBirthdays().catch(() => []),
       getActivatedBanners().catch(() => []),
@@ -132,22 +130,6 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
                     <CalendarWidget />
                   </div>
                 </div>
-
-                {isLogged && (
-                  <div className="d-none d-xl-block div-soporte row mt-4 pt-2 px-3">
-                    <div
-                      className="col-12 pointer text-center pt-1 chat-card"
-                      onClick={() => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank")}
-                      style={{ boxShadow: "rgba(0,0,0,0.16) 0px 3px 6px, rgba(0,0,0,0.23) 0px 3px 6px" }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src="/img/chat/logo.svg" className="chat-logo" alt="Logo Soporte" />
-                      <div className="badge bg-white p-2 text-dark chat-badge shadow-sm">
-                        Chat soporte
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -172,34 +154,11 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
         </div>
       </div>
 
+      <ChatSoporteButton />
+
       <style jsx>{`
         .pt-custom { padding-top: 50px; }
         .row-main { margin-left: 2.7rem; margin-right: 2.7rem; }
-        .chat-card {
-          background: linear-gradient(to bottom right, #4285F4, #1A5BC9);
-          border-radius: 10px;
-          transition: transform 0.2s ease-in-out;
-          margin-top: -0.5rem !important;
-          cursor: pointer;
-        }
-        .chat-logo {
-          width: 55%;
-        }
-        .chat-badge {
-          border-radius: 50px;
-          margin-top: clamp(0.4rem, 6%, 0.75rem);
-          margin-bottom: clamp(0.4rem, 6%, 0.75rem);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          font-size: clamp(0.8rem, 1.1vw, 0.9rem) !important;
-          white-space: normal;
-          width: 60%;
-        }
-        .chat-icon {
-          font-size: clamp(1rem, 1.5vw, 1.25rem);
-        }
         @media (max-width: 768px) {
           .pt-custom { padding-top: 25px; }
           .row-main { margin-left: 0; margin-right: 0; }
