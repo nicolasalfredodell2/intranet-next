@@ -31,6 +31,7 @@ interface DayEvent {
   type: "birthday" | "holiday";
   color: string;
   label?: string;
+  categoryTitle?: string;
   entries: EventEntry[];
 }
 
@@ -103,12 +104,13 @@ function transformImportantDates(importantDates: any[], map: EventMap): void {
     if (!parsed) return;
     const { year, month, day } = parsed;
     const color = item.category?.colour ?? item.colour ?? item.color ?? "#4CAF50";
+    const categoryTitle = item.category?.descript ?? item.category?.description ?? item.category?.name ?? "Día especial";
     const label = item.event ?? item.title ?? "Día especial";
     const key = dateKey(year, month, day);
     // Cada evento importante queda como su propio grupo (no se mezcla con otros del mismo
     // día), para que cada uno muestre su propio nombre y el color de su categoría.
     if (!map[key]) map[key] = [];
-    map[key].push({ type: "holiday", color, label, entries: [{ description: label, color }] });
+    map[key].push({ type: "holiday", color, label, categoryTitle, entries: [{ description: label, color }] });
   });
 }
 
@@ -210,7 +212,7 @@ function EventTooltip({ info }: { info: HoverInfo }) {
 
 /* ── Birthday side cards ── */
 
-function BirthdayCard({ icon, title, entries }: { icon: string; title: string; entries: EventEntry[] }) {
+function BirthdayCard({ icon, title, entries, holidayEvents }: { icon: string; title: string; entries: EventEntry[]; holidayEvents?: DayEvent[] }) {
   return (
     <div style={{ marginTop: "8px" }}>
       <div style={{ background: "#1e2533", borderRadius: "12px", padding: "12px 14px", color: "#f1f5f9" }}>
@@ -222,7 +224,7 @@ function BirthdayCard({ icon, title, entries }: { icon: string; title: string; e
         </div>
         {entries.map((entry, i) => (
           <div
-            key={i}
+            key={`b-${i}`}
             style={{
               display: "flex",
               alignItems: "center",
@@ -238,6 +240,35 @@ function BirthdayCard({ icon, title, entries }: { icon: string; title: string; e
             {entry.description}
           </div>
         ))}
+
+        {holidayEvents && holidayEvents.length > 0 && (
+          <div
+            style={{
+              marginTop: entries.length ? "8px" : 0,
+              paddingTop: entries.length ? "8px" : 0,
+              borderTop: entries.length ? "1px solid rgba(255,255,255,0.08)" : "none",
+            }}
+          >
+            {holidayEvents.map((ev, i) => (
+              <div
+                key={`h-${i}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  paddingTop: "2px",
+                  paddingBottom: "2px",
+                  color: "#e2e8f0",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                }}
+              >
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: ev.color, flexShrink: 0, boxShadow: `0 0 6px ${ev.color}99` }} />
+                {ev.label}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -272,8 +303,12 @@ export default function CalendarWidget() {
       const d = new Date(start);
       d.setDate(d.getDate() + i);
       const key = dateKey(d.getFullYear(), d.getMonth() + 1, d.getDate());
-      const bday = eventMap[key]?.find((ev) => ev.type === "birthday");
-      if (bday) return { date: key, entries: bday.entries };
+      const dayEvents = eventMap[key];
+      const bday = dayEvents?.find((ev) => ev.type === "birthday");
+      if (bday) {
+        const holidays = dayEvents?.filter((ev) => ev.type === "holiday") ?? [];
+        return { date: key, entries: bday.entries, holidays };
+      }
     }
     return null;
   }, [eventMap]);
@@ -316,7 +351,7 @@ export default function CalendarWidget() {
     }
 
     const details: CalendarDetail[] = events.map((ev) => ({
-      title: ev.type === "birthday" ? "Cumpleaños" : (ev.label ?? "Día especial"),
+      title: ev.type === "birthday" ? "Cumpleaños" : (ev.categoryTitle ?? "Día especial"),
       date: key,
       data: ev.entries,
     }));
@@ -351,6 +386,7 @@ export default function CalendarWidget() {
           icon="📅"
           title={`Próximo cumpleaños · ${formatDateLabel(nextBirthday.date)}`}
           entries={nextBirthday.entries}
+          holidayEvents={nextBirthday.holidays}
         />
       )}
 
