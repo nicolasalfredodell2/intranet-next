@@ -452,7 +452,6 @@ export default function CalendarPage() {
         draggable={false}
         resizable={false}
         closable={false}
-        dismissableMask
         style={{ width: "min(720px, 92vw)" }}
         onHide={closeCreate}
         footer={
@@ -647,7 +646,6 @@ export default function CalendarPage() {
         draggable={false}
         resizable={false}
         closable={false}
-        dismissableMask
         style={{ width: "min(720px, 92vw)" }}
         onHide={closeModify}
         footer={
