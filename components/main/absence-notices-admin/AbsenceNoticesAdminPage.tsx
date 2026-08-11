@@ -229,6 +229,8 @@ export default function AbsenceNoticesAdminPage() {
   const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
 
   const [detailNotice, setDetailNotice] = useState<any>(null);
+  // Mantiene el detalle abierto sincronizado con la lista tras cualquier accion de flujo.
+  const currentDetailNotice = detailNotice ? (notices.find((n) => n.id === detailNotice.id) ?? detailNotice) : null;
 
   useEffect(() => {
     loadConfig();
@@ -821,8 +823,8 @@ export default function AbsenceNoticesAdminPage() {
           </div>
         }
       >
-        {detailNotice && (() => {
-          const n = detailNotice;
+        {currentDetailNotice && (() => {
+          const n = currentDetailNotice;
           const legajo = n.people?.internal?.split("/")[0]?.trim();
           const label = statusLabel(n.status);
           const color = getStatusColor(n.status?.code);
@@ -847,6 +849,16 @@ export default function AbsenceNoticesAdminPage() {
                   <span className="badge rounded-pill" style={{ background: `${color}1a`, color, border: "none", fontWeight: 600, padding: "5px 12px" }}>
                     {label}
                   </span>
+                  {hasWorkflowActions(n) && (
+                    <button
+                      type="button"
+                      onClick={(e) => openMenu(e, n)}
+                      className="btn btn-light d-flex align-items-center"
+                      style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.78rem", padding: "5px 12px", color: "#64748b" }}
+                    >
+                      <i className="pi pi-ellipsis-v" style={{ fontSize: "0.75rem" }} /> Acciones
+                    </button>
+                  )}
                 </div>
 
                 <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
