@@ -1077,9 +1077,6 @@ export default function AbsenceNoticesAdminPage() {
         onHide={() => setDisplayActionDialog(false)}
         footer={
           <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-            <button type="button" disabled={isProcessingAction} onClick={() => setDisplayActionDialog(false)} className="btn btn-light text-muted ml-auto" style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}>
-              Cancelar
-            </button>
             <button
               type="button"
               disabled={isProcessingAction}
@@ -1088,7 +1085,12 @@ export default function AbsenceNoticesAdminPage() {
               style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
             >
               <i className={isProcessingAction ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-              {isProcessingAction ? "Confirmando..." : "Confirmar"}
+              {actionType === "aprobar"
+                ? (isProcessingAction ? "Aprobando..." : "Aprobar")
+                : (isProcessingAction ? "Confirmando..." : "Confirmar")}
+            </button>
+            <button type="button" disabled={isProcessingAction} onClick={() => setDisplayActionDialog(false)} className="btn btn-light text-muted ml-auto" style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}>
+              Volver
             </button>
           </div>
         }
