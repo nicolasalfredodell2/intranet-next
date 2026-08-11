@@ -30,6 +30,7 @@ interface EventEntry {
 interface DayEvent {
   type: "birthday" | "holiday";
   color: string;
+  label?: string;
   entries: EventEntry[];
 }
 
@@ -105,9 +106,13 @@ function transformImportantDates(importantDates: any[], map: EventMap): void {
     const parsed = parseDateParts(item.date);
     if (!parsed) return;
     const { year, month, day } = parsed;
-    const color = item.colour ?? item.color ?? item.category?.colour ?? "#4CAF50";
+    const color = item.category?.colour ?? item.colour ?? item.color ?? "#4CAF50";
+    const label = item.event ?? item.title ?? "Día especial";
     const key = dateKey(year, month, day);
-    upsertEvent(map, key, "holiday", color, { description: item.event ?? item.title ?? "—", color });
+    // Cada evento importante queda como su propio grupo (no se mezcla con otros del mismo
+    // día), para que cada uno muestre su propio nombre y el color de su categoría.
+    if (!map[key]) map[key] = [];
+    map[key].push({ type: "holiday", color, label, entries: [{ description: label, color }] });
   });
 }
 
@@ -396,11 +401,13 @@ export default function CalendarWidget({ onDetails }: Props) {
     }
 
     const details: CalendarDetail[] = events.map((ev) => ({
-      title: ev.type === "birthday" ? "Cumpleaños" : "Día especial",
+      title: ev.type === "birthday" ? "Cumpleaños" : (ev.label ?? "Día especial"),
       date: key,
       data: ev.entries,
     }));
-    const panelDetails = details.filter((d) => d.title !== "Cumpleaños");
+    const panelDetails: CalendarDetail[] = events
+      .filter((ev) => ev.type === "holiday")
+      .map((ev) => ({ title: ev.label ?? "Día especial", date: key, data: ev.entries }));
 
     return (
       <span
