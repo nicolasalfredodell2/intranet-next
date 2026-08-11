@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+
+const AUTO_SCROLL_SPEED = 0.4; // px por frame
 
 interface AreasScrollProps {
   areas: any[];
@@ -36,6 +38,36 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
     if (!scrollRef.current) return;
     scrollRef.current.scrollLeft += dir === "left" ? -270 : 270;
   };
+
+  // Desplazamiento automático continuo: avanza lentamente y al llegar a un
+  // extremo invierte el sentido, como un vaivén. Se pausa mientras el
+  // usuario arrastra manualmente.
+  const direction = useRef(1);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    let rafId: number;
+
+    const step = () => {
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (!isDown.current && maxScroll > 0) {
+        el.scrollLeft += AUTO_SCROLL_SPEED * direction.current;
+        if (el.scrollLeft >= maxScroll) {
+          el.scrollLeft = maxScroll;
+          direction.current = -1;
+        } else if (el.scrollLeft <= 0) {
+          el.scrollLeft = 0;
+          direction.current = 1;
+        }
+      }
+      rafId = requestAnimationFrame(step);
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [areas]);
 
   const openArea = (area: any) => {
     if (!area.info_area_id) return;
