@@ -16,7 +16,6 @@ import { addLocale } from "primereact/api";
 import {
   getNoticesConfig,
   getAllNoticesAdmin,
-  modificateNoticeAdmin,
   changeNoticeStatusAdmin,
   rejectNoticeAttachment,
   getNoticeFile,
@@ -33,12 +32,6 @@ addLocale("es-avisos-admin", {
   now: "Ahora",
   clear: "Quitar fechas",
 });
-
-interface NoticeForm {
-  type: string;
-  reason: string;
-  description: string;
-}
 
 interface FilterForm {
   notice_type_id: string;
@@ -198,11 +191,6 @@ export default function AbsenceNoticesAdminPage() {
   const [rows, setRows] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingAbsensceNotices, setIsLoadingAbsensceNotices] = useState(false);
-  const [isLoadingCreateAbsensceNotices, setIsLoadingCreateAbsensceNotices] = useState(false);
-
-  const [absenceNoticeParaModificar, setAbsenceNoticeParaModificar] = useState<any>(null);
-  const [form, setForm] = useState<NoticeForm>({ type: "", reason: "", description: "" });
-  const [touched, setTouched] = useState(false);
 
   const [filters, setFilters] = useState<FilterForm>(EMPTY_FILTERS);
   const [legajoInput, setLegajoInput] = useState("");
@@ -304,43 +292,6 @@ export default function AbsenceNoticesAdminPage() {
     setLegajoInput("");
     setNameInput("");
     loadAbsenceNotices(1, rows, EMPTY_FILTERS);
-  }
-
-  function llenarFormulario(notice: any) {
-    setAbsenceNoticeParaModificar(notice);
-    setForm({
-      type: notice.type?.id ?? "",
-      reason: notice.reason?.id ?? "",
-      description: notice.description ?? "",
-    });
-    setTouched(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function limpiar() {
-    setAbsenceNoticeParaModificar(null);
-    setForm({ type: "", reason: "", description: "" });
-    setTouched(false);
-  }
-
-  // Migración de create() del Angular original: en realidad modifica el aviso seleccionado.
-  async function modificar(e: React.FormEvent) {
-    e.preventDefault();
-    setTouched(true);
-    if (!form.type || !form.description || !absenceNoticeParaModificar) return;
-    setIsLoadingCreateAbsensceNotices(true);
-    try {
-      const payload: any = { notice_type_id: form.type, description: form.description };
-      if (form.reason) payload.notice_reason_id = form.reason;
-      const resp = await modificateNoticeAdmin(payload, absenceNoticeParaModificar.id);
-      setNotices((prev) => [resp, ...prev.filter((n) => n.id !== absenceNoticeParaModificar.id)]);
-      toast.current?.show({ severity: "success", summary: "Aviso modificado" });
-      limpiar();
-    } catch (err: any) {
-      toast.current?.show({ severity: "error", summary: "Hubo un problema", detail: err.message });
-    } finally {
-      setIsLoadingCreateAbsensceNotices(false);
-    }
   }
 
   const statusLabel = (s: any) => {
@@ -543,88 +494,6 @@ export default function AbsenceNoticesAdminPage() {
             </div>
           </div>
         </div>
-
-        {/* Modificar aviso */}
-        {absenceNoticeParaModificar && (
-          <div className="card profile-card mt-4 fadeIn animated">
-            <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <i className="pi pi-pencil" style={{ color: "#3b82f6", fontSize: "1rem" }} />
-              </div>
-              <div className="flex-grow-1">
-                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Modificar aviso</h5>
-                <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{absenceNoticeParaModificar.people?.lastname_name ?? absenceNoticeParaModificar.cuil}</small>
-              </div>
-              <button type="button" onClick={limpiar} className="btn btn-light text-muted" style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}>
-                Cancelar
-              </button>
-            </div>
-            <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
-            <div className="card-body" style={{ padding: "16px 20px 20px" }}>
-              <form onSubmit={modificar} noValidate>
-                <div className="row">
-                  <div className="col-12 col-md-4 mb-3">
-                    <label className="profile-field-label">Tipo *</label>
-                    <div className={`license-filter-input-wrap${form.type ? " license-filter-input-wrap--active" : ""}`}>
-                      <i className="pi pi-tag license-filter-icon" />
-                      <Dropdown
-                        value={form.type || null}
-                        options={types}
-                        optionLabel="name"
-                        optionValue="id"
-                        onChange={(e) => setForm((p) => ({ ...p, type: e.value ?? "" }))}
-                        placeholder="Seleccioná un tipo"
-                        className="license-filter-dropdown"
-                        panelClassName="license-filter-dropdown-panel"
-                        emptyMessage="Sin tipos"
-                      />
-                    </div>
-                    {touched && !form.type && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
-                  </div>
-
-                  <div className="col-12 col-md-4 mb-3">
-                    <label className="profile-field-label">Razón</label>
-                    <div className={`license-filter-input-wrap${form.reason ? " license-filter-input-wrap--active" : ""}`}>
-                      <i className="pi pi-info-circle license-filter-icon" />
-                      <Dropdown
-                        value={form.reason || null}
-                        options={reasons}
-                        optionLabel="name"
-                        optionValue="id"
-                        onChange={(e) => setForm((p) => ({ ...p, reason: e.value ?? "" }))}
-                        placeholder="Seleccioná una razón"
-                        showClear
-                        className="license-filter-dropdown"
-                        panelClassName="license-filter-dropdown-panel"
-                        emptyMessage="Sin razones"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="row">
-                  <div className="col-12 mb-3">
-                    <label className="profile-field-label">Descripción *</label>
-                    <textarea className="profile-input" rows={3} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} />
-                    {touched && !form.description && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
-                  </div>
-                </div>
-
-                <div className="d-flex align-items-center mt-2" style={{ gap: "8px" }}>
-                  <button
-                    disabled={isLoadingCreateAbsensceNotices}
-                    type="submit"
-                    className="btn btn-primary d-flex align-items-center"
-                    style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}
-                  >
-                    <i className={isLoadingCreateAbsensceNotices ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
-                    {isLoadingCreateAbsensceNotices ? "Modificando..." : "Modificar aviso"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
 
         {/* Listado */}
         <div className="card profile-card license-main-card mt-4 fadeIn animated">
@@ -840,16 +709,6 @@ export default function AbsenceNoticesAdminPage() {
                   header=""
                   body={(n) => (
                     <div className="d-flex align-items-center" style={{ gap: "6px" }}>
-                      <Tooltip label="Modificar">
-                        <button
-                          type="button"
-                          onClick={() => llenarFormulario(n)}
-                          style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}
-                        >
-                          <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
-                        </button>
-                      </Tooltip>
-
                       {hasAttachment(n) && (
                         isDownloadingFile && downloadingId === getUltimoAdjunto(n)?.id ? (
                           <span style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#94a3b8", cursor: "not-allowed" }}>
