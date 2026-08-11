@@ -66,7 +66,7 @@ export default function NavbarLateral() {
       setIsSidebarCollapsed(false);
       return;
     }
-    setOpenMenus((p) => ({ ...p, [key]: !p[key] }));
+    setOpenMenus((p) => (p[key] ? {} : { [key]: true }));
   }
 
   return (
