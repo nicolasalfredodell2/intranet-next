@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Calendar, CalendarDateTemplateEvent, CalendarMonthChangeEvent } from "primereact/calendar";
 import { addLocale } from "primereact/api";
 import { getAllDates, getBirthdays } from "@/lib/services/calendar.service";
@@ -135,34 +136,47 @@ function EventTooltip({ info }: { info: HoverInfo }) {
     setPos({ left, top });
   }, [info.x, info.y]);
 
-  return (
+  return createPortal(
     <div
       ref={ref}
+      className="calendar-event-tooltip"
       style={{
         position: "fixed",
         left: pos.left,
         top: pos.top,
         zIndex: 9999,
-        background: "#1e2533",
+        background: "rgba(30, 37, 51, 0.9)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
         color: "#f1f5f9",
-        borderRadius: "10px",
-        padding: "10px 14px",
+        borderRadius: "12px",
+        padding: "12px 16px",
         minWidth: "180px",
         maxWidth: "260px",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 12px 36px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.04)",
         pointerEvents: "none",
         fontSize: "0.8rem",
         lineHeight: 1.5,
       }}
     >
-      <div style={{ fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.08em", color: "#94a3b8", marginBottom: "8px", textTransform: "uppercase" }}>
-        {formatDateLabel(info.details[0]?.date ?? "")}
-      </div>
-
       {info.details.map((group, gi) => (
-        <div key={gi} style={{ marginBottom: gi < info.details.length - 1 ? 8 : 0 }}>
+        <div key={gi} style={{ marginBottom: gi < info.details.length - 1 ? 10 : 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: group.data[0]?.color ?? "#9EB0CE", flexShrink: 0 }} />
+            {group.title === "Cumpleaños" ? (
+              <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>🎂</span>
+            ) : (
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: group.data[0]?.color ?? "#9EB0CE",
+                  flexShrink: 0,
+                  boxShadow: `0 0 6px ${group.data[0]?.color ?? "#9EB0CE"}99`,
+                }}
+              />
+            )}
             <span style={{ fontWeight: 600, fontSize: "0.75rem", color: "#e2e8f0" }}>{group.title}</span>
           </div>
           {group.data.map((entry, ei) => (
@@ -172,7 +186,24 @@ function EventTooltip({ info }: { info: HoverInfo }) {
           ))}
         </div>
       ))}
-    </div>
+
+      <style jsx>{`
+        .calendar-event-tooltip {
+          animation: tooltipPop 0.16s ease-out;
+        }
+        @keyframes tooltipPop {
+          from {
+            opacity: 0;
+            transform: translateY(4px) scale(0.97);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
+    </div>,
+    document.body
   );
 }
 
@@ -321,6 +352,7 @@ export default function CalendarWidget({ onDetails }: Props) {
       date: key,
       data: ev.entries,
     }));
+    const panelDetails = details.filter((d) => d.title !== "Cumpleaños");
 
     return (
       <span
@@ -328,8 +360,8 @@ export default function CalendarWidget({ onDetails }: Props) {
         onClick={(ev) => ev.stopPropagation()}
         onMouseEnter={(ev) => {
           setHoverInfo({ details, x: ev.clientX, y: ev.clientY });
-          setActiveDetails(details);
-          onDetails?.(details);
+          setActiveDetails(panelDetails.length ? panelDetails : null);
+          onDetails?.(panelDetails.length ? panelDetails : null);
         }}
         onMouseLeave={() => {
           setHoverInfo(null);
