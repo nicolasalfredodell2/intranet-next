@@ -225,7 +225,7 @@ function DaySectionSubtitle({ dotColor, children }: { dotColor?: string; childre
   );
 }
 
-function DaySectionItem({ dotColor, children }: { dotColor: string; children: React.ReactNode }) {
+function DaySectionItem({ dotColor, children }: { dotColor?: string; children: React.ReactNode }) {
   return (
     <div
       style={{
@@ -240,7 +240,9 @@ function DaySectionItem({ dotColor, children }: { dotColor: string; children: Re
         fontWeight: 600,
       }}
     >
-      <span style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, flexShrink: 0, boxShadow: `0 0 6px ${dotColor}99` }} />
+      {dotColor && (
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, flexShrink: 0, boxShadow: `0 0 6px ${dotColor}99` }} />
+      )}
       {children}
     </div>
   );
@@ -267,7 +269,7 @@ function NextDayCard({ date, birthdayEntries, holidayEvents }: { date: string; b
         {holidayEvents.map((ev, i) => (
           <div key={`h-${i}`} style={{ marginTop: i > 0 || birthdayEntries.length > 0 ? "10px" : 0 }}>
             <DaySectionSubtitle dotColor={ev.color}>{ev.categoryTitle ?? "Día especial"}</DaySectionSubtitle>
-            <DaySectionItem dotColor={ev.color}>{ev.label}</DaySectionItem>
+            <DaySectionItem>{ev.label}</DaySectionItem>
           </div>
         ))}
       </div>
