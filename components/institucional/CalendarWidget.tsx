@@ -48,10 +48,6 @@ interface HoverInfo {
   y: number;
 }
 
-interface Props {
-  onDetails?: (details: CalendarDetail[] | null) => void;
-}
-
 /* ── Pure helpers ── */
 
 function dateKey(year: number, month: number, day: number): string {
@@ -212,84 +208,6 @@ function EventTooltip({ info }: { info: HoverInfo }) {
   );
 }
 
-/* ── Detail Card (panel debajo del calendario) ── */
-
-function DetailCard({ details }: { details: CalendarDetail[] | null }) {
-  const visible = !!details?.length;
-
-  return (
-    <div
-      style={{
-        overflow: "hidden",
-        maxHeight: visible ? "300px" : "0",
-        opacity: visible ? 1 : 0,
-        transition: "max-height 0.25s ease, opacity 0.2s ease",
-        marginTop: visible ? "8px" : "0",
-      }}
-    >
-      <div
-        style={{
-          background: "#1e2533",
-          borderRadius: "12px",
-          padding: "12px 14px",
-          color: "#f1f5f9",
-        }}
-      >
-        <div
-          style={{
-            fontWeight: 700,
-            fontSize: "0.68rem",
-            letterSpacing: "0.1em",
-            color: "#64748b",
-            textTransform: "uppercase",
-            marginBottom: "10px",
-          }}
-        >
-          {formatDateLabel(details?.[0]?.date ?? "")}
-        </div>
-
-        {details?.map((group, gi) => (
-          <div key={gi} style={{ marginBottom: gi < (details?.length ?? 0) - 1 ? 10 : 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "5px" }}>
-              <span
-                style={{
-                  width: 9,
-                  height: 9,
-                  borderRadius: "50%",
-                  background: group.data[0]?.color ?? "#9EB0CE",
-                  flexShrink: 0,
-                  boxShadow: `0 0 6px ${group.data[0]?.color ?? "#9EB0CE"}88`,
-                }}
-              />
-              <span style={{ fontWeight: 700, fontSize: "0.73rem", color: "#e2e8f0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                {group.title}
-              </span>
-            </div>
-            {group.data.map((entry, ei) => (
-              <div
-                key={ei}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  paddingLeft: "16px",
-                  paddingTop: "2px",
-                  paddingBottom: "2px",
-                  color: "#94a3b8",
-                  fontSize: "0.78rem",
-                }}
-              >
-                <i className="pi pi-minus" style={{ fontSize: "0.5rem", color: "#475569" }} />
-                {entry.description}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ── Birthday side cards ── */
 
 function BirthdayCard({ icon, title, entries }: { icon: string; title: string; entries: EventEntry[] }) {
@@ -327,10 +245,9 @@ function BirthdayCard({ icon, title, entries }: { icon: string; title: string; e
 
 /* ── Component ── */
 
-export default function CalendarWidget({ onDetails }: Props) {
+export default function CalendarWidget() {
   const [eventMap, setEventMap] = useState<EventMap>({});
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
-  const [activeDetails, setActiveDetails] = useState<CalendarDetail[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -363,9 +280,7 @@ export default function CalendarWidget({ onDetails }: Props) {
 
   const handleMonthChange = useCallback((_e: CalendarMonthChangeEvent) => {
     setHoverInfo(null);
-    setActiveDetails(null);
-    onDetails?.(null);
-  }, [onDetails]);
+  }, []);
 
   const dateTemplate = useCallback((e: CalendarDateTemplateEvent) => {
     if (e.otherMonth) {
@@ -380,7 +295,7 @@ export default function CalendarWidget({ onDetails }: Props) {
         <span
           className="cal-day-plain"
           onClick={(ev) => ev.stopPropagation()}
-          onMouseEnter={() => { setHoverInfo(null); setActiveDetails(null); }}
+          onMouseEnter={() => setHoverInfo(null)}
         >
           {e.day}
         </span>
@@ -405,29 +320,18 @@ export default function CalendarWidget({ onDetails }: Props) {
       date: key,
       data: ev.entries,
     }));
-    const panelDetails: CalendarDetail[] = events
-      .filter((ev) => ev.type === "holiday")
-      .map((ev) => ({ title: ev.label ?? "Día especial", date: key, data: ev.entries }));
 
     return (
       <span
         style={{ background, color: "#fff", borderRadius: "50%", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" }}
         onClick={(ev) => ev.stopPropagation()}
-        onMouseEnter={(ev) => {
-          setHoverInfo({ details, x: ev.clientX, y: ev.clientY });
-          setActiveDetails(panelDetails.length ? panelDetails : null);
-          onDetails?.(panelDetails.length ? panelDetails : null);
-        }}
-        onMouseLeave={() => {
-          setHoverInfo(null);
-          setActiveDetails(null);
-          onDetails?.(null);
-        }}
+        onMouseEnter={(ev) => setHoverInfo({ details, x: ev.clientX, y: ev.clientY })}
+        onMouseLeave={() => setHoverInfo(null)}
       >
         {e.day}
       </span>
     );
-  }, [eventMap, onDetails]);
+  }, [eventMap]);
 
   return (
     <div className="animate__animated animate__fadeIn calendar-widget-wrapper mb-3">
@@ -441,7 +345,6 @@ export default function CalendarWidget({ onDetails }: Props) {
       />
 
       {hoverInfo && <EventTooltip info={hoverInfo} />}
-      <DetailCard details={activeDetails} />
 
       {nextBirthday && (
         <BirthdayCard
