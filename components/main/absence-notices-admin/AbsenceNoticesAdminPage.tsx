@@ -53,6 +53,21 @@ function formatDateDisplay(iso: string | null | undefined): string {
   return `${d}/${m}/${y}`;
 }
 
+function countDays(start: Date, end: Date): number {
+  return Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+}
+
+function countBusinessDays(start: Date, end: Date): number {
+  let count = 0;
+  const current = new Date(start);
+  while (current <= end) {
+    const day = current.getDay();
+    if (day !== 0 && day !== 6) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
 function formatDateForApi(date: Date | null): string {
   if (!date) return "";
   const y = date.getFullYear();
@@ -257,7 +272,7 @@ export default function AbsenceNoticesAdminPage() {
       <div className="fadeIn animated">
 
         {/* Header card */}
-        <div className="card profile-card profile-card--admin">
+        <div className="card profile-card">
           <div className="d-flex align-items-center px-3 pt-3 pb-3" style={{ gap: "12px" }}>
             <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <i className="pi pi-bell" style={{ color: "#eab308", fontSize: "1rem" }} />
@@ -266,9 +281,6 @@ export default function AbsenceNoticesAdminPage() {
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Avisos</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Administración de avisos del personal</small>
             </div>
-            <span style={{ background: "rgba(234,179,8,0.14)", color: "#a16207", borderRadius: "20px", padding: "3px 10px", fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
-              Administración
-            </span>
           </div>
         </div>
 
@@ -357,8 +369,8 @@ export default function AbsenceNoticesAdminPage() {
         {/* Listado */}
         <div className="card profile-card license-main-card mt-4 fadeIn animated">
           <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#e8edff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <i className="pi pi-list" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-list" style={{ color: "#eab308", fontSize: "1rem" }} />
             </div>
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de avisos</h5>
@@ -495,14 +507,51 @@ export default function AbsenceNoticesAdminPage() {
                   </div>
                 }
               >
-                <Column header="AGENTE" body={(n) => <small>{n.people?.lastname_name ?? n.cuil}</small>} />
+                <Column
+                  header="AGENTE (LEGAJO)"
+                  body={(n) => {
+                    const legajo = n.people?.internal?.split("/")[0]?.trim();
+                    return (
+                      <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+                        <small>{n.people?.lastname_name ?? n.cuil}</small>
+                        {legajo && (
+                          <span
+                            className="badge rounded-pill"
+                            style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
+                          >
+                            {legajo}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
                 <Column header="TIPO" body={(n) => <CategoryBadge label={n.type?.name} id={n.type?.id} list={types} />} />
                 {!isFilterLlegadaTarde && (
                   <Column header="RAZÓN" body={(n) => <CategoryBadge label={n.reason?.name} id={n.reason?.id} palette={REASON_PALETTE} list={reasons} />} />
                 )}
                 <Column
                   header="FECHA"
-                  body={(n) => <small>{formatDateDisplay(n.notice_date)}{n.notice_to ? ` - ${formatDateDisplay(n.notice_to)}` : ""}</small>}
+                  body={(n) => {
+                    const start = n.notice_date ? new Date(`${n.notice_date}T00:00:00`) : null;
+                    const end = n.notice_to ? new Date(`${n.notice_to}T00:00:00`) : null;
+                    const days = start && end ? countDays(start, end) : null;
+                    const businessDays = start && end ? countBusinessDays(start, end) : null;
+                    return (
+                      <div className="d-flex align-items-center" style={{ gap: "8px" }}>
+                        <small>{formatDateDisplay(n.notice_date)}{n.notice_to ? ` - ${formatDateDisplay(n.notice_to)}` : ""}</small>
+                        {days !== null && (
+                          <span
+                            className="badge rounded-pill"
+                            style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
+                          >
+                            {days} {days === 1 ? "día total" : "días totales"}
+                            {businessDays !== days && ` (${businessDays} ${businessDays === 1 ? "día hábil" : "días hábiles"})`}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }}
                 />
                 <Column
                   header="DESCRIPCIÓN"
