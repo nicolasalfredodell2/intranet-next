@@ -12,7 +12,7 @@ export async function getAllDates() {
   const res = await fetch(`${API}important-dates`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error cargando fechas");
   const json = await res.json();
-  return Array.isArray(json) ? json : (json.data ?? []);
+  return Array.isArray(json) ? json : (json.important_dates ?? json.data ?? []);
 }
 
 export async function getBirthdays(): Promise<any[]> {
