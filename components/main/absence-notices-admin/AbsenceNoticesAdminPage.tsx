@@ -19,6 +19,7 @@ import {
   changeNoticeStatusAdmin,
   rejectNoticeAttachment,
   getNoticeFile,
+  getNotice,
 } from "@/lib/services/absence-notices.service";
 
 addLocale("es-avisos-admin", {
@@ -178,7 +179,7 @@ function hasWorkflowActions(item: any): boolean {
 
 const MENU_ITEM_STYLE = { display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 14px", background: "none", border: "none", textAlign: "left" as const, fontSize: "0.84rem", color: "#374151", cursor: "pointer" };
 
-export default function AbsenceNoticesAdminPage() {
+export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNoticeId?: string } = {}) {
   const toast = useRef<Toast>(null);
   const menuRef = useRef<OverlayPanel>(null);
 
@@ -235,7 +236,51 @@ export default function AbsenceNoticesAdminPage() {
   useEffect(() => {
     loadConfig();
     loadAbsenceNotices();
+    if (initialNoticeId) openDetail(initialNoticeId, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Mantiene la URL sincronizada con el sidebar de detalle sin navegar de pagina.
+  useEffect(() => {
+    function handlePopState(e: PopStateEvent) {
+      const id = e.state?.absenceNoticeId;
+      if (id) openDetail(id, false);
+      else setDetailNotice(null);
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notices]);
+
+  async function openDetail(idOrNotice: any, pushHistory = true) {
+    const id = typeof idOrNotice === "object" ? idOrNotice.id : idOrNotice;
+    const url = `/main/absence-notices-admin/${id}`;
+    if (pushHistory) {
+      if (detailNotice) window.history.replaceState({ absenceNoticeId: id }, "", url);
+      else window.history.pushState({ absenceNoticeId: id }, "", url);
+    }
+
+    const found = typeof idOrNotice === "object" ? idOrNotice : notices.find((n) => n.id == id);
+    if (found) {
+      setDetailNotice(found);
+      return;
+    }
+    try {
+      const resp = await getNotice(id);
+      setDetailNotice(resp);
+    } catch {
+      toast.current?.show({ severity: "error", summary: "No se pudo cargar el aviso" });
+    }
+  }
+
+  function closeDetail() {
+    if (window.history.state?.absenceNoticeId) {
+      window.history.back();
+    } else {
+      setDetailNotice(null);
+      window.history.replaceState({}, "", "/main/absence-notices-admin");
+    }
+  }
 
   // Debounce de los filtros de texto (legajo / nombre)
   useEffect(() => {
@@ -736,7 +781,7 @@ export default function AbsenceNoticesAdminPage() {
                       )}
 
                       <Tooltip label="Ver detalle">
-                        <button type="button" onClick={() => setDetailNotice(n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                        <button type="button" onClick={() => openDetail(n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
                           <i className="pi pi-external-link" style={{ fontSize: "0.85rem" }} />
                         </button>
                       </Tooltip>
@@ -815,7 +860,7 @@ export default function AbsenceNoticesAdminPage() {
         visible={!!detailNotice}
         position="right"
         showCloseIcon
-        onHide={() => setDetailNotice(null)}
+        onHide={closeDetail}
         style={{ width: "min(560px, 92vw)" }}
         header={
           <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
