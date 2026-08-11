@@ -111,23 +111,8 @@ export default function Banners({ banners }: BannersProps) {
             </button>
           )}
 
-          {banners.length > 1 && (
-            <div className="carousel-indicators-custom">
-              {banners.map((_, i) => (
-                <span
-                  key={i}
-                  className={`dot${i === currentIndex ? " active" : ""}`}
-                  onClick={() => goTo(i, i > currentIndexRef.current ? "next" : "prev")}
-                />
-              ))}
-            </div>
-          )}
-
           {ctaLabel && (
-            <button
-              className={`cta-btn${banners.length > 1 ? " with-dots" : ""}`}
-              onClick={handleClick}
-            >
+            <button className="cta-btn" onClick={handleClick}>
               {ctaLabel}
             </button>
           )}
@@ -205,28 +190,6 @@ export default function Banners({ banners }: BannersProps) {
         }
         .nav-btn.left { left: 10px; }
         .nav-btn.right { right: 10px; }
-        .carousel-indicators-custom {
-          position: absolute;
-          bottom: 15px;
-          left: 0; right: 0;
-          display: flex;
-          justify-content: center;
-          gap: 8px;
-          z-index: 20;
-        }
-        .dot {
-          width: 8px;
-          height: 8px;
-          background-color: rgba(255,255,255,0.5);
-          border-radius: 50%;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-        .dot.active {
-          background-color: #ffffff;
-          width: 20px;
-          border-radius: 10px;
-        }
         .cta-btn {
           position: absolute;
           bottom: 15px;
@@ -248,9 +211,6 @@ export default function Banners({ banners }: BannersProps) {
         .cta-btn:hover {
           background: rgba(54, 120, 231, 1);
           box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.25);
-        }
-        .cta-btn.with-dots {
-          bottom: 42px;
         }
         @media (max-width: 1199px) {
           .banner-slide-viewport {
