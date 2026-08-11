@@ -170,12 +170,33 @@ export default function ChatSoporteButton() {
           align-items: center;
           justify-content: center;
           background: linear-gradient(to bottom right, #4285f4, #1a5bc9);
-          box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 10px, rgba(0, 0, 0, 0.25) 0px 4px 10px;
+          box-shadow:
+            rgba(0, 0, 0, 0.2) 0px 4px 10px,
+            rgba(0, 0, 0, 0.25) 0px 4px 10px,
+            0 0 8px 1px rgba(66, 133, 244, 0.25),
+            0 0 16px 3px rgba(66, 133, 244, 0.12);
           cursor: pointer;
-          transition: transform 0.2s ease-in-out;
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+          animation: chatSoporteNeonPulse 2.8s ease-in-out infinite;
         }
         .chat-soporte-fab:hover {
           transform: scale(1.08);
+        }
+        @keyframes chatSoporteNeonPulse {
+          0%, 100% {
+            box-shadow:
+              rgba(0, 0, 0, 0.2) 0px 4px 10px,
+              rgba(0, 0, 0, 0.25) 0px 4px 10px,
+              0 0 8px 1px rgba(66, 133, 244, 0.25),
+              0 0 16px 3px rgba(66, 133, 244, 0.12);
+          }
+          50% {
+            box-shadow:
+              rgba(0, 0, 0, 0.2) 0px 4px 10px,
+              rgba(0, 0, 0, 0.25) 0px 4px 10px,
+              0 0 10px 2px rgba(66, 133, 244, 0.35),
+              0 0 20px 5px rgba(66, 133, 244, 0.16);
+          }
         }
         .chat-soporte-img {
           display: block;

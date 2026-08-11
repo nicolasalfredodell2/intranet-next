@@ -197,7 +197,11 @@ export default function Banners({ banners }: BannersProps) {
           display: flex;
           justify-content: center;
           align-items: center;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15);
+          transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .nav-btn:hover {
+          box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.25);
         }
         .nav-btn.left { left: 10px; }
         .nav-btn.right { right: 10px; }
@@ -237,12 +241,13 @@ export default function Banners({ banners }: BannersProps) {
           font-weight: 600;
           cursor: pointer;
           z-index: 20;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+          box-shadow: 0 2px 10px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.15);
           white-space: nowrap;
-          transition: background 0.2s ease;
+          transition: background 0.2s ease, box-shadow 0.2s ease;
         }
         .cta-btn:hover {
           background: rgba(54, 120, 231, 1);
+          box-shadow: 0 4px 14px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.25);
         }
         .cta-btn.with-dots {
           bottom: 42px;
