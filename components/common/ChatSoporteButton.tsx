@@ -20,7 +20,6 @@ export default function ChatSoporteButton() {
   const [animate, setAnimate] = useState(false);
   const [bubble, setBubble] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
   const phraseIndexRef = useRef(0);
 
   useEffect(() => {
@@ -45,7 +44,7 @@ export default function ChatSoporteButton() {
     return () => clearInterval(interval);
   }, [isInstitucional]);
 
-  if (!isLogged || dismissed) return null;
+  if (!isLogged) return null;
 
   function openChat() {
     setBubble(null);
@@ -151,16 +150,6 @@ export default function ChatSoporteButton() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/img/chat/logo.svg" alt="" className={animate ? "chat-soporte-img chat-soporte-img-animate" : "chat-soporte-img"} style={{ width: "55%" }} />
         </button>
-
-        <button
-          type="button"
-          title="Ocultar chat soporte"
-          aria-label="Ocultar chat soporte"
-          className="chat-soporte-dismiss"
-          onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-        >
-          <i className="pi pi-times" />
-        </button>
       </div>
 
       <style jsx>{`
@@ -169,28 +158,6 @@ export default function ChatSoporteButton() {
           right: 28px;
           bottom: 28px;
           z-index: 1050;
-        }
-        .chat-soporte-dismiss {
-          position: absolute;
-          top: -4px;
-          right: -4px;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          border: 2px solid #fff;
-          background: #64748b;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 0.65rem;
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-          transition: background 0.15s ease, transform 0.15s ease;
-        }
-        .chat-soporte-dismiss:hover {
-          background: #475569;
-          transform: scale(1.08);
         }
         .chat-soporte-fab {
           position: relative;
