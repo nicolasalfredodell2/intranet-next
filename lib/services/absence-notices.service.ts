@@ -18,7 +18,7 @@ export async function getNoticesConfig(): Promise<any> {
 }
 
 function normalizeNoticeDate(value: string): string {
-  const m = /^([0-9]{2})-([0-9]{2})-([0-9]{4})$/.exec(value);
+  const m = /^([0-9]{2})[-/]([0-9]{2})[-/]([0-9]{4})$/.exec(value);
   return m ? `${m[3]}-${m[2]}-${m[1]}` : value;
 }
 
@@ -105,24 +105,76 @@ export async function deleteNotice(id: string): Promise<any> {
   return res.json();
 }
 
+function normalizeAdminNoticeDates(resp: any): any {
+  if (!resp || !Array.isArray(resp.data)) return resp;
+  resp.data = resp.data.map((item: any) => {
+    if (typeof item?.notice_date === "string") item.notice_date = normalizeNoticeDate(item.notice_date);
+    if (typeof item?.notice_to === "string") item.notice_to = normalizeNoticeDate(item.notice_to);
+    return item;
+  });
+  return resp;
+}
+
 export async function getAllNoticesAdmin(page = 1, perPage = 10, filters: any = {}): Promise<any> {
-  let url = `${API}admin/notices?page=${page}&per_page=${perPage}`;
+  let url = `${API}recursos-humanos/notices?page=${page}&per_page=${perPage}`;
   if (filters.notice_type_id) url += `&notice_type_id=${filters.notice_type_id}`;
   if (filters.notice_reason_id) url += `&notice_reason_id=${filters.notice_reason_id}`;
   if (filters.description) url += `&search=${filters.description}`;
   if (filters.date_from) url += `&date_from=${filters.date_from}`;
   if (filters.date_to) url += `&date_to=${filters.date_to}`;
   if (filters.notice_status_id) url += `&notice_status_id=${filters.notice_status_id}`;
+  if (filters.legajo) url += `&legajo=${filters.legajo}`;
+  if (filters.name) url += `&search=${filters.name}`;
   const res = await fetch(url, { headers: authHeaders() });
   if (!res.ok) throw new Error("Error cargando avisos");
+  const resp = await res.json();
+  return normalizeAdminNoticeDates(resp);
+}
+
+export async function deleteNoticeAdmin(id: string): Promise<any> {
+  const res = await fetch(`${API}personal/notices/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Error eliminando aviso");
   return res.json();
 }
 
 export async function modificateNoticeAdmin(data: any, id: string): Promise<any> {
-  const res = await fetch(`${API}admin/notices/${id}`, {
+  const res = await fetch(`${API}recursos-humanos/notices/${id}`, {
     method: "PUT",
     headers: authHeaders(true),
     body: JSON.stringify(data),
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
+  return res.json();
+}
+
+export async function updateNoticeStatusAdmin(id: number | string, data: { status: string; rejection_reason?: string }): Promise<any> {
+  const res = await fetch(`${API}recursos-humanos/notices/${id}/status`, {
+    method: "PUT",
+    headers: authHeaders(true),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
+  return res.json();
+}
+
+export async function changeNoticeStatusAdmin(id: number | string, data: { notice_status_id: number; observation?: string; rejection_reason?: string }): Promise<any> {
+  const res = await fetch(`${API}recursos-humanos/notices/${id}/status`, {
+    method: "PUT",
+    headers: authHeaders(true),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
+  return res.json();
+}
+
+export async function rejectNoticeAttachment(attachmentId: string | number, reason: string): Promise<any> {
+  const res = await fetch(`${API}recursos-humanos/notices/attachments/${attachmentId}/reject`, {
+    method: "POST",
+    headers: authHeaders(true),
+    body: JSON.stringify({ reason }),
   });
   if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
   return res.json();
