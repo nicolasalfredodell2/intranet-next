@@ -190,6 +190,26 @@ export async function changeNoticeStatusAdmin(id: number | string, data: { notic
   return res.json();
 }
 
+export async function getNoticeCommentsAdmin(noticeId: number | string): Promise<any[]> {
+  const res = await fetch(`${API}recursos-humanos/notices/${noticeId}/comments`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudieron cargar los comentarios");
+  const json = await res.json();
+  return Array.isArray(json) ? json : (json.data ?? []);
+}
+
+export async function sendNoticeCommentAdmin(noticeId: number | string, message: string): Promise<any> {
+  const res = await fetch(`${API}recursos-humanos/notices/${noticeId}/comments`, {
+    method: "POST",
+    headers: authHeaders(true),
+    body: JSON.stringify({ message }),
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.message || e.errors?.message?.[0] || "No se pudo enviar el comentario");
+  }
+  return res.json();
+}
+
 export async function rejectNoticeAttachment(attachmentId: string | number, reason: string): Promise<any> {
   const res = await fetch(`${API}recursos-humanos/notices/attachments/${attachmentId}/reject`, {
     method: "POST",

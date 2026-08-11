@@ -14,6 +14,7 @@ import { Sidebar } from "primereact/sidebar";
 import { OverlayPanel } from "primereact/overlaypanel";
 import { Checkbox } from "primereact/checkbox";
 import { addLocale } from "primereact/api";
+import { Message } from "primereact/message";
 import {
   getNoticesConfig,
   getAllNoticesAdmin,
@@ -21,6 +22,8 @@ import {
   rejectNoticeAttachment,
   getNoticeFile,
   getNotice,
+  getNoticeCommentsAdmin,
+  sendNoticeCommentAdmin,
 } from "@/lib/services/absence-notices.service";
 
 addLocale("es-avisos-admin", {
@@ -150,6 +153,62 @@ function Tooltip({ label, children }: { label: string; children: React.ReactNode
   );
 }
 
+const CHAT_POLL_INTERVAL_MS = 8000;
+const CHAT_TERMINAL_STATUSES = ["aprobado", "rechazado", "finalizado"];
+
+type ChatState = "blocked" | "enabled" | "readonly";
+
+function getChatState(notice: any): ChatState {
+  const code = notice?.status?.code;
+  if (code === "creado") return "blocked";
+  if (CHAT_TERMINAL_STATUSES.includes(code)) return "readonly";
+  return "enabled";
+}
+
+function formatDateTimeWithSeconds(value: string | null | undefined): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return value;
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2, "0");
+  const mm = String(date.getMinutes()).padStart(2, "0");
+  return `${d}/${m}/${y} ${hh}:${mm}`;
+}
+
+function ChatBubble({ comment }: { comment: any }) {
+  const isMine = comment.sender_type === "rrhh";
+  const authorName = comment.author?.lastname_name ?? (isMine ? "Vos" : "Agente");
+  return (
+    <div className={`d-flex ${isMine ? "justify-content-end" : "justify-content-start"} mb-2`}>
+      <div style={{ maxWidth: "78%" }}>
+        {!isMine && (
+          <small style={{ display: "block", color: "#94a3b8", fontSize: "0.68rem", fontWeight: 700, marginBottom: "2px", marginLeft: "4px" }}>
+            {authorName}
+          </small>
+        )}
+        <div
+          style={{
+            background: isMine ? "#4a6cf7" : "#f1f5f9",
+            color: isMine ? "#fff" : "#1e293b",
+            borderRadius: isMine ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+            padding: "8px 12px",
+            fontSize: "0.85rem",
+            lineHeight: 1.4,
+            wordBreak: "break-word",
+          }}
+        >
+          {comment.message}
+        </div>
+        <small style={{ display: "block", color: "#94a3b8", fontSize: "0.65rem", marginTop: "2px", textAlign: isMine ? "right" : "left" }}>
+          {formatDateTimeWithSeconds(comment.created_at)}
+        </small>
+      </div>
+    </div>
+  );
+}
+
 // ── Helpers de adjuntos / flujo de estados (migrados de list.component.ts) ──
 function hasAttachment(item: any): boolean {
   return Array.isArray(item?.attachments) && item.attachments.length > 0;
@@ -237,6 +296,12 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
   // Mantiene el detalle abierto sincronizado con la lista tras cualquier accion de flujo.
   const currentDetailNotice = detailNotice ? (notices.find((n) => n.id === detailNotice.id) ?? detailNotice) : null;
 
+  const [comments, setComments] = useState<any[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [commentInput, setCommentInput] = useState("");
+  const [isSendingComment, setIsSendingComment] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     loadConfig();
     loadAbsenceNotices();
@@ -283,6 +348,51 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
     } else {
       setDetailNotice(null);
       window.history.replaceState({}, "", "/main/absence-notices-admin");
+    }
+  }
+
+  // Carga los comentarios y hace polling mientras el detalle esta abierto.
+  useEffect(() => {
+    const id = detailNotice?.id;
+    if (!id) {
+      setComments([]);
+      return;
+    }
+    loadComments(id);
+    const interval = setInterval(() => loadComments(id), CHAT_POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [detailNotice?.id]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ block: "nearest" });
+  }, [comments.length]);
+
+  async function loadComments(id: number | string) {
+    setIsLoadingComments(true);
+    try {
+      const resp = await getNoticeCommentsAdmin(id);
+      setComments(resp);
+    } catch {
+      // silencioso: no interrumpir la vista por un fallo de polling
+    } finally {
+      setIsLoadingComments(false);
+    }
+  }
+
+  async function handleSendComment(e: React.FormEvent) {
+    e.preventDefault();
+    const message = commentInput.trim();
+    const id = detailNotice?.id;
+    if (!message || !id || isSendingComment) return;
+    setIsSendingComment(true);
+    try {
+      const created = await sendNoticeCommentAdmin(id, message);
+      setComments((prev) => [...prev, created]);
+      setCommentInput("");
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "No se pudo enviar el comentario", detail: err.message });
+    } finally {
+      setIsSendingComment(false);
     }
   }
 
@@ -976,6 +1086,69 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
                       <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{n.description || "Sin descripción"}</p>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Comentarios (chat con el agente) */}
+              <div className="card profile-card mt-4">
+                <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+                  <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <i className="pi pi-comments" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+                  </div>
+                  <div className="flex-grow-1">
+                    <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Comentarios</h5>
+                    <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Comunicate con el agente sobre este aviso</small>
+                  </div>
+                  {isLoadingComments && <i className="pi pi-spin pi-spinner" style={{ color: "#94a3b8", fontSize: "0.85rem" }} />}
+                </div>
+                <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+                <div className="card-body">
+                  {getChatState(n) === "blocked" ? (
+                    <Message
+                      severity="info"
+                      className="w-100"
+                      style={{ justifyContent: "flex-start" }}
+                      text={<small>El aviso debe ser recibido por RRHH antes de habilitar los comentarios.</small>}
+                    />
+                  ) : (
+                    <>
+                      <div style={{ maxHeight: "280px", minHeight: comments.length ? undefined : "60px", overflowY: "auto", padding: "4px 2px" }}>
+                        {comments.length === 0 && !isLoadingComments && (
+                          <p className="mb-0 text-center" style={{ color: "#94a3b8", fontSize: "0.82rem", padding: "12px 0" }}>
+                            Todavía no hay comentarios.
+                          </p>
+                        )}
+                        {comments.map((c) => <ChatBubble key={c.id} comment={c} />)}
+                        <div ref={chatEndRef} />
+                      </div>
+
+                      {getChatState(n) === "readonly" ? (
+                        <small style={{ display: "block", color: "#94a3b8", fontSize: "0.75rem", marginTop: "8px" }}>
+                          Este aviso está en un estado final; los comentarios son de solo lectura.
+                        </small>
+                      ) : (
+                        <form onSubmit={handleSendComment} className="d-flex mt-2" style={{ gap: "8px" }}>
+                          <input
+                            className="profile-input"
+                            type="text"
+                            placeholder="Escribí un comentario..."
+                            value={commentInput}
+                            onChange={(e) => setCommentInput(e.target.value)}
+                            disabled={isSendingComment}
+                            maxLength={1000}
+                          />
+                          <button
+                            type="submit"
+                            disabled={isSendingComment || !commentInput.trim()}
+                            className="btn btn-primary d-flex align-items-center"
+                            style={{ borderRadius: "8px", flexShrink: 0, padding: "0 14px" }}
+                          >
+                            <i className={isSendingComment ? "pi pi-spin pi-spinner" : "pi pi-send"} style={{ fontSize: "0.85rem" }} />
+                          </button>
+                        </form>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
 
