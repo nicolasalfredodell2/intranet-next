@@ -4,9 +4,18 @@ import { useEffect, useState } from "react";
 
 export default function ChatSoporteButton() {
   const [isLogged, setIsLogged] = useState(false);
+  const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
     setIsLogged(!!localStorage.getItem("token"));
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimate(true);
+      setTimeout(() => setAnimate(false), 800);
+    }, 20000);
+    return () => clearInterval(interval);
   }, []);
 
   if (!isLogged) return null;
@@ -21,7 +30,7 @@ export default function ChatSoporteButton() {
         onClick={() => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank")}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/img/chat/logo.svg" alt="" style={{ width: "55%" }} />
+        <img src="/img/chat/logo.svg" alt="" className={animate ? "chat-soporte-img chat-soporte-img-animate" : "chat-soporte-img"} style={{ width: "55%" }} />
       </button>
 
       <style jsx>{`
@@ -45,6 +54,29 @@ export default function ChatSoporteButton() {
         }
         .chat-soporte-fab:hover {
           transform: scale(1.08);
+        }
+        .chat-soporte-img {
+          display: block;
+        }
+        .chat-soporte-img-animate {
+          animation: chatSoporteBounce 0.8s ease-in-out;
+        }
+        @keyframes chatSoporteBounce {
+          0%, 100% {
+            transform: scale(1) rotate(0deg);
+          }
+          20% {
+            transform: scale(1.2) rotate(-10deg);
+          }
+          40% {
+            transform: scale(1) rotate(10deg);
+          }
+          60% {
+            transform: scale(1.12) rotate(-6deg);
+          }
+          80% {
+            transform: scale(1) rotate(6deg);
+          }
         }
         @media (max-width: 480px) {
           .chat-soporte-fab {
