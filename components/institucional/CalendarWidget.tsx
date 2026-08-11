@@ -292,7 +292,15 @@ export default function CalendarWidget({ onDetails }: Props) {
     const events = eventMap[key];
 
     if (!events?.length) {
-      return <span onMouseEnter={() => { setHoverInfo(null); setActiveDetails(null); }}>{e.day}</span>;
+      return (
+        <span
+          className="cal-day-plain"
+          onClick={(ev) => ev.stopPropagation()}
+          onMouseEnter={() => { setHoverInfo(null); setActiveDetails(null); }}
+        >
+          {e.day}
+        </span>
+      );
     }
 
     const hasBirthday = events.some((ev) => ev.type === "birthday");
@@ -316,7 +324,8 @@ export default function CalendarWidget({ onDetails }: Props) {
 
     return (
       <span
-        style={{ background, color: "#fff", borderRadius: "50%", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+        style={{ background, color: "#fff", borderRadius: "50%", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "default" }}
+        onClick={(ev) => ev.stopPropagation()}
         onMouseEnter={(ev) => {
           setHoverInfo({ details, x: ev.clientX, y: ev.clientY });
           setActiveDetails(details);
@@ -338,6 +347,7 @@ export default function CalendarWidget({ onDetails }: Props) {
       <Calendar
         inline
         showWeek={false}
+        showOtherMonths={false}
         locale="es"
         onMonthChange={handleMonthChange}
         dateTemplate={dateTemplate}
@@ -437,6 +447,7 @@ export default function CalendarWidget({ onDetails }: Props) {
           font-size: clamp(11px, 3vw, 15px) !important;
           white-space: nowrap !important;
           color: #fff !important;
+          cursor: default !important;
         }
 
         .calendar-widget-wrapper .p-datepicker table td.p-datepicker-today > span {
@@ -452,6 +463,10 @@ export default function CalendarWidget({ onDetails }: Props) {
 
         .calendar-widget-wrapper .p-datepicker table td.p-datepicker-other-month > span {
           color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        .calendar-widget-wrapper .p-datepicker table td > span.cal-day-plain:hover {
+          background: transparent !important;
         }
       `}</style>
     </div>
