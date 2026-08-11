@@ -210,65 +210,66 @@ function EventTooltip({ info }: { info: HoverInfo }) {
   );
 }
 
-/* ── Birthday side cards ── */
+/* ── Next-day summary card (debajo del calendario) ── */
 
-function BirthdayCard({ icon, title, entries, holidayEvents }: { icon: string; title: string; entries: EventEntry[]; holidayEvents?: DayEvent[] }) {
+function DaySectionSubtitle({ dotColor, children }: { dotColor?: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+      {dotColor && (
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor, flexShrink: 0, boxShadow: `0 0 6px ${dotColor}99` }} />
+      )}
+      <span style={{ fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
+        {children}
+      </span>
+    </div>
+  );
+}
+
+function DaySectionItem({ dotColor, children }: { dotColor: string; children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        paddingLeft: "13px",
+        paddingTop: "2px",
+        paddingBottom: "2px",
+        color: "#e2e8f0",
+        fontSize: "0.8rem",
+        fontWeight: 600,
+      }}
+    >
+      <span style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, flexShrink: 0, boxShadow: `0 0 6px ${dotColor}99` }} />
+      {children}
+    </div>
+  );
+}
+
+function NextDayCard({ date, birthdayEntries, holidayEvents }: { date: string; birthdayEntries: EventEntry[]; holidayEvents: DayEvent[] }) {
   return (
     <div style={{ marginTop: "8px" }}>
       <div style={{ background: "#1e2533", borderRadius: "12px", padding: "12px 14px", color: "#f1f5f9" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "10px" }}>
-          <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>{icon}</span>
-          <span style={{ fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
-            {title}
-          </span>
+          <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>📅</span>
+          <span style={{ fontWeight: 700, fontSize: "0.83rem", color: "#f1f5f9" }}>{date}</span>
         </div>
-        {entries.map((entry, i) => (
-          <div
-            key={`b-${i}`}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              paddingTop: "2px",
-              paddingBottom: "2px",
-              color: "#e2e8f0",
-              fontSize: "0.8rem",
-              fontWeight: 600,
-            }}
-          >
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#9EB0CE", flexShrink: 0, boxShadow: "0 0 6px #9EB0CE99" }} />
-            {entry.description}
-          </div>
-        ))}
 
-        {holidayEvents && holidayEvents.length > 0 && (
-          <div
-            style={{
-              marginTop: entries.length ? "8px" : 0,
-              paddingTop: entries.length ? "8px" : 0,
-              borderTop: entries.length ? "1px solid rgba(255,255,255,0.08)" : "none",
-            }}
-          >
-            {holidayEvents.map((ev, i) => (
-              <div
-                key={`h-${i}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  paddingTop: "2px",
-                  paddingBottom: "2px",
-                  color: "#e2e8f0",
-                  fontSize: "0.8rem",
-                  fontWeight: 600,
-                }}
-              >
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: ev.color, flexShrink: 0, boxShadow: `0 0 6px ${ev.color}99` }} />
-                {ev.label}
-              </div>
+        {birthdayEntries.length > 0 && (
+          <div style={{ marginBottom: holidayEvents.length ? "10px" : 0 }}>
+            <DaySectionSubtitle>🎁 Cumpleaños</DaySectionSubtitle>
+            {birthdayEntries.map((entry, i) => (
+              <DaySectionItem key={`b-${i}`} dotColor="#9EB0CE">{entry.description}</DaySectionItem>
             ))}
           </div>
         )}
+
+        {holidayEvents.map((ev, i) => (
+          <div key={`h-${i}`} style={{ marginTop: i > 0 || birthdayEntries.length > 0 ? "10px" : 0 }}>
+            <DaySectionSubtitle dotColor={ev.color}>{ev.categoryTitle ?? "Día especial"}</DaySectionSubtitle>
+            <DaySectionItem dotColor={ev.color}>{ev.label}</DaySectionItem>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -382,10 +383,9 @@ export default function CalendarWidget() {
       {hoverInfo && <EventTooltip info={hoverInfo} />}
 
       {nextBirthday && (
-        <BirthdayCard
-          icon="📅"
-          title={`Próximo cumpleaños · ${formatDateLabel(nextBirthday.date)}`}
-          entries={nextBirthday.entries}
+        <NextDayCard
+          date={formatDateLabel(nextBirthday.date)}
+          birthdayEntries={nextBirthday.entries}
           holidayEvents={nextBirthday.holidays}
         />
       )}
