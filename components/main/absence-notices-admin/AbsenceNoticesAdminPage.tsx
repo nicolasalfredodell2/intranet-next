@@ -228,6 +228,8 @@ export default function AbsenceNoticesAdminPage() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [previewFile, setPreviewFile] = useState<{ url: string; type: "image" | "pdf"; name: string } | null>(null);
 
+  const [detailNotice, setDetailNotice] = useState<any>(null);
+
   useEffect(() => {
     loadConfig();
     loadAbsenceNotices();
@@ -730,6 +732,12 @@ export default function AbsenceNoticesAdminPage() {
                           </button>
                         </Tooltip>
                       )}
+
+                      <Tooltip label="Ver detalle">
+                        <button type="button" onClick={() => setDetailNotice(n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                          <i className="pi pi-external-link" style={{ fontSize: "0.85rem" }} />
+                        </button>
+                      </Tooltip>
                     </div>
                   )}
                 />
@@ -799,6 +807,194 @@ export default function AbsenceNoticesAdminPage() {
           </div>
         )}
       </OverlayPanel>
+
+      {/* Detalle del aviso */}
+      <Sidebar
+        visible={!!detailNotice}
+        position="right"
+        showCloseIcon
+        onHide={() => setDetailNotice(null)}
+        style={{ width: "min(560px, 92vw)" }}
+        header={
+          <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
+            <span style={{ fontWeight: 700, fontSize: "0.93rem", color: "#1e293b" }}>Detalle del aviso</span>
+          </div>
+        }
+      >
+        {detailNotice && (() => {
+          const n = detailNotice;
+          const legajo = n.people?.internal?.split("/")[0]?.trim();
+          const label = statusLabel(n.status);
+          const color = getStatusColor(n.status?.code);
+          const start = n.notice_date ? new Date(`${n.notice_date}T00:00:00`) : null;
+          const end = n.notice_to ? new Date(`${n.notice_to}T00:00:00`) : null;
+          const days = start && end ? countDays(start, end) : null;
+          const businessDays = start && end ? countBusinessDays(start, end) : null;
+          const latest = getUltimoAdjunto(n);
+          const history = (n.attachments ?? []).filter((a: any) => a.id !== latest?.id).sort((a: any, b: any) => b.id - a.id);
+
+          return (
+            <div className="fadeIn animated">
+              <div className="card profile-card">
+                <div className="d-flex align-items-center flex-wrap px-3 pt-3 pb-3" style={{ gap: "12px" }}>
+                  <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(74,108,247,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <i className="pi pi-file-edit" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+                  </div>
+                  <div className="flex-grow-1">
+                    <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>{n.people?.lastname_name ?? n.cuil}</h5>
+                    {legajo && <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Legajo {legajo}</small>}
+                  </div>
+                  <span className="badge rounded-pill" style={{ background: `${color}1a`, color, border: "none", fontWeight: 600, padding: "5px 12px" }}>
+                    {label}
+                  </span>
+                </div>
+
+                <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+                <div className="card-body">
+                  <div className="row">
+                    <div className="col-12 mb-3">
+                      <label className="profile-field-label">Creado el</label>
+                      <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{formatDateTime(n.created_at)}</p>
+                    </div>
+                    <div className="col-12 col-md-6 mb-3">
+                      <label className="profile-field-label">Tipo</label>
+                      <div><CategoryBadge label={n.type?.name} id={n.type?.id} list={types} /></div>
+                    </div>
+                    {n.reason?.name && (
+                      <div className="col-12 col-md-6 mb-3">
+                        <label className="profile-field-label">Razón</label>
+                        <div><CategoryBadge label={n.reason?.name} id={n.reason?.id} palette={REASON_PALETTE} list={reasons} /></div>
+                      </div>
+                    )}
+                    <div className="col-12 mb-3">
+                      <label className="profile-field-label">Fecha</label>
+                      <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
+                        <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>
+                          {formatDateDisplay(n.notice_date)}{n.notice_to ? ` - ${formatDateDisplay(n.notice_to)}` : ""}
+                        </p>
+                        {days !== null && (
+                          <span className="badge rounded-pill" style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, padding: "4px 10px" }}>
+                            {days} {days === 1 ? "día total" : "días totales"}
+                            {businessDays !== days && ` (${businessDays} ${businessDays === 1 ? "día hábil" : "días hábiles"})`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-12">
+                      <label className="profile-field-label">Descripción</label>
+                      <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{n.description || "Sin descripción"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {n.observation && (
+                <div className="card profile-card mt-4">
+                  <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+                    <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <i className="pi pi-comments" style={{ color: "#059669", fontSize: "1rem" }} />
+                    </div>
+                    <div className="flex-grow-1">
+                      <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Observaciones</h5>
+                    </div>
+                  </div>
+                  <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+                  <div className="card-body">
+                    <p className="mb-0" style={{ fontSize: "0.88rem", color: "#374151" }}>{n.observation}</p>
+                  </div>
+                </div>
+              )}
+
+              {n.rejection_reasons?.length > 0 && (
+                <div className="card profile-card mt-4">
+                  <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+                    <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fff1f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <i className="pi pi-exclamation-triangle" style={{ color: "#dc3545", fontSize: "1rem" }} />
+                    </div>
+                    <div className="flex-grow-1">
+                      <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Motivo de rechazo</h5>
+                    </div>
+                  </div>
+                  <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+                  <div className="card-body">
+                    {n.rejection_reasons.map((r: any, idx: number) => (
+                      <div key={idx} className={idx > 0 ? "mt-3" : ""}>
+                        <p className="mb-1 font-weight-bold" style={{ fontSize: "0.86rem", color: "#1e293b" }}>{r.reason}</p>
+                        <small style={{ color: "#94a3b8" }}>Creado: {formatDateTime(r.created_at)}</small>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {hasAttachment(n) && (
+                <div className="card profile-card mt-4">
+                  <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+                    <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eef1ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <i className="pi pi-paperclip" style={{ color: "#4a6cf7", fontSize: "1rem" }} />
+                    </div>
+                    <div className="flex-grow-1">
+                      <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Adjuntos</h5>
+                    </div>
+                  </div>
+                  <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+                  <div className="card-body">
+                    {latest && (
+                      <div className="mb-3">
+                        <p className="profile-section-sub" style={{ padding: 0, marginBottom: "8px" }}>Último adjunto</p>
+                        <div style={{ border: "1.5px solid #dbeafe", background: "#eff6ff", borderRadius: "10px", padding: "12px 14px" }}>
+                          <div className="d-flex align-items-center justify-content-between" style={{ gap: "8px" }}>
+                            <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
+                              <i className="pi pi-file" style={{ color: "#4a6cf7", fontSize: "1rem", flexShrink: 0 }} />
+                              <span style={{ fontSize: "0.86rem", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{latest.name}</span>
+                            </div>
+                            <Tooltip label="Ver documento">
+                              <button type="button" onClick={() => abrirArchivo(latest)} disabled={isDownloadingFile && downloadingId === latest.id} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6", fontSize: "0.78rem", fontWeight: 600, gap: "6px", flexShrink: 0 }}>
+                                <i className={isDownloadingFile && downloadingId === latest.id ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "0.78rem" }} />
+                                Ver
+                              </button>
+                            </Tooltip>
+                          </div>
+                          <small style={{ color: "#94a3b8", fontSize: "0.72rem", display: "block", marginTop: "4px", marginLeft: "24px" }}>
+                            Subido el {formatDateTime(latest.created_at)}
+                          </small>
+                        </div>
+                      </div>
+                    )}
+
+                    {history.length > 0 && (
+                      <div>
+                        <p className="profile-section-sub" style={{ padding: 0, marginBottom: "8px" }}>Historial</p>
+                        <div className="d-flex flex-column" style={{ gap: "10px" }}>
+                          {history.map((a: any) => (
+                            <div key={a.id} style={{ border: "1.5px solid #e2e8f0", borderRadius: "10px", padding: "12px 14px" }}>
+                              <div className="d-flex align-items-center justify-content-between" style={{ gap: "8px" }}>
+                                <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
+                                  <i className="pi pi-file" style={{ color: "#4a6cf7", fontSize: "1rem", flexShrink: 0 }} />
+                                  <span style={{ fontSize: "0.86rem", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</span>
+                                </div>
+                                <Tooltip label="Ver documento">
+                                  <button type="button" onClick={() => abrirArchivo(a)} disabled={isDownloadingFile && downloadingId === a.id} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6", fontSize: "0.78rem", fontWeight: 600, gap: "6px", flexShrink: 0 }}>
+                                    <i className={isDownloadingFile && downloadingId === a.id ? "pi pi-spin pi-spinner" : "pi pi-eye"} style={{ fontSize: "0.78rem" }} />
+                                    Ver
+                                  </button>
+                                </Tooltip>
+                              </div>
+                              <small style={{ color: "#94a3b8", fontSize: "0.72rem", display: "block", marginTop: "4px", marginLeft: "24px" }}>
+                                Subido el {formatDateTime(a.created_at)}
+                              </small>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </Sidebar>
 
       {/* Visor de archivo adjunto */}
       <Sidebar
