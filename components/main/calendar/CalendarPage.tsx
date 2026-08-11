@@ -13,7 +13,7 @@ import esCoreLocale from "@svar-ui/core-locales/locales/es.js";
 import esCalendarLocale from "@svar-ui/calendar-locales/es.js";
 import { getCalendarEvents, createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/lib/services/calendar.service";
 import { getCalendarCategories, createCalendarCategory } from "@/lib/services/calendar-category.service";
-import { ICON_OPTIONS, iconOptionTemplate, DEFAULT_COLOUR, DEFAULT_ICON } from "@/components/main/calendar-category/CalendarCategoryPage";
+import { ICON_OPTIONS, iconOptionTemplate } from "@/components/main/calendar-category/CalendarCategoryPage";
 
 const CALENDAR_LOCALE_ES = { ...esCoreLocale, ...esCalendarLocale };
 
@@ -106,7 +106,7 @@ export default function CalendarPage() {
   const [modifyTouched, setModifyTouched] = useState(false);
 
   const [showCreateCategory, setShowCreateCategory] = useState(false);
-  const [categoryForm, setCategoryForm] = useState({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
+  const [categoryForm, setCategoryForm] = useState({ name: "", colour: "#000000", icon: "" });
   const [categoryTouched, setCategoryTouched] = useState(false);
   const [loadingCategoryAction, setLoadingCategoryAction] = useState(false);
 
@@ -191,14 +191,14 @@ export default function CalendarPage() {
   }
 
   function openCreateCategory() {
-    setCategoryForm({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
+    setCategoryForm({ name: "", colour: "#000000", icon: "" });
     setCategoryTouched(false);
     setShowCreateCategory(true);
   }
 
   function closeCreateCategory() {
     setShowCreateCategory(false);
-    setCategoryForm({ name: "", colour: DEFAULT_COLOUR, icon: DEFAULT_ICON });
+    setCategoryForm({ name: "", colour: "#000000", icon: "" });
     setCategoryTouched(false);
   }
 
@@ -342,7 +342,6 @@ export default function CalendarPage() {
       </div>
       <div style={{ minWidth: 0 }}>
         <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Nuevo evento</p>
-        <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{formatDisplayDate(createForm.date)}</small>
       </div>
     </div>
   );
@@ -527,6 +526,7 @@ export default function CalendarPage() {
                 type="date"
                 value={createForm.date}
                 onChange={(e) => setCreateForm((p) => ({ ...p, date: e.target.value }))}
+                disabled
               />
               {createTouched && !createForm.date && <small className="text-danger animated fadeIn" style={{ marginTop: "4px", display: "block" }}>* Campo obligatorio</small>}
             </div>
