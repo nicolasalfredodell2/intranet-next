@@ -164,7 +164,7 @@ function EventTooltip({ info }: { info: HoverInfo }) {
         <div key={gi} style={{ marginBottom: gi < info.details.length - 1 ? 10 : 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
             {group.title === "Cumpleaños" ? (
-              <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>🎂</span>
+              <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>🎁</span>
             ) : (
               <span
                 style={{
