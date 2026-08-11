@@ -192,7 +192,7 @@ export default function AbsenceNoticesAdminPage() {
       const resp = await getAllNoticesAdmin(page, perPage, f);
       setNotices(resp.data ?? []);
       setTotalRecords(resp.meta?.total ?? 0);
-      setRows(resp.meta?.per_page ?? perPage);
+      setRows(perPage);
       setCurrentPage(resp.meta?.current_page ?? page);
     } catch (err: any) {
       toast.current?.show({ severity: "error", summary: "Error", detail: err.message });
