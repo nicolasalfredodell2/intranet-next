@@ -261,7 +261,7 @@ function NextDayCard({ date, birthdayEntries, holidayEvents }: { date: string; b
           <div style={{ marginBottom: holidayEvents.length ? "10px" : 0 }}>
             <DaySectionSubtitle>🎁 Cumpleaños</DaySectionSubtitle>
             {birthdayEntries.map((entry, i) => (
-              <DaySectionItem key={`b-${i}`} dotColor="#9EB0CE">{entry.description}</DaySectionItem>
+              <DaySectionItem key={`b-${i}`}>{entry.description}</DaySectionItem>
             ))}
           </div>
         )}
