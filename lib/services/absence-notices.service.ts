@@ -76,6 +76,26 @@ export async function getNoticeFile(id: number | string): Promise<Blob> {
   return res.blob();
 }
 
+export async function getNoticeComments(noticeId: number | string): Promise<any[]> {
+  const res = await fetch(`${API}personal/notices/${noticeId}/comments`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("No se pudieron cargar los comentarios");
+  const json = await res.json();
+  return Array.isArray(json) ? json : (json.data ?? []);
+}
+
+export async function sendNoticeComment(noticeId: number | string, message: string): Promise<any> {
+  const res = await fetch(`${API}personal/notices/${noticeId}/comments`, {
+    method: "POST",
+    headers: authHeaders(true),
+    body: JSON.stringify({ message }),
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.message || e.errors?.message?.[0] || "No se pudo enviar el comentario");
+  }
+  return res.json();
+}
+
 export async function createNotice(data: any): Promise<any> {
   const res = await fetch(`${API}personal/notices`, {
     method: "POST",

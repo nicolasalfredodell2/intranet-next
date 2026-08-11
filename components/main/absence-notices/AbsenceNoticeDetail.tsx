@@ -14,6 +14,8 @@ import {
   deleteNotice,
   uploadNoticeFile,
   getNoticeFile,
+  getNoticeComments,
+  sendNoticeComment,
 } from "@/lib/services/absence-notices.service";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
@@ -163,6 +165,18 @@ function isInvalidStatus(notice: any): boolean {
   return code === "aprobado" || code === "rechazado" || code === "documentacion_adjuntada" || code === "creado";
 }
 
+const CHAT_POLL_INTERVAL_MS = 8000;
+const CHAT_TERMINAL_STATUSES = ["aprobado", "rechazado", "finalizado"];
+
+type ChatState = "blocked" | "enabled" | "readonly";
+
+function getChatState(notice: any): ChatState {
+  const code = notice?.status?.code;
+  if (code === "creado") return "blocked";
+  if (CHAT_TERMINAL_STATUSES.includes(code)) return "readonly";
+  return "enabled";
+}
+
 function AttachmentItem({ attachment, highlighted, isDownloading, onOpen }: { attachment: any; highlighted?: boolean; isDownloading?: boolean; onOpen: () => void }) {
   return (
     <div style={{ border: `1.5px solid ${highlighted ? "#dbeafe" : "#e2e8f0"}`, background: highlighted ? "#eff6ff" : "#fff", borderRadius: "10px", padding: "12px 14px" }}>
@@ -205,6 +219,38 @@ function AttachmentItem({ attachment, highlighted, isDownloading, onOpen }: { at
   );
 }
 
+function ChatBubble({ comment }: { comment: any }) {
+  const isMine = comment.sender_type === "agente";
+  const authorName = comment.author?.lastname_name ?? (isMine ? "Vos" : "RRHH");
+  return (
+    <div className={`d-flex ${isMine ? "justify-content-end" : "justify-content-start"} mb-2`}>
+      <div style={{ maxWidth: "78%" }}>
+        {!isMine && (
+          <small style={{ display: "block", color: "#94a3b8", fontSize: "0.68rem", fontWeight: 700, marginBottom: "2px", marginLeft: "4px" }}>
+            {authorName}
+          </small>
+        )}
+        <div
+          style={{
+            background: isMine ? "#4a6cf7" : "#f1f5f9",
+            color: isMine ? "#fff" : "#1e293b",
+            borderRadius: isMine ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+            padding: "8px 12px",
+            fontSize: "0.85rem",
+            lineHeight: 1.4,
+            wordBreak: "break-word",
+          }}
+        >
+          {comment.message}
+        </div>
+        <small style={{ display: "block", color: "#94a3b8", fontSize: "0.65rem", marginTop: "2px", textAlign: isMine ? "right" : "left" }}>
+          {formatDateTime(comment.created_at)}
+        </small>
+      </div>
+    </div>
+  );
+}
+
 interface AbsenceNoticeDetailProps {
   id: string | number | null | undefined;
   onClose: () => void;
@@ -233,6 +279,12 @@ export default function AbsenceNoticeDetail({ id, onClose, onChanged }: AbsenceN
   const [isDownloadingFile, setIsDownloadingFile] = useState(false);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
+  const [comments, setComments] = useState<any[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [commentInput, setCommentInput] = useState("");
+  const [isSendingComment, setIsSendingComment] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (noticeId) loadNotice(noticeId);
     getNoticesConfig()
@@ -243,6 +295,47 @@ export default function AbsenceNoticeDetail({ id, onClose, onChanged }: AbsenceN
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noticeId]);
+
+  // Carga los comentarios y hace polling mientras el detalle esta abierto
+  // (no hay websockets configurados, ver Comentarios_Avisos.md).
+  useEffect(() => {
+    if (!noticeId) return;
+    loadComments(noticeId);
+    const interval = setInterval(() => loadComments(noticeId), CHAT_POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [noticeId]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ block: "nearest" });
+  }, [comments.length]);
+
+  async function loadComments(id: string) {
+    setIsLoadingComments(true);
+    try {
+      const resp = await getNoticeComments(id);
+      setComments(resp);
+    } catch {
+      // silencioso: no interrumpir la vista por un fallo de polling
+    } finally {
+      setIsLoadingComments(false);
+    }
+  }
+
+  async function handleSendComment(e: React.FormEvent) {
+    e.preventDefault();
+    const message = commentInput.trim();
+    if (!message || !noticeId || isSendingComment) return;
+    setIsSendingComment(true);
+    try {
+      const created = await sendNoticeComment(noticeId, message);
+      setComments((prev) => [...prev, created]);
+      setCommentInput("");
+    } catch (err: any) {
+      toast.current?.show({ severity: "error", summary: "No se pudo enviar el comentario", detail: err.message });
+    } finally {
+      setIsSendingComment(false);
+    }
+  }
 
   async function loadNotice(id: string) {
     setIsLoading(true);
@@ -363,6 +456,7 @@ export default function AbsenceNoticeDetail({ id, onClose, onChanged }: AbsenceN
   const statusColor = getStatusColor(notice?.status?.name);
   const latestAttachment = getLatestAttachment();
   const historyAttachments = getHistoryAttachments();
+  const chatState = getChatState(notice);
 
   const previewNameParts = previewFile?.name.split(".") ?? [];
   const previewExt = previewNameParts.length > 1 ? previewNameParts.pop() : null;
@@ -504,6 +598,69 @@ export default function AbsenceNoticeDetail({ id, onClose, onChanged }: AbsenceN
             text={<small>Ya pasaron 48hs desde la creación del aviso, por lo que no se puede subir documentación adjunta.</small>}
           />
         )}
+
+        {/* Comentarios (chat con RRHH) */}
+        <div className="card profile-card mt-4">
+          <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <i className="pi pi-comments" style={{ color: "#3b82f6", fontSize: "1rem" }} />
+            </div>
+            <div className="flex-grow-1">
+              <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Comentarios</h5>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Comunicate con RRHH sobre este aviso</small>
+            </div>
+            {isLoadingComments && <i className="pi pi-spin pi-spinner" style={{ color: "#94a3b8", fontSize: "0.85rem" }} />}
+          </div>
+          <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
+          <div className="card-body">
+            {chatState === "blocked" ? (
+              <Message
+                severity="info"
+                className="w-100"
+                style={{ justifyContent: "flex-start" }}
+                text={<small>El aviso debe ser recibido por RRHH antes de habilitar los comentarios.</small>}
+              />
+            ) : (
+              <>
+                <div style={{ maxHeight: "280px", minHeight: comments.length ? undefined : "60px", overflowY: "auto", padding: "4px 2px" }}>
+                  {comments.length === 0 && !isLoadingComments && (
+                    <p className="mb-0 text-center" style={{ color: "#94a3b8", fontSize: "0.82rem", padding: "12px 0" }}>
+                      Todavía no hay comentarios.
+                    </p>
+                  )}
+                  {comments.map((c) => <ChatBubble key={c.id} comment={c} />)}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {chatState === "readonly" ? (
+                  <small style={{ display: "block", color: "#94a3b8", fontSize: "0.75rem", marginTop: "8px" }}>
+                    Este aviso está en un estado final; los comentarios son de solo lectura.
+                  </small>
+                ) : (
+                  <form onSubmit={handleSendComment} className="d-flex mt-2" style={{ gap: "8px" }}>
+                    <input
+                      className="profile-input"
+                      type="text"
+                      placeholder="Escribí un comentario..."
+                      value={commentInput}
+                      onChange={(e) => setCommentInput(e.target.value)}
+                      disabled={isSendingComment}
+                      maxLength={1000}
+                    />
+                    <button
+                      type="submit"
+                      disabled={isSendingComment || !commentInput.trim()}
+                      className="btn btn-primary d-flex align-items-center"
+                      style={{ borderRadius: "8px", flexShrink: 0, padding: "0 14px" }}
+                    >
+                      <i className={isSendingComment ? "pi pi-spin pi-spinner" : "pi pi-send"} style={{ fontSize: "0.85rem" }} />
+                    </button>
+                  </form>
+                )}
+              </>
+            )}
+          </div>
+        </div>
 
         {/* Observaciones */}
         {notice.status?.code === "aprobado" && notice.observation && (
