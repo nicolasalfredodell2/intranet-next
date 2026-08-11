@@ -1049,12 +1049,12 @@ export default function AbsenceNoticesAdminPage() {
         onHide={() => setDisplayRecibidoDialog(false)}
         footer={
           <div className="d-flex align-items-center" style={{ gap: "8px" }}>
-            <button type="button" disabled={isProcessingRecibido} onClick={() => setDisplayRecibidoDialog(false)} className="btn btn-light text-muted ml-auto" style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}>
-              Cancelar
-            </button>
             <button type="button" disabled={isProcessingRecibido} onClick={confirmarRecibido} className="btn btn-primary d-flex align-items-center" style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.85rem" }}>
               <i className={isProcessingRecibido ? "pi pi-spin pi-spinner" : "pi pi-check"} style={{ fontSize: "0.78rem" }} />
               {isProcessingRecibido ? "Confirmando..." : "Confirmar"}
+            </button>
+            <button type="button" disabled={isProcessingRecibido} onClick={() => setDisplayRecibidoDialog(false)} className="btn btn-light text-muted ml-auto" style={{ borderRadius: "8px", fontWeight: 500, fontSize: "0.85rem" }}>
+              Volver
             </button>
           </div>
         }
