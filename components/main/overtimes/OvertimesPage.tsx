@@ -82,6 +82,7 @@ export default function OvertimesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [nameFilter, setNameFilter] = useState("");
   const [first, setFirst] = useState(0);
+  const [rows, setRows] = useState(10);
 
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -389,8 +390,8 @@ export default function OvertimesPage() {
               sortOrder={1}
               paginator
               first={first}
-              onPage={(e) => setFirst(e.first)}
-              rows={10}
+              onPage={(e) => { setFirst(e.first); setRows(e.rows); }}
+              rows={rows}
               rowsPerPageOptions={[10, 25, 50]}
               paginatorRight={
                 <span style={{ fontSize: "0.78rem", color: "#94a3b8", fontWeight: 500 }}>
