@@ -12,6 +12,7 @@ import { Calendar } from "primereact/calendar";
 import { Dialog } from "primereact/dialog";
 import { Sidebar } from "primereact/sidebar";
 import { OverlayPanel } from "primereact/overlaypanel";
+import { Checkbox } from "primereact/checkbox";
 import { addLocale } from "primereact/api";
 import {
   getNoticesConfig,
@@ -45,6 +46,8 @@ interface FilterForm {
 }
 
 const EMPTY_FILTERS: FilterForm = { notice_type_id: "", notice_reason_id: "", notice_status_id: "", legajo: "", name: "", date_from: "", date_to: "" };
+
+const AUTO_RELOAD_STORAGE_KEY = "absence_notices_admin_auto_reload";
 
 const ICON_BTN_STYLE = { background: "none", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center" } as const;
 
@@ -192,6 +195,7 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
   const [rows, setRows] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingAbsensceNotices, setIsLoadingAbsensceNotices] = useState(false);
+  const [autoReload, setAutoReload] = useState(false);
 
   const [filters, setFilters] = useState<FilterForm>(EMPTY_FILTERS);
   const [legajoInput, setLegajoInput] = useState("");
@@ -323,6 +327,30 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
   function reload() {
     loadAbsenceNotices(currentPage, rows, filters);
   }
+
+  // Mantiene siempre la version mas reciente de reload() disponible para el intervalo.
+  const reloadRef = useRef(reload);
+  useEffect(() => {
+    reloadRef.current = reload;
+  });
+
+  // Lee la preferencia guardada recien en el cliente (evita mismatches de hidratacion).
+  const [autoReloadHydrated, setAutoReloadHydrated] = useState(false);
+  useEffect(() => {
+    if (localStorage.getItem(AUTO_RELOAD_STORAGE_KEY) === "true") setAutoReload(true);
+    setAutoReloadHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!autoReloadHydrated) return;
+    localStorage.setItem(AUTO_RELOAD_STORAGE_KEY, String(autoReload));
+  }, [autoReload, autoReloadHydrated]);
+
+  useEffect(() => {
+    if (!autoReload) return;
+    const interval = setInterval(() => reloadRef.current(), 60_000);
+    return () => clearInterval(interval);
+  }, [autoReload]);
 
   function paginate(event: { page: number; first: number; rows: number }) {
     loadAbsenceNotices(event.page + 1, event.rows, filters);
@@ -553,6 +581,12 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
             <div className="flex-grow-1">
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de avisos</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Avisos generados por todo el personal</small>
+            </div>
+            <div className="d-flex align-items-center" style={{ gap: "6px" }}>
+              <Checkbox inputId="autoReload" checked={autoReload} onChange={(e) => setAutoReload(!!e.checked)} />
+              <label htmlFor="autoReload" style={{ color: "#64748b", fontWeight: 600, fontSize: "0.75rem", whiteSpace: "nowrap", cursor: "pointer", marginBottom: 0 }}>
+                Recarga automática
+              </label>
             </div>
             <button
               type="button"
