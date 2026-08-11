@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, CalendarDateTemplateEvent, CalendarMonthChangeEvent } from "primereact/calendar";
 import { addLocale } from "primereact/api";
@@ -285,6 +285,41 @@ function DetailCard({ details }: { details: CalendarDetail[] | null }) {
   );
 }
 
+/* ── Birthday side cards ── */
+
+function BirthdayCard({ icon, title, entries }: { icon: string; title: string; entries: EventEntry[] }) {
+  return (
+    <div style={{ marginTop: "8px" }}>
+      <div style={{ background: "#1e2533", borderRadius: "12px", padding: "12px 14px", color: "#f1f5f9" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "10px" }}>
+          <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>{icon}</span>
+          <span style={{ fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.08em", color: "#94a3b8", textTransform: "uppercase" }}>
+            {title}
+          </span>
+        </div>
+        {entries.map((entry, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              paddingTop: "2px",
+              paddingBottom: "2px",
+              color: "#e2e8f0",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+            }}
+          >
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#9EB0CE", flexShrink: 0, boxShadow: "0 0 6px #9EB0CE99" }} />
+            {entry.description}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── Component ── */
 
 export default function CalendarWidget({ onDetails }: Props) {
@@ -307,6 +342,19 @@ export default function CalendarWidget({ onDetails }: Props) {
 
     return () => { cancelled = true; };
   }, []);
+
+  const nextBirthday = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    for (let i = 1; i <= 366; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      const key = dateKey(d.getFullYear(), d.getMonth() + 1, d.getDate());
+      const bday = eventMap[key]?.find((ev) => ev.type === "birthday");
+      if (bday) return { date: key, entries: bday.entries };
+    }
+    return null;
+  }, [eventMap]);
 
   const handleMonthChange = useCallback((_e: CalendarMonthChangeEvent) => {
     setHoverInfo(null);
@@ -387,6 +435,14 @@ export default function CalendarWidget({ onDetails }: Props) {
 
       {hoverInfo && <EventTooltip info={hoverInfo} />}
       <DetailCard details={activeDetails} />
+
+      {nextBirthday && (
+        <BirthdayCard
+          icon="📅"
+          title={`Próximo cumpleaños · ${formatDateLabel(nextBirthday.date)}`}
+          entries={nextBirthday.entries}
+        />
+      )}
 
       <style jsx global>{`
         .calendar-widget-wrapper .p-calendar {
