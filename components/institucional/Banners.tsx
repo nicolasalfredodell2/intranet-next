@@ -9,6 +9,7 @@ interface BannersProps {
 export default function Banners({ banners }: BannersProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSmall, setIsSmall] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     const check = () => setIsSmall(window.innerWidth < 1200);
@@ -16,6 +17,14 @@ export default function Banners({ banners }: BannersProps) {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
+
+  useEffect(() => {
+    if (!banners || banners.length <= 1 || isHovered) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((i) => (i < banners.length - 1 ? i + 1 : 0));
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [banners, isHovered]);
 
   if (!banners || banners.length === 0) return null;
 
@@ -35,7 +44,11 @@ export default function Banners({ banners }: BannersProps) {
   return (
     <div className="row">
       <div className="col-md-12 mb-3 pl-xs-2 pr-md-3 pl-xl-2 pr-xl-2">
-        <div className="banner-container position-relative animated fadeIn">
+        <div
+          className="banner-container position-relative animated fadeIn"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           {banners.length > 1 && (
             <button className="nav-btn left" onClick={prev}>
               <i className="fas fa-chevron-left" />
