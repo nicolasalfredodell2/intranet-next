@@ -233,7 +233,7 @@ export default function Navbar() {
               </li>
 
               {/* Ir a las noticias */}
-              <li className="nav-item px-1">
+              <li className="nav-item px-1 d-none d-md-block">
                 <Link
                   href="/institucional"
                   style={{
@@ -261,7 +261,7 @@ export default function Navbar() {
 
               {/* Chip horario laboral + dropdown fichadas */}
               {horario && (
-                <li className="nav-item px-1">
+                <li className="nav-item px-1 d-none d-md-block">
                   <div ref={hlMenuRef} style={{ position: "relative" }}>
                     <button
                       type="button"
