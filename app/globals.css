@@ -525,6 +525,7 @@ header.topbar nav {
   box-shadow: 4px 0 28px rgba(0, 0, 0, 0.22) !important;
 }
 
+
 .sidebar-nav {
   background: transparent !important;
   padding: 10px 0 20px !important;
@@ -739,7 +740,12 @@ header.topbar nav {
 
 /* Mini sidebar */
 @media (min-width: 768px) {
-  .mini-sidebar .left-sidebar {
+  /* aside.left-sidebar (en vez de solo .left-sidebar) para tener mas
+     especificidad que la regla del vendor style.css, que oculta el
+     sidebar por completo (display:none) en este mismo rango y con
+     identica especificidad — sin esto, cual de las dos gana depende
+     del orden de carga de las hojas de estilo. */
+  .mini-sidebar aside.left-sidebar {
     display: block !important;
     width: 70px !important;
   }
