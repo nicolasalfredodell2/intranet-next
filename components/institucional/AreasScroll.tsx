@@ -14,6 +14,8 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
   const router = useRouter();
 
   const isDown = useRef(false);
+  const isHovering = useRef(false);
+  const isManualScrolling = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
 
@@ -23,7 +25,8 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
     scrollLeft.current = scrollRef.current?.scrollLeft ?? 0;
   };
 
-  const onMouseLeave = () => { isDown.current = false; };
+  const onMouseEnter = () => { isHovering.current = true; };
+  const onMouseLeave = () => { isDown.current = false; isHovering.current = false; };
   const onMouseUp = () => { isDown.current = false; };
 
   const onMouseMove = (e: React.MouseEvent) => {
@@ -34,9 +37,28 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
     scrollRef.current.scrollLeft = scrollLeft.current - walk;
   };
 
+  // Anima el scroll manualmente (en vez de scroll-behavior/scrollBy nativos) para que no
+  // quede peleando frame a frame con el auto-scroll, que asigna scrollLeft directamente.
   const scrollSide = (dir: "left" | "right") => {
-    if (!scrollRef.current) return;
-    scrollRef.current.scrollLeft += dir === "left" ? -270 : 270;
+    const el = scrollRef.current;
+    if (!el) return;
+    const start = el.scrollLeft;
+    const target = start + (dir === "left" ? -270 : 270);
+    const duration = 350;
+    const startTime = performance.now();
+    isManualScrolling.current = true;
+
+    const animate = (now: number) => {
+      const t = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      el.scrollLeft = start + (target - start) * eased;
+      if (t < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        isManualScrolling.current = false;
+      }
+    };
+    requestAnimationFrame(animate);
   };
 
   // Desplazamiento automático continuo: avanza lentamente y al llegar a un
@@ -52,7 +74,7 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
 
     const step = () => {
       const maxScroll = el.scrollWidth - el.clientWidth;
-      if (!isDown.current && maxScroll > 0) {
+      if (!isDown.current && !isHovering.current && !isManualScrolling.current && maxScroll > 0) {
         el.scrollLeft += AUTO_SCROLL_SPEED * direction.current;
         if (el.scrollLeft >= maxScroll) {
           el.scrollLeft = maxScroll;
@@ -84,6 +106,7 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
         className="areas-wrapper"
         ref={scrollRef}
         onMouseDown={onMouseDown}
+        onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onMouseUp={onMouseUp}
         onMouseMove={onMouseMove}
@@ -141,7 +164,6 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
           user-select: none;
           width: 100%;
           scrollbar-width: none;
-          scroll-behavior: smooth;
         }
         .areas-wrapper::-webkit-scrollbar { display: none; }
         .areas-wrapper:active { cursor: grabbing; }
