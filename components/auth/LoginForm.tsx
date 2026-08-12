@@ -92,19 +92,18 @@ export default function LoginForm() {
       </div>
 
       <div className="login-split-right">
-        <div className="d-flex align-items-center" style={{ position: "absolute", top: "24px", left: "24px", gap: "8px" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/trib-cuentas-escudo.png" alt="" style={{ height: "28px", width: "28px", objectFit: "contain" }} />
-          <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1e293b", letterSpacing: "0.02em" }}>INT4RANET</span>
-        </div>
-
         <span style={{ position: "absolute", bottom: "16px", left: "24px", fontSize: "0.72rem", color: "#94a3b8" }}>
           v{appVersion}
         </span>
 
         <div className="login-box">
-          <div className="mb-4 text-left">
-            <h2 className="font-weight-bold mb-1" style={{ fontSize: "2rem", color: "#1e293b" }}>Iniciar sesión</h2>
+          <div className="mb-4 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/img/trib-cuentas-escudo.png"
+              alt="Escudo del Tribunal de Cuentas"
+              style={{ height: "140px", width: "140px", objectFit: "contain" }}
+            />
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
