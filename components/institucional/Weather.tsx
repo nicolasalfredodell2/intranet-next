@@ -1,18 +1,18 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { getWeather, getWeatherIcon } from "@/lib/services/weather.service";
+import { getWeather, getWeatherIcon, type WeatherData } from "@/lib/services/weather.service";
 
 interface WeatherProps {
   onSearch: (title: string) => void;
 }
 
 export default function Weather({ onSearch }: WeatherProps) {
-  const [weatherData, setWeatherData] = useState<any>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    getWeather("Viedma").then(setWeatherData).catch(() => {});
+    getWeather().then(setWeatherData).catch(() => {});
   }, []);
 
   const onKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -46,29 +46,29 @@ export default function Weather({ onSearch }: WeatherProps) {
                 <div className="col-8 text-white">
                   <p className="text-white mb-1">
                     <i className="fas fa-location-dot mr-2" />
-                    <span className="text-location">Viedma Río Negro</span>
+                    <span className="text-location">{weatherData.ubicacion}</span>
                   </p>
                   <p className="capitalize mb-1 text-weater">
-                    {weatherData.weather[0].description}
+                    {weatherData.descripcion}
                   </p>
                   <p className="mb-1 text-temp">
-                    {round(weatherData.main.temp)}°C
+                    {round(weatherData.temperatura)}°C
                   </p>
                   <p className="mb-2 text-sensation">
-                    Sensación Térmica {round(weatherData.main.feels_like)}°C
+                    Sensación Térmica {round(weatherData.sensacion_termica)}°C
                   </p>
                   <p className="mb-1 text-min-max">
-                    Mín {round(weatherData.main.temp_min)}°C / Máx {round(weatherData.main.temp_max)}°C
+                    Mín {round(weatherData.temp_min)}°C / Máx {round(weatherData.temp_max)}°C
                   </p>
                   <p className="mt-1 mb-0 text-rain">
-                    <i className="fas fa-cloud-showers-heavy" /> Lluvias: {weatherData.rain?.["1h"] ?? 0}%
-                    <i className="fas fa-wind ml-2" /> Viento: {round(weatherData.wind.speed)} km/h
+                    <i className="fas fa-cloud-showers-heavy" /> Lluvias: {weatherData.prob_lluvia}%
+                    <i className="fas fa-wind ml-2" /> Viento: {round(weatherData.viento_kmh)} km/h
                   </p>
                 </div>
 
                 <div className="col-4 d-flex align-items-center justify-content-center">
                   <i
-                    className={getWeatherIcon(weatherData.weather[0].icon)}
+                    className={getWeatherIcon(weatherData.icono)}
                     style={{ fontSize: "6rem", color: "#ffffff", textShadow: "2px 2px 8px rgba(0,0,0,0.2)" }}
                   />
                 </div>

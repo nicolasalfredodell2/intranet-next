@@ -1,9 +1,20 @@
-const WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather";
-const API_KEY = process.env.NEXT_PUBLIC_WEATHER_API_KEY || "";
+const WEATHER_URL = "https://tempo-testing.tribcuentasrionegro.gov.ar/clima";
 
-export async function getWeather(city: string) {
-  const params = new URLSearchParams({ q: city, units: "metric", appid: API_KEY, lang: "es" });
-  const res = await fetch(`${WEATHER_URL}?${params}`);
+export interface WeatherData {
+  ubicacion: string;
+  descripcion: string;
+  temperatura: number;
+  sensacion_termica: number;
+  temp_min: number;
+  temp_max: number;
+  prob_lluvia: number;
+  viento_kmh: number;
+  icono: string;
+  actualizado: string;
+}
+
+export async function getWeather(): Promise<WeatherData> {
+  const res = await fetch(WEATHER_URL);
   if (!res.ok) throw new Error("Error cargando clima");
   return res.json();
 }
