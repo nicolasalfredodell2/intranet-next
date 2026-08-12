@@ -427,6 +427,12 @@ header.topbar nav {
   transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
 }
 
+@media (max-width: 991.98px) {
+  .qr-action-card {
+    margin-bottom: 12px;
+  }
+}
+
 .qr-action-card:hover {
   background: linear-gradient(135deg, #eef1ff 0%, #e4e9ff 100%);
   box-shadow: 0 4px 16px rgba(129, 140, 248, 0.2);
