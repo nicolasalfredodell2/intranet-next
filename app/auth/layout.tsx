@@ -6,7 +6,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="animated fadeIn" style={{ marginTop: "50px" }}>
+    <div className="animated fadeIn" style={{ marginTop: "0px" }}>
       {children}
     </div>
   );
