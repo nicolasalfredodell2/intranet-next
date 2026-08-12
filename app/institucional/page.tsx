@@ -248,7 +248,7 @@ export default function NewsPage() {
       </div>
 
       {/* Tablet sector buttons (md-xl) */}
-      <div className="d-none d-md-flex d-xl-none mt-2 px-3 row">
+      <div className="d-none d-md-flex d-xl-none mt-2 px-3 row justify-content-center">
         <div className="col-3 sector pr-2">
           <div className="sector-container pointer" onClick={() => setShowAgendaModal(true)}>
             <div className="row d-flex align-items-center h-100">
@@ -270,20 +270,6 @@ export default function NewsPage() {
               </div>
               <div className="col-12 text-center mt-2">
                 <p className="text-sector text-white">Calendario</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-3 sector px-2">
-          <div className="sector-container pointer" onClick={() => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank")}>
-            <div className="row d-flex align-items-center h-100">
-              <div className="col-12 text-center mt-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/img/chat/logo.svg" className="sector-icon img-logo-caht" alt="Logo Soporte" />
-              </div>
-              <div className="col-12 text-center mt-2">
-                <p className="text-sector text-white">Chat Soporte</p>
               </div>
             </div>
           </div>
