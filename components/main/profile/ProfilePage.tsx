@@ -141,13 +141,15 @@ const SIGNATURE_BADGE = (
 function CardSectionHeader({ icon, iconBg, iconColor, title, subtitle, action }: { icon: string; iconBg: string; iconColor: string; title: string; subtitle: string; action?: React.ReactNode }) {
   return (
     <>
-      <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-        <div style={{ width: 38, height: 38, borderRadius: "11px", background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <i className={icon} style={{ color: iconColor, fontSize: "1rem" }} />
-        </div>
-        <div className="flex-grow-1">
-          <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>{title}</h5>
-          <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{subtitle}</small>
+      <div className="d-flex align-items-center flex-wrap px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+        <div className="d-flex align-items-center flex-grow-1" style={{ gap: "12px", minWidth: 0 }}>
+          <div style={{ width: 38, height: 38, borderRadius: "11px", background: iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <i className={icon} style={{ color: iconColor, fontSize: "1rem" }} />
+          </div>
+          <div className="flex-grow-1" style={{ minWidth: 0 }}>
+            <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>{title}</h5>
+            <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{subtitle}</small>
+          </div>
         </div>
         {action}
       </div>
