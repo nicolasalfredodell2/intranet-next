@@ -254,7 +254,7 @@ function NextDayCard({ date, birthdayEntries, holidayEvents }: { date: string; b
       <div style={{ background: "#1e2533", borderRadius: "12px", padding: "12px 14px", color: "#f1f5f9" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "10px" }}>
           <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>📅</span>
-          <span style={{ fontWeight: 700, fontSize: "0.83rem", color: "#f1f5f9" }}>{date}</span>
+          <span style={{ fontWeight: 700, fontSize: "0.83rem", color: "#f1f5f9" }}>Proximamente · {date}</span>
         </div>
 
         {birthdayEntries.length > 0 && (
