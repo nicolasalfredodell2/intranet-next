@@ -2301,6 +2301,10 @@ input[disabled] {
   color: #e2e8f0;
 }
 
+.institucional-shell.dark-mode .card.border {
+  border-color: transparent !important;
+}
+
 .institucional-shell.dark-mode .main-news-card {
   background: none !important;
   color: #e2e8f0;
@@ -2319,6 +2323,11 @@ input[disabled] {
 .institucional-shell.dark-mode .charge {
   background-color: #1c2333 !important;
   color: #e2e8f0 !important;
+}
+
+.institucional-shell.dark-mode .load-more-btn {
+  background-color: #fff !important;
+  color: #000 !important;
 }
 
 .institucional-shell.dark-mode hr {

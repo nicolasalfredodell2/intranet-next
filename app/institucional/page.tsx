@@ -372,7 +372,7 @@ export default function NewsPage() {
       {!loadingNews && canNext && (
         <div className="my-3 row">
           <div className="col-12 text-center">
-            <p onClick={loadMore} className="pointer bg-white p-3 text-dark charge" style={{ borderRadius: 25, fontSize: 16, height: 50, lineHeight: "20px", boxShadow: "rgba(0,0,0,0.16) 0px 2px 6px", width: 222, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <p onClick={loadMore} className="pointer bg-white p-3 text-dark charge load-more-btn" style={{ borderRadius: 25, fontSize: 16, height: 50, lineHeight: "20px", boxShadow: "rgba(0,0,0,0.16) 0px 2px 6px", width: 222, display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               Cargar más noticias
             </p>
           </div>
