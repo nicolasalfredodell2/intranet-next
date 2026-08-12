@@ -15,6 +15,7 @@ import { OverlayPanel } from "primereact/overlaypanel";
 import { Checkbox } from "primereact/checkbox";
 import { addLocale } from "primereact/api";
 import { Message } from "primereact/message";
+import { History, FileText, Clock, Eye } from "lucide-react";
 import {
   getNoticesConfig,
   getAllNoticesAdmin,
@@ -1488,7 +1489,19 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
 
       {/* Historial de archivos adjuntos */}
       <Dialog
-        header="Historial de archivos adjuntos"
+        header={
+          <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+            <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <History size={18} color="#eab308" />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Historial de archivos adjuntos</p>
+              <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
+                {historyAttachments.length} {historyAttachments.length === 1 ? "archivo" : "archivos"}
+              </small>
+            </div>
+          </div>
+        }
         visible={displayHistoryDialog}
         modal
         draggable={false}
@@ -1497,40 +1510,49 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
         style={{ width: "min(680px, 95vw)" }}
         onHide={() => setDisplayHistoryDialog(false)}
       >
-        <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+        <div className="d-flex flex-column" style={{ gap: "10px", maxHeight: "60vh", overflowY: "auto" }}>
           {historyAttachments.map((file, i) => (
-            <div key={file.id} className="mb-3 p-3 rounded border" style={{ background: "#fff", position: "relative", paddingLeft: "18px" }}>
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "4px", borderRadius: "4px 0 0 4px", background: i === 0 ? "#059669" : "#94a3b8" }} />
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="mb-0 font-weight-bold" style={{ color: "#1e293b" }}>
-                  <i className="pi pi-file-pdf mr-2" style={{ color: "#dc3545" }} />
-                  {file.name}
+            <div key={file.id} style={{ border: `1.5px solid ${i === 0 ? "#dbeafe" : "#e2e8f0"}`, background: i === 0 ? "#eff6ff" : "#fff", borderRadius: "10px", padding: "12px 14px" }}>
+              <div className="d-flex align-items-center justify-content-between" style={{ gap: "8px" }}>
+                <div className="d-flex align-items-center" style={{ gap: "8px", minWidth: 0 }}>
+                  <FileText size={16} color="#4a6cf7" style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: "0.86rem", fontWeight: 600, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {file.name}
+                  </span>
                   {i === 0 && (
-                    <span className="badge badge-success ml-2 px-2 py-1">Último subido</span>
+                    <span className="badge rounded-pill" style={{ background: "#05966915", color: "#059669", border: "none", fontWeight: 600, padding: "3px 10px", fontSize: "0.68rem", flexShrink: 0 }}>
+                      Último subido
+                    </span>
                   )}
-                </h6>
-                <small className="text-muted d-flex align-items-center">
-                  <i className="pi pi-clock mr-1" /> {formatDateTime(file.created_at)}
-                </small>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => abrirArchivo(file)}
+                  style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6", fontSize: "0.78rem", fontWeight: 600, gap: "6px", flexShrink: 0 }}
+                >
+                  <Eye size={14} /> Ver
+                </button>
               </div>
-
-              <button type="button" className="btn btn-sm btn-light text-primary border mb-2" onClick={() => abrirArchivo(file)}>
-                <i className="pi pi-eye" /> Ver documento
-              </button>
+              <small style={{ color: "#94a3b8", fontSize: "0.72rem", display: "flex", alignItems: "center", gap: "4px", marginTop: "6px", marginLeft: "24px" }}>
+                <Clock size={11} /> Subido el {formatDateTime(file.created_at)}
+              </small>
 
               {file.rejection_reasons?.length > 0 && (
-                <div className="p-3 rounded mt-2" style={{ background: "rgba(220,53,69,0.06)" }}>
-                  <small className="font-weight-bold text-danger d-block mb-2">
-                    <i className="pi pi-exclamation-circle" /> Motivos de rechazo:
-                  </small>
-                  <ul className="mb-0 pl-3 text-danger" style={{ fontSize: "0.85rem" }}>
-                    {file.rejection_reasons.map((r: any, ri: number) => (
-                      <li key={ri} className="mb-1">
-                        {r.reason} <span className="opacity-75">({formatDateTime(r.created_at)})</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <Message
+                  severity="error"
+                  className="mt-2 w-100"
+                  style={{ justifyContent: "flex-start" }}
+                  text={
+                    <div>
+                      {file.rejection_reasons.map((r: any, ri: number) => (
+                        <div key={ri} className={ri > 0 ? "mt-2" : ""}>
+                          <small style={{ fontWeight: 700, display: "block" }}>Rechazado el {formatDateTime(r.created_at)}</small>
+                          <small style={{ display: "block" }}>{r.reason}</small>
+                        </div>
+                      ))}
+                    </div>
+                  }
+                />
               )}
             </div>
           ))}
