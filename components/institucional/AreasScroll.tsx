@@ -63,26 +63,37 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
 
   // Desplazamiento automático continuo: avanza lentamente y al llegar a un
   // extremo invierte el sentido, como un vaivén. Se pausa mientras el
-  // usuario arrastra manualmente.
+  // usuario arrastra, hace hover o hace click en las flechas.
   const direction = useRef(1);
+  // El scrollLeft del DOM se redondea a pixeles enteros: si acumuláramos el
+  // incremento leyendo/escribiendo directo sobre el, un paso de 0.4px por
+  // frame nunca llegaría a sumar 1px y quedaría fijo. Por eso llevamos la
+  // posición "real" (con decimales) en un ref propio.
+  const scrollPos = useRef(0);
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
+    scrollPos.current = el.scrollLeft;
     let rafId: number;
 
     const step = () => {
       const maxScroll = el.scrollWidth - el.clientWidth;
       if (!isDown.current && !isHovering.current && !isManualScrolling.current && maxScroll > 0) {
-        el.scrollLeft += AUTO_SCROLL_SPEED * direction.current;
-        if (el.scrollLeft >= maxScroll) {
-          el.scrollLeft = maxScroll;
+        scrollPos.current += AUTO_SCROLL_SPEED * direction.current;
+        if (scrollPos.current >= maxScroll) {
+          scrollPos.current = maxScroll;
           direction.current = -1;
-        } else if (el.scrollLeft <= 0) {
-          el.scrollLeft = 0;
+        } else if (scrollPos.current <= 0) {
+          scrollPos.current = 0;
           direction.current = 1;
         }
+        el.scrollLeft = scrollPos.current;
+      } else {
+        // Mientras está pausado, seguimos la posición real (el usuario pudo
+        // arrastrar o usar las flechas) para retomar desde ahí sin saltos.
+        scrollPos.current = el.scrollLeft;
       }
       rafId = requestAnimationFrame(step);
     };
