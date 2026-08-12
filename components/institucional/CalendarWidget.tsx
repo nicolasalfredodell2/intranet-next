@@ -340,18 +340,16 @@ export default function CalendarWidget() {
       );
     }
 
-    const hasBirthday = events.some((ev) => ev.type === "birthday");
-    const hasHoliday = events.some((ev) => ev.type === "holiday");
-    const holidayColor = events.find((ev) => ev.type === "holiday")?.color ?? "#4CAF50";
+    // Un color por cada grupo de eventos del día (cumpleaños cuenta como uno solo,
+    // cada evento importante aporta el color de su propia categoría). Con 1 color se
+    // usa solo, con 2 o más se reparten en porciones iguales sobre el círculo del día.
+    const colors: string[] = [];
+    if (events.some((ev) => ev.type === "birthday")) colors.push("#9EB0CE");
+    events.filter((ev) => ev.type === "holiday").forEach((ev) => colors.push(ev.color));
 
-    let background: string;
-    if (hasBirthday && hasHoliday) {
-      background = `linear-gradient(135deg, ${holidayColor} 50%, #9EB0CE 51%)`;
-    } else if (hasBirthday) {
-      background = "#9EB0CE";
-    } else {
-      background = holidayColor;
-    }
+    const background = colors.length <= 1
+      ? (colors[0] ?? "#4CAF50")
+      : `conic-gradient(${colors.map((c, i) => `${c} ${(i * 100) / colors.length}% ${((i + 1) * 100) / colors.length}%`).join(", ")})`;
 
     const details: CalendarDetail[] = events.map((ev) => ({
       title: ev.type === "birthday" ? "Cumpleaños" : (ev.categoryTitle ?? "Día especial"),
