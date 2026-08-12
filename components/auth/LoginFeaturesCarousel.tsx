@@ -148,11 +148,9 @@ function MarqueeRow({ reverse, rowKey }: { reverse?: boolean; rowKey: string }) 
           const Icon = feature.icon;
           return (
             <div key={`${rowKey}-${feature.number}-${i}`} className="login-feature-card" style={{ background: feature.gradient }}>
-              <Icon size={38} strokeWidth={1.6} color="#4a6cf7" />
-              <div>
-                <h3 className="login-feature-title">{feature.title}</h3>
-                <p className="login-feature-description">{feature.description}</p>
-              </div>
+              <h3 className="login-feature-title">{feature.title}</h3>
+              <p className="login-feature-description">{feature.description}</p>
+              <Icon size={64} strokeWidth={1.4} color="#fff" className="login-feature-icon" />
             </div>
           );
         })}
@@ -210,13 +208,14 @@ export default function LoginFeaturesCarousel() {
         }
 
         .login-feature-card {
+          position: relative;
           flex: 0 0 280px;
           height: 280px;
           border-radius: 22px;
           padding: 28px;
+          padding-bottom: 90px;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
           align-items: flex-start;
         }
 
@@ -226,7 +225,7 @@ export default function LoginFeaturesCarousel() {
           text-transform: uppercase;
           letter-spacing: 0.03em;
           color: #1e293b;
-          margin: 0 0 6px;
+          margin: 0 0 8px;
         }
 
         .login-feature-description {
@@ -236,11 +235,25 @@ export default function LoginFeaturesCarousel() {
           margin: 0;
         }
 
+        .login-feature-icon {
+          position: absolute;
+          bottom: 18px;
+          right: 18px;
+        }
+
         @media (max-width: 900px) {
           .login-feature-card {
             flex-basis: 210px;
             height: 230px;
             padding: 22px;
+            padding-bottom: 74px;
+          }
+
+          .login-feature-icon {
+            bottom: 14px;
+            right: 14px;
+            width: 48px;
+            height: 48px;
           }
         }
       `}</style>
