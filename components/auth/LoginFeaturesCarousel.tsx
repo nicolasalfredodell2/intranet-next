@@ -148,7 +148,6 @@ function MarqueeRow({ reverse, rowKey }: { reverse?: boolean; rowKey: string }) 
           const Icon = feature.icon;
           return (
             <div key={`${rowKey}-${feature.number}-${i}`} className="login-feature-card" style={{ background: feature.gradient }}>
-              <span className="login-feature-number">( {feature.number} )</span>
               <Icon size={38} strokeWidth={1.6} color="#4a6cf7" />
               <div>
                 <h3 className="login-feature-title">{feature.title}</h3>
@@ -210,12 +209,6 @@ export default function LoginFeaturesCarousel() {
           flex-direction: column;
           justify-content: space-between;
           align-items: flex-start;
-        }
-
-        .login-feature-number {
-          font-family: monospace;
-          font-size: 0.8rem;
-          color: rgba(30, 41, 59, 0.4);
         }
 
         .login-feature-title {
