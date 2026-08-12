@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import BalloonBackground from "./BalloonBackground";
 
 interface BirthdayProps {
   birthdays: any[];
@@ -46,6 +47,7 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
   return (
     <div className="mb-3">
       <div className="custom-dialog-card">
+        <BalloonBackground />
         <div className="card-video-overlay" />
 
         <div className="card-content">
@@ -107,10 +109,7 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
 
       <style jsx>{`
         .custom-dialog-card {
-          background-image: url('/img/birthdays/GlobosINT2.gif');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
+          background: radial-gradient(circle at center, #27272a 0%, #18181b 55%, #000 100%);
           width: 100%;
           height: 384px;
           border-radius: 10px;
