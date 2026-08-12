@@ -1116,7 +1116,7 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
                       <div style={{ maxHeight: "280px", minHeight: comments.length ? undefined : "60px", overflowY: "auto", padding: "4px 2px" }}>
                         {comments.length === 0 && !isLoadingComments && (
                           <p className="mb-0 text-center" style={{ color: "#94a3b8", fontSize: "0.82rem", padding: "12px 0" }}>
-                            Todavía no hay comentarios.
+                            No hay comentarios.
                           </p>
                         )}
                         {comments.map((c) => <ChatBubble key={c.id} comment={c} />)}
