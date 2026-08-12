@@ -140,14 +140,14 @@ const FEATURES: Feature[] = [
 // el primero, asi el loop es indistinguible del contenido real.
 const TRACK_ITEMS = [...FEATURES, ...FEATURES];
 
-export default function LoginFeaturesCarousel() {
+function MarqueeRow({ reverse, rowKey }: { reverse?: boolean; rowKey: string }) {
   return (
     <div className="login-marquee">
-      <div className="login-marquee-track">
+      <div className={`login-marquee-track${reverse ? " reverse" : ""}`}>
         {TRACK_ITEMS.map((feature, i) => {
           const Icon = feature.icon;
           return (
-            <div key={`${feature.number}-${i}`} className="login-feature-card" style={{ background: feature.gradient }}>
+            <div key={`${rowKey}-${feature.number}-${i}`} className="login-feature-card" style={{ background: feature.gradient }}>
               <span className="login-feature-number">( {feature.number} )</span>
               <Icon size={38} strokeWidth={1.6} color="#4a6cf7" />
               <div>
@@ -158,8 +158,26 @@ export default function LoginFeaturesCarousel() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+export default function LoginFeaturesCarousel() {
+  return (
+    <div className="login-marquee-group">
+      <MarqueeRow rowKey="row1" />
+      <MarqueeRow rowKey="row2" reverse />
 
       <style jsx>{`
+        .login-marquee-group {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+      `}</style>
+
+      <style jsx global>{`
         .login-marquee {
           width: 100%;
           overflow: hidden;
@@ -172,6 +190,10 @@ export default function LoginFeaturesCarousel() {
           gap: 16px;
           width: max-content;
           animation: marqueeRight 90s linear infinite;
+        }
+
+        .login-marquee-track.reverse {
+          animation-direction: reverse;
         }
 
         @keyframes marqueeRight {
