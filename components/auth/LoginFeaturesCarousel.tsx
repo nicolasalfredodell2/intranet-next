@@ -100,7 +100,6 @@ export default function LoginFeaturesCarousel() {
           flex-direction: column;
           justify-content: space-between;
           align-items: flex-start;
-          box-shadow: 0 20px 50px rgba(30, 41, 59, 0.08);
         }
 
         .login-feature-number {
