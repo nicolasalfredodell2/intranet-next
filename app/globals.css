@@ -72,15 +72,6 @@ body::-webkit-scrollbar-track {
   width: 75vw;
 }
 
-.login-split-image {
-  filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.35));
-  height: 35%;
-  object-fit: contain;
-  position: relative;
-  width: 35%;
-  z-index: 1;
-}
-
 .login-split-right {
   align-items: center;
   background: #fff;
