@@ -136,12 +136,14 @@ export default function NavbarLateral() {
                     </li>
                   )}
 
-                  <li className="admin-item">
-                    <Link href="/main/absence-notices-admin" className={active("/main/absence-notices-admin")} onClick={onNavClick}>
-                      <i className="pi pi-bell" />
-                      <span className="hide-menu">Avisos</span>
-                    </Link>
-                  </li>
+                  {isAdminRRHH && (
+                    <li className="admin-item">
+                      <Link href="/main/absence-notices-admin" className={active("/main/absence-notices-admin")} onClick={onNavClick}>
+                        <i className="pi pi-bell" />
+                        <span className="hide-menu">Avisos</span>
+                      </Link>
+                    </li>
+                  )}
 
                   {isAdminInformatic && (
                     <>
