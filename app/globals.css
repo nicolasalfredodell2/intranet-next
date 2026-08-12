@@ -217,6 +217,15 @@ header.topbar nav {
   height: 65px !important;
 }
 
+@media (max-width: 1199.98px) {
+  .navbar-brand {
+    display: revert !important;
+    align-items: revert !important;
+    gap: revert !important;
+    text-decoration: revert !important;
+  }
+}
+
 .btn-remote-circle {
   align-items: center;
   border: none;
