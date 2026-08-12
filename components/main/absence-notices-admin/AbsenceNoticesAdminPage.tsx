@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Toast } from "primereact/toast";
 import AppToast from "@/components/common/AppToast";
 import { ProgressBar } from "primereact/progressbar";
@@ -242,7 +243,31 @@ function hasWorkflowActions(item: any): boolean {
 
 const MENU_ITEM_STYLE = { display: "flex", alignItems: "center", gap: "8px", width: "100%", padding: "8px 14px", background: "none", border: "none", textAlign: "left" as const, fontSize: "0.84rem", color: "#374151", cursor: "pointer" };
 
+function hasRRHHRole(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = sessionStorage.getItem("roles") || localStorage.getItem("roles");
+    if (!raw) return false;
+    const roles: string[] = JSON.parse(raw)?.frontend_workflow?.roles ?? [];
+    return roles.includes("manager_rrhh");
+  } catch {
+    return false;
+  }
+}
+
 export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNoticeId?: string } = {}) {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (hasRRHHRole()) {
+      setIsAuthorized(true);
+    } else {
+      setIsAuthorized(false);
+      router.replace("/main/absence-notices");
+    }
+  }, [router]);
+
   const toast = useRef<Toast>(null);
   const menuRef = useRef<OverlayPanel>(null);
 
@@ -663,6 +688,8 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
   const previewNameParts = previewFile?.name.split(".") ?? [];
   const previewExt = previewNameParts.length > 1 ? previewNameParts.pop() : null;
   const previewNameNoExt = previewNameParts.join(".");
+
+  if (isAuthorized !== true) return null;
 
   return (
     <>
