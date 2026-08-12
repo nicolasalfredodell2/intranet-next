@@ -2274,3 +2274,45 @@ input[disabled] {
 .wx-bar-marker {
   display: none !important;
 }
+
+/* ========================
+   Institucional — Dark mode
+   Alcance: fondo de pagina, textos y tarjetas de noticias
+   (principales + grid). Los widgets del costado (Agenda,
+   Calendario, Cumpleanos, Banners, Areas, Shorts) no cambian.
+   ======================== */
+
+.institucional-shell.dark-mode {
+  background-color: #12161f;
+  min-height: 100vh;
+}
+
+.institucional-shell.dark-mode .text-dark {
+  color: #e2e8f0 !important;
+}
+
+.institucional-shell.dark-mode .text-muted {
+  color: #94a3b8 !important;
+}
+
+.institucional-shell.dark-mode .card,
+.institucional-shell.dark-mode .bg-white,
+.institucional-shell.dark-mode .main-news-card {
+  background: #1c2333 !important;
+  color: #e2e8f0;
+}
+
+.institucional-shell.dark-mode .alert-info {
+  background-color: #1c2333 !important;
+  color: #e2e8f0;
+  border-color: #2a3450;
+}
+
+.institucional-shell.dark-mode .charge {
+  background-color: #1c2333 !important;
+  color: #e2e8f0 !important;
+}
+
+.institucional-shell.dark-mode hr {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}

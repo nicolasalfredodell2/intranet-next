@@ -50,6 +50,17 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
   const [shorts, setShorts] = useState<any[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    setIsDarkMode(localStorage.getItem("darkMode") === "true");
+  }, []);
+
+  const toggleDarkMode = () => {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    localStorage.setItem("darkMode", String(next));
+  };
 
   useEffect(() => {
     Promise.all([
@@ -75,8 +86,8 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
   }, []);
 
   return (
-    <div className="animate__animated animate__fadeIn">
-      <Navbar />
+    <div className={`animate__animated animate__fadeIn institucional-shell${isDarkMode ? " dark-mode" : ""}`}>
+      <Navbar isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
       {showDialog && isRoot && (
         <BirthdayDialog birthdays={birthdays} onClose={() => setShowDialog(false)} />

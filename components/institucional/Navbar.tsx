@@ -16,9 +16,13 @@ function authHeaders(): HeadersInit {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-export default function Navbar() {
+interface NavbarProps {
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
+}
+
+export default function Navbar({ isDarkMode, toggleDarkMode }: NavbarProps) {
   const router = useRouter();
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLogged, setIsLogged] = useState(false);
   const [canRemoteAccess, setCanRemoteAccess] = useState(false);
@@ -34,10 +38,6 @@ export default function Navbar() {
   const toast = useRef<Toast>(null);
 
   useEffect(() => {
-    const dark = localStorage.getItem("darkMode") === "true";
-    setIsDarkMode(dark);
-    if (dark) document.body.classList.add("dark-mode");
-
     const token = localStorage.getItem("token");
     if (!token) return;
     setIsLogged(true);
@@ -62,13 +62,6 @@ export default function Navbar() {
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const toggleDarkMode = () => {
-    const next = !isDarkMode;
-    setIsDarkMode(next);
-    localStorage.setItem("darkMode", String(next));
-    document.body.classList.toggle("dark-mode", next);
-  };
 
   const startCountdown = (seconds: number) => {
     setCanActionRemote(false);
