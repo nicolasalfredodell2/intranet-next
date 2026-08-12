@@ -109,7 +109,7 @@ export default function Birthday({ birthdays, isLoading, onShowDialog }: Birthda
 
       <style jsx>{`
         .custom-dialog-card {
-          background: radial-gradient(circle at center, #27272a 0%, #18181b 55%, #000 100%);
+          background: #4A5459;
           width: 100%;
           height: 384px;
           border-radius: 10px;
