@@ -164,6 +164,7 @@ function MarqueeRow({ reverse, rowKey }: { reverse?: boolean; rowKey: string }) 
 export default function LoginFeaturesCarousel() {
   return (
     <div className="login-marquee-group">
+      <h2 className="login-carousel-title">Intranet</h2>
       <MarqueeRow rowKey="row1" />
       <MarqueeRow rowKey="row2" reverse />
 
@@ -173,6 +174,14 @@ export default function LoginFeaturesCarousel() {
           display: flex;
           flex-direction: column;
           gap: 16px;
+        }
+
+        .login-carousel-title {
+          margin: 0;
+          text-align: left;
+          font-size: 2.4rem;
+          font-weight: 700;
+          color: #1e293b;
         }
       `}</style>
 
