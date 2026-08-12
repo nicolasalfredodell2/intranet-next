@@ -2306,6 +2306,10 @@ input[disabled] {
   color: #e2e8f0;
 }
 
+.institucional-shell.dark-mode .btn-back {
+  color: #000 !important;
+}
+
 .institucional-shell.dark-mode .alert-info {
   background-color: #1c2333 !important;
   color: #e2e8f0;
