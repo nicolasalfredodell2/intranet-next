@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import { Toast } from "primereact/toast";
+import AppToast from "@/components/common/AppToast";
 import Internal from "./Internal";
 import CalendarWidget from "./CalendarWidget";
 import Questions from "./Questions";
@@ -29,6 +31,7 @@ export default function Navbar() {
   const [showQuestionsModal, setShowQuestionsModal] = useState(false);
   const [dataUser, setDataUser] = useState<any>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const toast = useRef<Toast>(null);
 
   useEffect(() => {
     const dark = localStorage.getItem("darkMode") === "true";
@@ -90,8 +93,18 @@ export default function Navbar() {
       if (!res.ok) throw new Error();
       setShowRemoteModal(false);
       startCountdown(15);
+      toast.current?.show({
+        severity: "success",
+        summary: "Fichada remota registrada con éxito",
+        life: 3500,
+      });
     } catch {
-      alert("No se pudo fichar remoto");
+      toast.current?.show({
+        severity: "error",
+        summary: "No se pudo fichar remoto",
+        detail: "Intentelo de nuevo, por favor",
+        life: 3500,
+      });
     } finally {
       setIsLoadingRemote(false);
     }
@@ -101,6 +114,8 @@ export default function Navbar() {
 
   return (
     <>
+      <AppToast ref={toast} position="bottom-center" />
+
       <nav className="navbar mx-auto custom-navbar flex-column">
         <div className="row h-100 w-100 flex-nowrap align-items-center justify-content-end m-0 px-4" style={{ minHeight: "98.9px" }}>
 
@@ -222,32 +237,48 @@ export default function Navbar() {
 
       {/* Remote modal */}
       {showRemoteModal && (
-        <div className="custom-overlay" onClick={() => !isLoadingRemote && setShowRemoteModal(false)}>
-          <div className="remote-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="text-center pt-3 pb-2 animated fadeIn">
+        <div
+          className="main-remote-overlay animated fadeIn"
+          onClick={() => !isLoadingRemote && setShowRemoteModal(false)}
+        >
+          <div
+            className="main-remote-dialog animated fadeIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center pt-3 pb-2">
               <div className="mb-3">
-                <i className="fa-solid fa-laptop-house text-primary" style={{ fontSize: "3rem", opacity: 0.8 }} />
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #eef1ff, #dde4ff)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
+                  <i className="mdi mdi-fingerprint" style={{ fontSize: "2.2rem", color: "#4a6cf7" }} />
+                </div>
               </div>
-              <h5 className="font-weight-bold text-dark mb-2">¿Registrar fichada remota?</h5>
-              <p className="text-muted mb-0" style={{ fontSize: "0.95rem" }}>
-                Estás a punto de registrar tu horario desde una ubicación remota.
+              <h5 className="font-weight-bold text-dark mb-1">Fichada remota</h5>
+              <p className="text-muted mb-0" style={{ fontSize: "0.88rem", lineHeight: 1.5 }}>
+                Está a punto de registrar tu fichada desde una ubicación remota.
               </p>
             </div>
 
-            {isLoadingRemote && (
-              <div className="text-center my-3">
-                <i className="pi pi-spin pi-spinner mr-2" />
-                <small className="text-muted font-weight-bold">Procesando conexión...</small>
+            {isLoadingRemote ? (
+              <div className="text-center my-4 animated fadeIn">
+                <i className="pi pi-spin pi-spinner text-primary" style={{ fontSize: "1.5rem" }} />
+                <p className="text-muted mt-2 mb-0" style={{ fontSize: "0.85rem", fontWeight: 600 }}>Registrando fichada...</p>
               </div>
-            )}
-
-            {!isLoadingRemote && (
-              <div className="d-flex justify-content-between w-100 mt-3 animated fadeIn">
-                <button className="btn btn-light text-muted w-100 mr-2" style={{ borderRadius: "8px" }} onClick={() => setShowRemoteModal(false)}>
-                  Cancelar
+            ) : (
+              <div className="d-flex mt-4" style={{ gap: "10px" }}>
+                <button
+                  className="btn btn-primary w-100 d-flex align-items-center justify-content-center"
+                  style={{ borderRadius: "10px", fontWeight: 600, gap: "6px" }}
+                  onClick={connectRemote}
+                >
+                  <i className="pi pi-check" style={{ fontSize: "0.85rem" }} />
+                  Confirmar
                 </button>
-                <button className="btn btn-primary shadow-sm w-100 ml-2" style={{ borderRadius: "8px" }} onClick={connectRemote}>
-                  <i className="fa-solid fa-check mr-1" /> Confirmar
+
+                <button
+                  className="btn btn-light text-muted w-100"
+                  style={{ borderRadius: "10px", fontWeight: 500 }}
+                  onClick={() => setShowRemoteModal(false)}
+                >
+                  Volver
                 </button>
               </div>
             )}
@@ -431,14 +462,6 @@ export default function Navbar() {
           align-items: center;
           justify-content: center;
           z-index: 99999;
-        }
-        .remote-dialog {
-          background: #fff;
-          border-radius: 12px;
-          padding: 1.5rem;
-          width: 400px;
-          max-width: 90vw;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
         .elegant-dialog {
           background: #4B5667;

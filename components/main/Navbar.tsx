@@ -476,7 +476,7 @@ export default function Navbar() {
               </div>
               <h5 className="font-weight-bold text-dark mb-1">Fichada remota</h5>
               <p className="text-muted mb-0" style={{ fontSize: "0.88rem", lineHeight: 1.5 }}>
-                Está a punto de registrar tu asistencia desde una ubicación remota.
+                Está a punto de registrar tu fichada desde una ubicación remota.
               </p>
             </div>
 
