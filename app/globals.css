@@ -2296,9 +2296,13 @@ input[disabled] {
 }
 
 .institucional-shell.dark-mode .card,
-.institucional-shell.dark-mode .bg-white,
-.institucional-shell.dark-mode .main-news-card {
+.institucional-shell.dark-mode .bg-white {
   background: #1c2333 !important;
+  color: #e2e8f0;
+}
+
+.institucional-shell.dark-mode .main-news-card {
+  background: none !important;
   color: #e2e8f0;
 }
 
