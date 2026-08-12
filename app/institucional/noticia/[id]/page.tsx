@@ -16,6 +16,7 @@ export default function NoticiaPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMobile(window.innerWidth <= 1000);
@@ -76,18 +77,30 @@ export default function NoticiaPage() {
 
             {/* Carousel */}
             <div id="carruselNoticias">
-              <div className="carousel-inner" style={{ borderRadius: 15, overflow: "hidden" }}>
+              <div className="carousel-inner" style={{ borderRadius: 15, overflow: "hidden", position: "relative" }}>
                 {images.length === 0 ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img className="d-block w-100 img-new" src="/img/news/no-image.png" alt="Sin imagen" />
                 ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    className="d-block w-100 img-new"
-                    src={imgSrc(images[carouselIndex])}
-                    alt={notice.title}
-                    style={{ transition: "opacity 0.3s ease" }}
-                  />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      className="d-block w-100 img-new"
+                      src={imgSrc(images[carouselIndex])}
+                      alt={notice.title}
+                      style={{ transition: "opacity 0.3s ease", cursor: "zoom-in" }}
+                      onClick={() => setLightboxSrc(imgSrc(images[carouselIndex]))}
+                    />
+                    <button
+                      type="button"
+                      className="img-zoom-btn"
+                      onClick={() => setLightboxSrc(imgSrc(images[carouselIndex]))}
+                      aria-label="Ver imagen más grande"
+                      title="Ver imagen más grande"
+                    >
+                      <i className="fa-solid fa-magnifying-glass-plus" />
+                    </button>
+                  </>
                 )}
               </div>
 
@@ -124,6 +137,10 @@ export default function NoticiaPage() {
             <div
               className="text-justify text-note px-2 px-lg-0 text-dark new-description"
               dangerouslySetInnerHTML={{ __html: notice.description }}
+              onClick={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.tagName === "IMG") setLightboxSrc((target as HTMLImageElement).src);
+              }}
             />
 
             <div className="mt-5 text-right">
@@ -163,6 +180,21 @@ export default function NoticiaPage() {
         )}
       </div>
 
+      {lightboxSrc && (
+        <div className="img-lightbox" onClick={() => setLightboxSrc(null)}>
+          <button
+            type="button"
+            className="img-lightbox-close"
+            onClick={() => setLightboxSrc(null)}
+            aria-label="Cerrar"
+          >
+            <i className="fa-solid fa-xmark" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightboxSrc} alt="" className="img-lightbox-img" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
+
       <style jsx global>{`
         .new-description img {
           align-self: center !important;
@@ -171,6 +203,7 @@ export default function NoticiaPage() {
           height: auto !important;
           display: block !important;
           margin: 0 auto !important;
+          cursor: zoom-in;
         }
         @media (max-width: 600px) {
           .new-description img:not(.img-new-main) {
@@ -263,6 +296,73 @@ export default function NoticiaPage() {
         }
 
         .display { font-size: 1.2rem; }
+
+        .img-zoom-btn {
+          position: absolute;
+          bottom: 14px;
+          right: 14px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(0, 0, 0, 0.55);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 5;
+          transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .img-zoom-btn:hover { background: rgba(0, 0, 0, 0.75); transform: scale(1.08); }
+
+        .img-lightbox {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.85);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 999999;
+          padding: 24px;
+          cursor: zoom-out;
+          animation: lightboxFadeIn 0.2s ease;
+        }
+        @keyframes lightboxFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .img-lightbox-img {
+          max-width: 92vw;
+          max-height: 92vh;
+          object-fit: contain;
+          border-radius: 8px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+          cursor: default;
+          animation: lightboxImgIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes lightboxImgIn {
+          from { opacity: 0; transform: scale(0.85); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .img-lightbox-close {
+          position: absolute;
+          top: 20px;
+          right: 24px;
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(255, 255, 255, 0.15);
+          color: #fff;
+          font-size: 1.2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+        .img-lightbox-close:hover { background: rgba(255, 255, 255, 0.3); }
 
         @media (max-width: 600px) {
           .btn-back { width: 100%; }
