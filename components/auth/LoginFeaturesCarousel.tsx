@@ -4,7 +4,18 @@ import {
   Newspaper,
   CalendarHeart,
   ClipboardList,
-  FingerprintPattern,
+  Phone,
+  CalendarClock,
+  Clapperboard,
+  Headset,
+  UserRound,
+  Clock4,
+  FileText,
+  CalendarOff,
+  Receipt,
+  DoorOpen,
+  ListChecks,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -40,10 +51,87 @@ const FEATURES: Feature[] = [
   },
   {
     number: "004",
-    title: "Fichada remota",
-    description: "Registrá tu asistencia desde una ubicación remota cuando lo necesites.",
-    icon: FingerprintPattern,
+    title: "Agenda telefónica",
+    description: "Buscá el interno de cualquier compañero por apellido, al instante.",
+    icon: Phone,
     gradient: "linear-gradient(135deg, #f8fafc, #e2e8f0)",
+  },
+  {
+    number: "005",
+    title: "Próximos eventos",
+    description: "No te pierdas las fechas y eventos institucionales que se vienen.",
+    icon: CalendarClock,
+    gradient: "linear-gradient(135deg, #ecfeff, #cffafe)",
+  },
+  {
+    number: "006",
+    title: "Shorts",
+    description: "Mirá videos cortos con novedades y contenido institucional.",
+    icon: Clapperboard,
+    gradient: "linear-gradient(135deg, #fdf4ff, #fae8ff)",
+  },
+  {
+    number: "007",
+    title: "Soporte técnico",
+    description: "Chateá en vivo con soporte técnico ante cualquier inconveniente.",
+    icon: Headset,
+    gradient: "linear-gradient(135deg, #fff7ed, #ffedd5)",
+  },
+  {
+    number: "008",
+    title: "Perfil",
+    description: "Consultá y actualizá tus datos personales y de contacto.",
+    icon: UserRound,
+    gradient: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
+  },
+  {
+    number: "009",
+    title: "Fichadas",
+    description: "Revisá tus fichadas diarias y el detalle de tu jornada laboral.",
+    icon: Clock4,
+    gradient: "linear-gradient(135deg, #fefce8, #fef9c3)",
+  },
+  {
+    number: "010",
+    title: "Legajo",
+    description: "Accedé a la documentación y archivos de tu legajo personal.",
+    icon: FileText,
+    gradient: "linear-gradient(135deg, #faf5ff, #f3e8ff)",
+  },
+  {
+    number: "011",
+    title: "Licencias",
+    description: "Solicitá licencias y consultá el estado de tus pedidos.",
+    icon: CalendarOff,
+    gradient: "linear-gradient(135deg, #fff1f2, #ffe4e6)",
+  },
+  {
+    number: "012",
+    title: "Recibos de sueldo",
+    description: "Descargá tus recibos de sueldo cuando los necesites.",
+    icon: Receipt,
+    gradient: "linear-gradient(135deg, #f0fdfa, #ccfbf1)",
+  },
+  {
+    number: "013",
+    title: "Salidas",
+    description: "Registrá y consultá tus salidas durante la jornada laboral.",
+    icon: DoorOpen,
+    gradient: "linear-gradient(135deg, #f8fafc, #f1f5f9)",
+  },
+  {
+    number: "014",
+    title: "Encuestas",
+    description: "Participá de las encuestas y dejá tu opinión al organismo.",
+    icon: ListChecks,
+    gradient: "linear-gradient(135deg, #fef2f2, #fee2e2)",
+  },
+  {
+    number: "015",
+    title: "Áreas",
+    description: "Conocé las distintas áreas y sectores del organismo.",
+    icon: Building2,
+    gradient: "linear-gradient(135deg, #f5f3ff, #ede9fe)",
   },
 ];
 
@@ -83,7 +171,7 @@ export default function LoginFeaturesCarousel() {
           display: flex;
           gap: 16px;
           width: max-content;
-          animation: marqueeRight 24s linear infinite;
+          animation: marqueeRight 90s linear infinite;
         }
 
         @keyframes marqueeRight {
