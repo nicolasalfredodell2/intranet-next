@@ -847,6 +847,119 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
             {isLoadingAbsensceNotices && <ProgressBar mode="indeterminate" style={{ height: "6px" }} className="mt-3" />}
 
             <div className="mt-3">
+              {!isLoadingAbsensceNotices && notices.length === 0 && (
+                <div className="license-empty d-md-none">
+                  <i className="pi pi-inbox" />
+                  <p>No hay avisos para mostrar</p>
+                </div>
+              )}
+
+              {/* Vista mobile: cards (sin scroll horizontal) */}
+              {notices.length > 0 && (
+                <div className="d-md-none notice-cards">
+                  {notices.map((n) => {
+                    const legajo = n.people?.internal?.split("/")[0]?.trim();
+                    const start = n.notice_date ? new Date(`${n.notice_date}T00:00:00`) : null;
+                    const end = n.notice_to ? new Date(`${n.notice_to}T00:00:00`) : null;
+                    const days = start && end ? countDays(start, end) : null;
+                    const businessDays = start && end ? countBusinessDays(start, end) : null;
+                    const label = statusLabel(n.status);
+                    const color = getStatusColor(n.status?.code);
+
+                    return (
+                      <div key={n.id} className="notice-card">
+                        <div className="notice-card-header">
+                          <div className="d-flex align-items-center flex-wrap" style={{ gap: "6px" }}>
+                            <CategoryBadge label={n.type?.name} id={n.type?.id} list={types} />
+                            {!isFilterLlegadaTarde && n.reason?.name && (
+                              <CategoryBadge label={n.reason?.name} id={n.reason?.id} palette={REASON_PALETTE} list={reasons} />
+                            )}
+                          </div>
+                          <span
+                            className="badge rounded-pill"
+                            style={{ background: `${color}1a`, color, border: "none", fontWeight: 600, padding: "4px 10px", flexShrink: 0 }}
+                          >
+                            {label}
+                          </span>
+                        </div>
+
+                        <div className="notice-card-row">
+                          <span className="notice-card-label">Agente (legajo)</span>
+                          <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
+                            <small>{n.people?.lastname_name ?? n.cuil}</small>
+                            {legajo && (
+                              <span
+                                className="badge rounded-pill"
+                                style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
+                              >
+                                {legajo}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="notice-card-row">
+                          <span className="notice-card-label">Fecha</span>
+                          <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
+                            <small>{formatDateDisplay(n.notice_date)}{n.notice_to ? ` - ${formatDateDisplay(n.notice_to)}` : ""}</small>
+                            {days !== null && (
+                              <span
+                                className="badge rounded-pill"
+                                style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
+                              >
+                                {days} {days === 1 ? "día total" : "días totales"}
+                                {businessDays !== days && ` (${businessDays} ${businessDays === 1 ? "día hábil" : "días hábiles"})`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="notice-card-row">
+                          <span className="notice-card-label">Descripción</span>
+                          <Tooltip label={n.description ?? ""}>
+                            <small style={{ display: "block", wordBreak: "break-word" }}>
+                              {n.description?.length > 45 ? `${n.description.slice(0, 45)}...` : n.description}
+                            </small>
+                          </Tooltip>
+                        </div>
+
+                        <div className="notice-card-actions">
+                          {hasAttachment(n) && (
+                            isDownloadingFile && downloadingId === getUltimoAdjunto(n)?.id ? (
+                              <span style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#94a3b8", cursor: "not-allowed" }}>
+                                <i className="pi pi-spin pi-spinner" style={{ fontSize: "0.85rem" }} />
+                              </span>
+                            ) : (
+                              <Tooltip label="Ver último archivo subido">
+                                <button type="button" onClick={() => abrirArchivo(getUltimoAdjunto(n))} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                                  <i className="pi pi-eye" style={{ fontSize: "0.85rem" }} />
+                                </button>
+                              </Tooltip>
+                            )
+                          )}
+
+                          {hasWorkflowActions(n) && (
+                            <Tooltip label="Más acciones">
+                              <button type="button" onClick={(e) => openMenu(e, n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                                <i className="pi pi-ellipsis-v" style={{ fontSize: "0.85rem" }} />
+                              </button>
+                            </Tooltip>
+                          )}
+
+                          <Tooltip label="Ver detalle">
+                            <button type="button" onClick={() => openDetail(n)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+                              <i className="pi pi-external-link" style={{ fontSize: "0.85rem" }} />
+                            </button>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Vista desktop: tabla */}
+              <div className="d-none d-md-block">
               <DataTable
                 value={notices}
                 className="p-datatable-sm license-table"
@@ -961,6 +1074,7 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
                   )}
                 />
               </DataTable>
+              </div>
 
               <Paginator
                 className="mt-2"
@@ -1585,6 +1699,60 @@ export default function AbsenceNoticesAdminPage({ initialNoticeId }: { initialNo
           ))}
         </div>
       </Dialog>
+
+      <style jsx>{`
+        .notice-cards {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .notice-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 12px 14px;
+          transition: background 0.15s;
+        }
+
+        .notice-card:hover {
+          background: rgba(74, 108, 247, 0.04);
+        }
+
+        .notice-card-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        .notice-card-row {
+          margin-bottom: 8px;
+        }
+
+        .notice-card-row:last-of-type {
+          margin-bottom: 0;
+        }
+
+        .notice-card-label {
+          display: block;
+          color: #94a3b8;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          margin-bottom: 2px;
+        }
+
+        .notice-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
+        }
+      `}</style>
     </>
   );
 }
