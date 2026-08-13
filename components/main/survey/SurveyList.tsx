@@ -219,6 +219,72 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys, onRe
           )}
         </div>
 
+        {!isLoadingSurveys && filteredSurveys.length === 0 && (
+          <div className="license-empty d-md-none">
+            <i className="pi pi-inbox" />
+            <p>No hay encuestas creadas</p>
+          </div>
+        )}
+
+        {/* Vista mobile: cards (sin scroll horizontal) */}
+        {filteredSurveys.slice(first, first + rows).length > 0 && (
+          <div className="d-md-none survey-cards">
+            {filteredSurveys.slice(first, first + rows).map((survey, idx) => {
+              const isChanging = surveySelectedForChangeEnable === survey && isLoadingActionChangeEnableSurvey;
+              return (
+                <div key={survey?.id ?? idx} className="survey-card">
+                  <div className="survey-card-header">
+                    <small style={{ fontWeight: 700, color: "#1e293b" }}>{survey?.name}</small>
+                  </div>
+
+                  <div className="survey-card-row">
+                    <span className="survey-card-label">Habilitado</span>
+                    <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
+                      <div
+                        onClick={() => !isChanging && changeEnable(survey)}
+                        style={{ display: "inline-flex", cursor: isChanging ? "not-allowed" : "pointer" }}
+                      >
+                        <InputSwitch
+                          checked={survey?.enable == 1}
+                          disabled={isChanging}
+                          onChange={() => {}}
+                          style={{ transform: "scale(0.75)", transformOrigin: "left center", pointerEvents: "none" }}
+                        />
+                      </div>
+                      {isChanging && <small className="animated fadeIn text-muted">Realizando cambio</small>}
+                    </div>
+                  </div>
+
+                  <div className="survey-card-actions">
+                    <Tooltip label="Modificar">
+                      <button type="button" onClick={() => openModalUpdateSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
+                        <Pencil size={14} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip label="Preguntas">
+                      <button type="button" onClick={() => openModalListQuestionsOfSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #e0d9f7", color: "#4a3aa7" }}>
+                        <ClipboardList size={14} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip label="Estadísticas">
+                      <button type="button" onClick={() => openModalShowChartSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #bae6fd", color: "#0ea5e9" }}>
+                        <ChartPie size={14} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip label="Eliminar">
+                      <button type="button" onClick={() => openModalDeleteSurvey(survey)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </Tooltip>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Vista desktop: tabla */}
+        <div className="d-none d-md-block">
         <DataTable
           value={filteredSurveys.slice(first, first + rows)}
           loading={isLoadingSurveys}
@@ -283,6 +349,7 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys, onRe
             )}
           />
         </DataTable>
+        </div>
 
         <Paginator
           className="mt-2"
@@ -322,6 +389,60 @@ export default function SurveyList({ isLoadingSurveys, surveys, setSurveys, onRe
         survey={surveySelectedForShowChartSurvey}
         onClose={() => setIsOpenModalShowChartSurvey(false)}
       />
+
+      <style jsx>{`
+        .survey-cards {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .survey-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 12px 14px;
+          transition: background 0.15s;
+        }
+
+        .survey-card:hover {
+          background: rgba(74, 108, 247, 0.04);
+        }
+
+        .survey-card-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        .survey-card-row {
+          margin-bottom: 8px;
+        }
+
+        .survey-card-row:last-of-type {
+          margin-bottom: 0;
+        }
+
+        .survey-card-label {
+          display: block;
+          color: #94a3b8;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          margin-bottom: 2px;
+        }
+
+        .survey-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
+        }
+      `}</style>
     </div>
   );
 }
