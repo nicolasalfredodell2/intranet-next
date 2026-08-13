@@ -150,6 +150,73 @@ export default function NotesListPage() {
               <SkeletonRows />
             ) : (
               <div className="animated fadeIn">
+                {notes.length === 0 && (
+                  <div className="license-empty d-md-none">
+                    <i className="pi pi-inbox" />
+                    <p>No hay notas.</p>
+                  </div>
+                )}
+
+                {/* Vista mobile: cards (sin scroll horizontal) */}
+                {notes.length > 0 && (
+                  <div className="d-md-none note-cards">
+                    {notes.map((note) => (
+                      <div key={note.id} className="note-card">
+                        <div className="note-card-media">
+                          {note.images?.length > 0 && note.images[0].path_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={`${API_URL}${note.images[0].path_url}`}
+                              alt={note.title}
+                              onClick={() => setPreviewImage({ src: `${API_URL}${note.images[0].path_url}`, alt: note.title })}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", cursor: "zoom-in" }}
+                            />
+                          ) : (
+                            <div style={{ width: "100%", height: "100%", background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <i className="pi pi-image" style={{ color: "#cbd5e1", fontSize: "1.4rem" }} />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="note-card-body">
+                          <span className="license-cell-primary" style={{ display: "block" }}>{note.title}</span>
+
+                          {note.subtitle && (
+                            <span className="license-cell-secondary" style={{ display: "block", marginTop: "4px" }}>
+                              {note.subtitle?.length > 100 ? `${note.subtitle.slice(0, 100)}...` : note.subtitle}
+                            </span>
+                          )}
+
+                          <div className="note-card-footer">
+                            <span className="badge rounded-pill" style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.72rem", padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                              <i className="pi pi-heart-fill" style={{ fontSize: "0.65rem" }} /> {note.likes_count}
+                            </span>
+
+                            <div className="note-card-actions">
+                              <Tooltip label="Editar">
+                                <Link href={`/main/notes/${note.id}`} className="license-action-btn">
+                                  <i className="pi pi-pencil" />
+                                </Link>
+                              </Tooltip>
+                              <Tooltip label="Eliminar">
+                                <button
+                                  type="button"
+                                  onClick={() => setNoteToDelete(note)}
+                                  style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545", height: "30px" }}
+                                >
+                                  <i className="pi pi-trash" />
+                                </button>
+                              </Tooltip>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Vista desktop: tabla */}
+                <div className="d-none d-md-block">
                 <DataTable
                   value={notes}
                   className="p-datatable-sm license-table"
@@ -241,6 +308,7 @@ export default function NotesListPage() {
                     )}
                   />
                 </DataTable>
+                </div>
 
                 <Paginator
                   className="mt-2"
@@ -320,6 +388,50 @@ export default function NotesListPage() {
           <img src={previewImage.src} alt={previewImage.alt} style={{ width: "100%", height: "auto", borderRadius: "8px", display: "block" }} />
         )}
       </Dialog>
+
+      <style jsx>{`
+        .note-cards {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .note-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          overflow: hidden;
+          transition: background 0.15s;
+        }
+
+        .note-card:hover {
+          background: rgba(74, 108, 247, 0.04);
+        }
+
+        .note-card-media {
+          width: 100%;
+          height: 160px;
+        }
+
+        .note-card-body {
+          padding: 12px 14px;
+        }
+
+        .note-card-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        .note-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+      `}</style>
     </>
   );
 }
