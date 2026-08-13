@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { Toast } from "primereact/toast";
+import { InputText } from "primereact/inputtext";
+import { Dropdown } from "primereact/dropdown";
+import { Button } from "primereact/button";
+import { User, Building2, Users, Loader2, Check, LogOut } from "lucide-react";
 import AppToast from "@/components/common/AppToast";
 import { login } from "@/lib/services/auth.service";
 import { getAllBossesForLegajo } from "@/lib/services/boss.service";
@@ -24,9 +28,9 @@ interface Boss {
 const EMPTY_FORM: FormState = { file: "", "confirm-file": "", type: "", cuilBoss: "" };
 
 const EXIT_TYPES = [
-  { value: "Individuals", label: "Particular", icon: "pi-user" },
-  { value: "Officials", label: "Oficial", icon: "pi-building" },
-  { value: "Guild_Meeting_Attendance", label: "Asamblea", icon: "pi-users" },
+  { value: "Individuals", label: "Particular", icon: User },
+  { value: "Officials", label: "Oficial", icon: Building2 },
+  { value: "Guild_Meeting_Attendance", label: "Asamblea", icon: Users },
 ];
 
 export default function ProtectedForIP2Form() {
@@ -82,7 +86,8 @@ export default function ProtectedForIP2Form() {
     const { "confirm-file": confirmFile, file } = formRef.current;
     setBosses([]);
 
-    if (!confirmFile) {
+    const isNumeric = (v: string) => /^\d+$/.test(v);
+    if (!isNumeric(file) || !isNumeric(confirmFile)) {
       setIsLoadingBosses(false);
       return;
     }
@@ -152,7 +157,7 @@ export default function ProtectedForIP2Form() {
 
   return (
     <>
-      <AppToast ref={toast} />
+      <AppToast ref={toast} position="bottom-center" />
 
       <div className="align-items-center animated d-flex fadeIn row" style={{ minHeight: "100vh", backgroundColor: "#fff" }}>
         <div
@@ -174,10 +179,11 @@ export default function ProtectedForIP2Form() {
             <div className="col-12">
               <div className="form-group text-center">
                 <div className="d-flex justify-content-center flex-wrap" style={{ gap: "72px" }}>
-                  {EXIT_TYPES.map(({ value, label, icon }) => (
-                    <button
+                  {EXIT_TYPES.map(({ value, label, icon: Icon }) => (
+                    <Button
                       key={value}
                       type="button"
+                      unstyled
                       className={`exit-type-btn${form.type === value ? " exit-type-btn--active" : ""}`}
                       onClick={() => updateForm("type", value)}
                       style={{
@@ -198,16 +204,26 @@ export default function ProtectedForIP2Form() {
                         justifyContent: "center",
                       }}
                     >
-                      <i className={`pi ${icon}`} style={{ fontSize: "1.1rem" }} />
+                      <Icon size={20} />
                       {label}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
             </div>
 
             <Dialog
-              header=""
+              header={
+                <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+                  <div style={{ width: 38, height: 38, borderRadius: "11px", background: "rgba(14,165,233,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <LogOut size={18} color="#0ea5e9" />
+                  </div>
+                  <div>
+                    <p className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Solicitud de salida</p>
+                    <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Completá los datos para generar tu orden</small>
+                  </div>
+                </div>
+              }
               visible={form.type !== ""}
               style={{ width: "50vw" }}
               contentStyle={{ background: "#fff" }}
@@ -219,14 +235,14 @@ export default function ProtectedForIP2Form() {
               onHide={() => {}}
             >
               <div className="row">
-                <div className="col-12">
+                <div className="col-6">
                   <div className="form-group">
                     <label className="text-dark">LEGAJO</label>
-                    <input
-                      className="form-control"
-                      type="text"
+                    <InputText
+                      className="w-100"
+                      inputMode="numeric"
                       value={form.file}
-                      onChange={(e) => updateForm("file", e.target.value)}
+                      onChange={(e) => updateForm("file", e.target.value.replace(/\D/g, ""))}
                       onBlur={() => setTouched((prev) => ({ ...prev, file: true }))}
                     />
                     {touched.file && !form.file && (
@@ -237,14 +253,14 @@ export default function ProtectedForIP2Form() {
                   </div>
                 </div>
 
-                <div className="col-12">
+                <div className="col-6">
                   <div className="form-group">
                     <label className="text-dark">CONFIRMAR LEGAJO</label>
-                    <input
-                      className="form-control"
-                      type="text"
+                    <InputText
+                      className="w-100"
+                      inputMode="numeric"
                       value={form["confirm-file"]}
-                      onChange={(e) => handleConfirmFileChange(e.target.value)}
+                      onChange={(e) => handleConfirmFileChange(e.target.value.replace(/\D/g, ""))}
                       onBlur={() => setTouched((prev) => ({ ...prev, "confirm-file": true }))}
                     />
                     {touched["confirm-file"] && !form["confirm-file"] && (
@@ -257,8 +273,8 @@ export default function ProtectedForIP2Form() {
 
                 {isLoadingBosses && (
                   <div className="animated col-12 fadeIn">
-                    <p>
-                      <i className="pi pi-spin pi-spinner" /> Cargando jefes
+                    <p className="d-flex align-items-center" style={{ gap: "6px" }}>
+                      <Loader2 size={16} className="spin" /> Cargando jefes
                     </p>
                   </div>
                 )}
@@ -267,19 +283,14 @@ export default function ProtectedForIP2Form() {
                   <div className="animated col-12 fadeIn">
                     <div className="form-group">
                       <label className="text-dark">JEFE</label>
-                      <select
-                        className="form-control custom-select"
+                      <Dropdown
+                        className="w-100"
                         value={form.cuilBoss}
-                        onChange={(e) => updateForm("cuilBoss", e.target.value)}
+                        options={bosses.map((boss) => ({ label: boss.lastname_name, value: boss.cuil }))}
+                        onChange={(e) => updateForm("cuilBoss", e.value)}
                         onBlur={() => setTouched((prev) => ({ ...prev, cuilBoss: true }))}
-                      >
-                        <option value="">-- Seleccionar --</option>
-                        {bosses.map((boss) => (
-                          <option key={boss.cuil} value={boss.cuil}>
-                            {boss.lastname_name}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="-- Seleccionar --"
+                      />
                       {touched.cuilBoss && !form.cuilBoss && (
                         <div className="animated fadeIn text-danger text-left d-flex flex-column">
                           <small className="m-0 animated fadeIn">* Campo obligatorio</small>
@@ -289,18 +300,27 @@ export default function ProtectedForIP2Form() {
                   </div>
                 )}
 
-                <div className="col-12 d-flex justify-content-end">
-                  <button
+                <div className="col-12 d-flex justify-content-between">
+                  <Button
+                    unstyled
                     onClick={create}
                     disabled={isLoadingActionCreate || !isFormValid()}
                     type="button"
-                    className="btn btn-info mr-2"
+                    className="btn btn-info d-flex align-items-center"
+                    style={{ gap: "8px", padding: "12px 28px", fontSize: "1.05rem", borderRadius: "10px" }}
                   >
+                    {isLoadingActionCreate ? <Loader2 size={18} className="spin" /> : <Check size={18} />}
                     {isLoadingActionCreate ? "Solicitando salida" : "Aceptar"}
-                  </button>
-                  <button onClick={resetForm} type="button" className="btn">
-                    Cancelar
-                  </button>
+                  </Button>
+                  <Button
+                    unstyled
+                    onClick={resetForm}
+                    type="button"
+                    className="btn"
+                    style={{ padding: "12px 28px", fontSize: "1.05rem", borderRadius: "10px" }}
+                  >
+                    Volver
+                  </Button>
                 </div>
               </div>
             </Dialog>
@@ -313,6 +333,13 @@ export default function ProtectedForIP2Form() {
           background: #f0f9ff !important;
           color: #0ea5e9 !important;
           border-color: #0ea5e9 !important;
+        }
+        :global(.spin) {
+          animation: protected-spin 0.8s linear infinite;
+        }
+        @keyframes protected-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </>
