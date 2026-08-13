@@ -875,98 +875,181 @@ export default function ExitsPage() {
             {loadingExits && <SkeletonRows />}
 
             {!loadingExits && (
-              <div className="fadeIn animated" style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      {["TIPO", "SOLICITADO A", "ESTADO", "FECHA", "HORA SALIDA", "HORA LLEGADA", "DURACIÓN", ""].map((h, i) => (
-                        <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 7 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredItems.length === 0 && (
-                      <tr>
-                        <td colSpan={8} style={{ padding: "40px", textAlign: "center" }}>
-                          <i className="pi pi-sign-out" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
-                          <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
-                            No hay salidas registradas{hasMyFilters ? " con los filtros aplicados" : ""}.
-                          </p>
-                        </td>
-                      </tr>
-                    )}
+              <div className="fadeIn animated">
+                {filteredItems.length === 0 && (
+                  <div className="exit-empty d-md-none">
+                    <i className="pi pi-sign-out" />
+                    <p>No hay salidas registradas{hasMyFilters ? " con los filtros aplicados" : ""}.</p>
+                  </div>
+                )}
+
+                {pagedFilteredItems.length > 0 && (
+                  <div className="d-md-none exit-cards">
                     {pagedFilteredItems.map((item) => {
                       const sc = STATUS_COLORS[item.class] ?? { bg: "rgba(100,116,139,0.1)", color: "#64748b" };
                       return (
-                        <tr
-                          key={item.id}
-                          className="fadeIn animated"
-                          onMouseEnter={() => setHoveredRow(item.id)}
-                          onMouseLeave={() => setHoveredRow(null)}
-                          style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === item.id || pdfExit?.id === item.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
-                        >
-                          <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                        <div key={item.id} className="exit-card">
+                          <div className="exit-card-header">
                             <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
                               {item.type}
                             </span>
-                          </td>
-                          <td style={{ padding: "10px 8px", fontSize: "0.86rem", color: "#374151" }}>
-                            {item.lastname_name}
-                          </td>
-                          <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.73rem", fontWeight: 600, background: sc.bg, color: sc.color }}>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.73rem", fontWeight: 600, background: sc.bg, color: sc.color, flexShrink: 0 }}>
                               {item.status}
                             </span>
-                          </td>
-                          <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                            {formatDateOnly(getExitDate(item))}
-                          </td>
-                          <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                            {formatTimeOnly(item.departure_hour)}
-                          </td>
-                          <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                            {formatTimeOnly(item.arrival_hour)}
-                          </td>
-                          <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                            {formatDurationHMS(item.departure_hour, item.arrival_hour)}
-                          </td>
-                          <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
-                            <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
-                              {item.canShowPdf && (
-                                <Tooltip label="Ver PDF">
-                                  <button
-                                    type="button"
-                                    onClick={() => openPdfExit(item)}
-                                    style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
-                                  >
-                                    {loadingActionOpenPdfExit === item.id ? (
-                                      <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
-                                    ) : (
-                                      <Eye size={18} />
-                                    )}
-                                  </button>
-                                </Tooltip>
-                              )}
-                              {item.canCancel && (
-                                <Tooltip label="Cancelar">
-                                  <button
-                                    type="button"
-                                    onClick={() => openModalCancelExit(item)}
-                                    style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545" }}
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </Tooltip>
-                              )}
+                          </div>
+
+                          <div className="exit-card-row">
+                            <span className="exit-card-label">Solicitado a</span>
+                            <small>{item.lastname_name}</small>
+                          </div>
+
+                          <div className="exit-card-row">
+                            <span className="exit-card-label">Fecha</span>
+                            <small>{formatDateOnly(getExitDate(item))}</small>
+                          </div>
+
+                          <div className="exit-card-row">
+                            <span className="exit-card-label">Horario</span>
+                            <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
+                              <small>Salida: {formatTimeOnly(item.departure_hour)}</small>
+                              <small>Llegada: {formatTimeOnly(item.arrival_hour)}</small>
+                              <span
+                                className="badge rounded-pill"
+                                style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
+                              >
+                                {formatDurationHMS(item.departure_hour, item.arrival_hour)}
+                              </span>
                             </div>
-                          </td>
-                        </tr>
+                          </div>
+
+                          <div className="exit-card-actions">
+                            {item.canShowPdf && (
+                              <Tooltip label="Ver PDF">
+                                <button
+                                  type="button"
+                                  onClick={() => openPdfExit(item)}
+                                  style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
+                                >
+                                  {loadingActionOpenPdfExit === item.id ? (
+                                    <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
+                                  ) : (
+                                    <Eye size={18} />
+                                  )}
+                                </button>
+                              </Tooltip>
+                            )}
+                            {item.canCancel && (
+                              <Tooltip label="Cancelar">
+                                <button
+                                  type="button"
+                                  onClick={() => openModalCancelExit(item)}
+                                  style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545" }}
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </Tooltip>
+                            )}
+                          </div>
+                        </div>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </div>
+                )}
+
+                <div className="d-none d-md-block" style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        {["TIPO", "SOLICITADO A", "ESTADO", "FECHA", "HORA SALIDA", "HORA LLEGADA", "DURACIÓN", ""].map((h, i) => (
+                          <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 7 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredItems.length === 0 && (
+                        <tr>
+                          <td colSpan={8} style={{ padding: "40px", textAlign: "center" }}>
+                            <i className="pi pi-sign-out" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                            <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
+                              No hay salidas registradas{hasMyFilters ? " con los filtros aplicados" : ""}.
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+                      {pagedFilteredItems.map((item) => {
+                        const sc = STATUS_COLORS[item.class] ?? { bg: "rgba(100,116,139,0.1)", color: "#64748b" };
+                        return (
+                          <tr
+                            key={item.id}
+                            className="fadeIn animated"
+                            onMouseEnter={() => setHoveredRow(item.id)}
+                            onMouseLeave={() => setHoveredRow(null)}
+                            style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredRow === item.id || pdfExit?.id === item.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                          >
+                            <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                              <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
+                                {item.type}
+                              </span>
+                            </td>
+                            <td style={{ padding: "10px 8px", fontSize: "0.86rem", color: "#374151" }}>
+                              {item.lastname_name}
+                            </td>
+                            <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.73rem", fontWeight: 600, background: sc.bg, color: sc.color }}>
+                                {item.status}
+                              </span>
+                            </td>
+                            <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                              {formatDateOnly(getExitDate(item))}
+                            </td>
+                            <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                              {formatTimeOnly(item.departure_hour)}
+                            </td>
+                            <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                              {formatTimeOnly(item.arrival_hour)}
+                            </td>
+                            <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                              {formatDurationHMS(item.departure_hour, item.arrival_hour)}
+                            </td>
+                            <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
+                              <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
+                                {item.canShowPdf && (
+                                  <Tooltip label="Ver PDF">
+                                    <button
+                                      type="button"
+                                      onClick={() => openPdfExit(item)}
+                                      style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
+                                    >
+                                      {loadingActionOpenPdfExit === item.id ? (
+                                        <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
+                                      ) : (
+                                        <Eye size={18} />
+                                      )}
+                                    </button>
+                                  </Tooltip>
+                                )}
+                                {item.canCancel && (
+                                  <Tooltip label="Cancelar">
+                                    <button
+                                      type="button"
+                                      onClick={() => openModalCancelExit(item)}
+                                      style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545" }}
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </Tooltip>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
                 <Paginator
                   first={myFirst}
                   rows={myRows}
@@ -1096,107 +1179,198 @@ export default function ExitsPage() {
                 )}
 
                 {!loadingExitsAdmin && !errAdmin && (
-                  <div className="fadeIn animated" style={{ overflowX: "auto" }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                      <thead>
-                        <tr>
-                          {["SOLICITADA POR", "ESTADO", "TIPO", "FECHA", "HORA SALIDA", "HORA LLEGADA", "DURACIÓN", ""].map((h, i) => (
-                            <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 7 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {itemsAdmin.length === 0 && (
-                          <tr>
-                            <td colSpan={8} style={{ padding: "40px", textAlign: "center" }}>
-                              <i className="pi pi-users" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
-                              <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
-                                No hay salidas registradas{hasAdminFilters ? " con los filtros aplicados" : ""}.
-                              </p>
-                            </td>
-                          </tr>
-                        )}
+                  <div className="fadeIn animated">
+                    {itemsAdmin.length === 0 && (
+                      <div className="exit-empty d-md-none">
+                        <i className="pi pi-users" />
+                        <p>No hay salidas registradas{hasAdminFilters ? " con los filtros aplicados" : ""}.</p>
+                      </div>
+                    )}
+
+                    {itemsAdmin.length > 0 && (
+                      <div className="d-md-none exit-cards">
                         {itemsAdmin.map((item) => {
                           const sc = STATUS_COLORS[item.class] ?? { bg: "rgba(100,116,139,0.1)", color: "#64748b" };
                           return (
-                            <tr
-                              key={item.id}
-                              className="fadeIn animated"
-                              onMouseEnter={() => setHoveredAdminRow(item.id)}
-                              onMouseLeave={() => setHoveredAdminRow(null)}
-                              style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredAdminRow === item.id || pdfExit?.id === item.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
-                            >
-                              <td style={{ padding: "10px 8px", fontSize: "0.86rem", color: "#374151" }}>
-                                {item.lastname_name}
-                              </td>
-                              <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
-                                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.73rem", fontWeight: 600, background: sc.bg, color: sc.color }}>
-                                  {item.status}
-                                </span>
-                              </td>
-                              <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                            <div key={item.id} className="exit-card">
+                              <div className="exit-card-header">
                                 <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
                                   {item.type}
                                 </span>
-                              </td>
-                              <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                                {formatDateOnly(getExitDate(item))}
-                              </td>
-                              <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                                {formatTimeOnly(item.departure_hour)}
-                              </td>
-                              <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                                {formatTimeOnly(item.arrival_hour)}
-                              </td>
-                              <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
-                                {formatDurationHMS(item.departure_hour, item.arrival_hour)}
-                              </td>
-                              <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
-                                <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
-                                  {item.canShowPdf && (
-                                    <Tooltip label="Ver PDF">
-                                      <button
-                                        type="button"
-                                        onClick={() => openPdfExit(item, "admin")}
-                                        style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
-                                      >
-                                        {loadingActionOpenPdfExit === item.id ? (
-                                          <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
-                                        ) : (
-                                          <Eye size={18} />
-                                        )}
-                                      </button>
-                                    </Tooltip>
-                                  )}
-                                  {item.canModificate && (
-                                    <Tooltip label="Modificar">
-                                      <button
-                                        type="button"
-                                        onClick={() => openModalModificateItem(item)}
-                                        style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#3b82f6" }}
-                                      >
-                                        <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
-                                      </button>
-                                    </Tooltip>
-                                  )}
-                                  <Tooltip label="Eliminar">
+                                <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.73rem", fontWeight: 600, background: sc.bg, color: sc.color, flexShrink: 0 }}>
+                                  {item.status}
+                                </span>
+                              </div>
+
+                              <div className="exit-card-row">
+                                <span className="exit-card-label">Solicitada por</span>
+                                <small>{item.lastname_name}</small>
+                              </div>
+
+                              <div className="exit-card-row">
+                                <span className="exit-card-label">Fecha</span>
+                                <small>{formatDateOnly(getExitDate(item))}</small>
+                              </div>
+
+                              <div className="exit-card-row">
+                                <span className="exit-card-label">Horario</span>
+                                <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
+                                  <small>Salida: {formatTimeOnly(item.departure_hour)}</small>
+                                  <small>Llegada: {formatTimeOnly(item.arrival_hour)}</small>
+                                  <span
+                                    className="badge rounded-pill"
+                                    style={{ background: "#f1f5f9", color: "#64748b", fontWeight: 600, fontSize: "0.68rem", padding: "3px 8px", whiteSpace: "nowrap" }}
+                                  >
+                                    {formatDurationHMS(item.departure_hour, item.arrival_hour)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="exit-card-actions">
+                                {item.canShowPdf && (
+                                  <Tooltip label="Ver PDF">
                                     <button
                                       type="button"
-                                      onClick={() => openModalDeleteItem(item)}
-                                      style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545" }}
+                                      onClick={() => openPdfExit(item, "admin")}
+                                      style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
                                     >
-                                      <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
+                                      {loadingActionOpenPdfExit === item.id ? (
+                                        <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
+                                      ) : (
+                                        <Eye size={18} />
+                                      )}
                                     </button>
                                   </Tooltip>
-                                </div>
-                              </td>
-                            </tr>
+                                )}
+                                {item.canModificate && (
+                                  <Tooltip label="Modificar">
+                                    <button
+                                      type="button"
+                                      onClick={() => openModalModificateItem(item)}
+                                      style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#3b82f6" }}
+                                    >
+                                      <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
+                                    </button>
+                                  </Tooltip>
+                                )}
+                                <Tooltip label="Eliminar">
+                                  <button
+                                    type="button"
+                                    onClick={() => openModalDeleteItem(item)}
+                                    style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545" }}
+                                  >
+                                    <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
+                                  </button>
+                                </Tooltip>
+                              </div>
+                            </div>
                           );
                         })}
-                      </tbody>
-                    </table>
+                      </div>
+                    )}
+
+                    <div className="d-none d-md-block" style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr>
+                            {["SOLICITADA POR", "ESTADO", "TIPO", "FECHA", "HORA SALIDA", "HORA LLEGADA", "DURACIÓN", ""].map((h, i) => (
+                              <th key={i} style={{ fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "#94a3b8", padding: "0 8px 10px", textAlign: i === 7 ? "right" : "left", borderBottom: "1.5px solid rgba(0,0,0,0.06)", whiteSpace: "nowrap" }}>
+                                {h}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {itemsAdmin.length === 0 && (
+                            <tr>
+                              <td colSpan={8} style={{ padding: "40px", textAlign: "center" }}>
+                                <i className="pi pi-users" style={{ fontSize: "2rem", color: "#cbd5e1", display: "block", marginBottom: "8px" }} />
+                                <p style={{ color: "#94a3b8", fontSize: "0.9rem", margin: 0 }}>
+                                  No hay salidas registradas{hasAdminFilters ? " con los filtros aplicados" : ""}.
+                                </p>
+                              </td>
+                            </tr>
+                          )}
+                          {itemsAdmin.map((item) => {
+                            const sc = STATUS_COLORS[item.class] ?? { bg: "rgba(100,116,139,0.1)", color: "#64748b" };
+                            return (
+                              <tr
+                                key={item.id}
+                                className="fadeIn animated"
+                                onMouseEnter={() => setHoveredAdminRow(item.id)}
+                                onMouseLeave={() => setHoveredAdminRow(null)}
+                                style={{ borderBottom: "1px solid rgba(0,0,0,0.04)", background: hoveredAdminRow === item.id || pdfExit?.id === item.id ? "rgba(74,108,247,0.06)" : "transparent", transition: "background 0.15s" }}
+                              >
+                                <td style={{ padding: "10px 8px", fontSize: "0.86rem", color: "#374151" }}>
+                                  {item.lastname_name}
+                                </td>
+                                <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "3px 10px", borderRadius: "20px", fontSize: "0.73rem", fontWeight: 600, background: sc.bg, color: sc.color }}>
+                                    {item.status}
+                                  </span>
+                                </td>
+                                <td style={{ padding: "10px 8px", whiteSpace: "nowrap" }}>
+                                  <span style={{ background: "rgba(74,108,247,0.09)", color: "#4a6cf7", borderRadius: "8px", padding: "3px 10px", fontSize: "0.78rem", fontWeight: 700 }}>
+                                    {item.type}
+                                  </span>
+                                </td>
+                                <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                                  {formatDateOnly(getExitDate(item))}
+                                </td>
+                                <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                                  {formatTimeOnly(item.departure_hour)}
+                                </td>
+                                <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                                  {formatTimeOnly(item.arrival_hour)}
+                                </td>
+                                <td style={{ padding: "10px 8px", fontSize: "0.82rem", color: "#64748b", whiteSpace: "nowrap" }}>
+                                  {formatDurationHMS(item.departure_hour, item.arrival_hour)}
+                                </td>
+                                <td style={{ padding: "10px 8px", textAlign: "right", whiteSpace: "nowrap" }}>
+                                  <div className="d-flex align-items-center justify-content-end" style={{ gap: "6px" }}>
+                                    {item.canShowPdf && (
+                                      <Tooltip label="Ver PDF">
+                                        <button
+                                          type="button"
+                                          onClick={() => openPdfExit(item, "admin")}
+                                          style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#4a6cf7" }}
+                                        >
+                                          {loadingActionOpenPdfExit === item.id ? (
+                                            <i className="pi pi-spin pi-spinner" style={{ fontSize: "1.2rem" }} />
+                                          ) : (
+                                            <Eye size={18} />
+                                          )}
+                                        </button>
+                                      </Tooltip>
+                                    )}
+                                    {item.canModificate && (
+                                      <Tooltip label="Modificar">
+                                        <button
+                                          type="button"
+                                          onClick={() => openModalModificateItem(item)}
+                                          style={{ background: "none", border: "1.5px solid #dbeafe", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#3b82f6" }}
+                                        >
+                                          <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
+                                        </button>
+                                      </Tooltip>
+                                    )}
+                                    <Tooltip label="Eliminar">
+                                      <button
+                                        type="button"
+                                        onClick={() => openModalDeleteItem(item)}
+                                        style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545" }}
+                                      >
+                                        <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
+                                      </button>
+                                    </Tooltip>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
 
@@ -1510,6 +1684,78 @@ export default function ExitsPage() {
         onHide={() => setShowModalBosses(false)}
         onBossesAssigned={handleBossesAssigned}
       />
+
+      <style jsx>{`
+        .exit-cards {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .exit-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 12px 14px;
+          transition: background 0.15s;
+        }
+
+        .exit-card:hover {
+          background: rgba(74, 108, 247, 0.04);
+        }
+
+        .exit-card-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        .exit-card-row {
+          margin-bottom: 8px;
+        }
+
+        .exit-card-row:last-of-type {
+          margin-bottom: 0;
+        }
+
+        .exit-card-label {
+          display: block;
+          color: #94a3b8;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          margin-bottom: 2px;
+        }
+
+        .exit-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        .exit-empty {
+          text-align: center;
+          padding: 40px 20px;
+        }
+
+        .exit-empty i {
+          font-size: 2rem;
+          color: #cbd5e1;
+          display: block;
+          margin-bottom: 8px;
+        }
+
+        .exit-empty p {
+          color: #94a3b8;
+          font-size: 0.9rem;
+          margin: 0;
+        }
+      `}</style>
     </>
   );
 }
