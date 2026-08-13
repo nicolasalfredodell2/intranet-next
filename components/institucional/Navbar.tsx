@@ -199,19 +199,15 @@ export default function Navbar({ isDarkMode, toggleDarkMode }: NavbarProps) {
 
         {/* Mobile collapse menu */}
         <div className={`mobile-collapse-menu w-100 d-md-none${isMobileMenuOpen ? " open" : ""}`}>
-          <div className="row m-0 py-0 w-100 align-items-stretch">
+          <div className="row m-0 py-0 w-100 align-items-stretch justify-content-center">
             {[
               { icon: "fa fa-phone", label: "Agenda", onClick: () => setShowAgendaModal(true) },
               { icon: "fa-regular fa-calendar", label: "Calendario", onClick: () => setShowCalendarModal(true) },
-              { isChat: true, label: "Chat" },
               { icon: "fa fa-file-pen", label: "Encuesta", onClick: () => setShowQuestionsModal(true) },
-            ].map((item: any, i) => (
-              <div key={i} className="col-3 py-0 my-0 px-1 sector" onClick={item.isChat ? () => window.open("https://im.tribcuentasrionegro.gov.ar/livechat?mode=popout", "_blank") : item.onClick}>
+            ].map((item, i) => (
+              <div key={i} className="col-3 py-0 my-0 px-1 sector" onClick={item.onClick}>
                 <div className="sector-container pt-2 text-center pointer d-flex flex-column align-items-center justify-content-center h-100">
-                  {item.isChat
-                    ? <img src="/img/chat/logo.svg" className="sector-icon img-logo-caht" alt="Chat" />
-                    : <i className={`sector-icon ${item.icon} text-white`} />
-                  }
+                  <i className={`sector-icon ${item.icon} text-white`} />
                   <p className="text-sector text-dark text-center mt-1 mb-2">{item.label}</p>
                 </div>
               </div>
