@@ -504,7 +504,69 @@ const filtered = (searchTerm
             {loading ? (
               <SkeletonRows />
             ) : (
-              <div style={{ overflowX: "auto" }}>
+              <div>
+                {filtered.length === 0 && (
+                  <div className="license-empty d-md-none">
+                    <i className="pi pi-inbox" />
+                    <p>
+                      {searchTerm
+                        ? `No se encontraron categorías con el nombre "${searchTerm}".`
+                        : "No hay categorías disponibles para mostrar."}
+                    </p>
+                  </div>
+                )}
+
+                {/* Vista mobile: cards (sin scroll horizontal) */}
+                {filtered.slice(paginatorFirst, paginatorFirst + paginatorRows).length > 0 && (
+                  <div className="d-md-none category-cards">
+                    {filtered.slice(paginatorFirst, paginatorFirst + paginatorRows).map((category) => (
+                      <div key={category.id} className="category-card">
+                        <div className="category-card-header">
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: 26,
+                              height: 26,
+                              borderRadius: "50%",
+                              background: category.colour,
+                              border: "1.5px solid rgba(0,0,0,0.06)",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <i className={`pi ${category.icon || DEFAULT_ICON}`} style={{ fontSize: "0.7rem", color: "#fff" }} />
+                          </span>
+                          <span className="license-cell-primary" style={{ flex: 1 }}>{category.description ?? category.name}</span>
+                        </div>
+
+                        <div className="category-card-actions">
+                          <Tooltip label="Modificar">
+                            <button
+                              type="button"
+                              onClick={() => abrirModificar(category)}
+                              className="license-action-btn"
+                            >
+                              <i className="pi pi-pencil" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip label="Eliminar">
+                            <button
+                              type="button"
+                              onClick={() => setCategoryToDelete(category)}
+                              style={{ background: "none", border: "1.5px solid #fecdd3", borderRadius: "8px", padding: "4px 8px", cursor: "pointer", display: "inline-flex", alignItems: "center", color: "#dc3545", height: "30px" }}
+                            >
+                              <i className="pi pi-trash" />
+                            </button>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Vista desktop: tabla */}
+                <div className="d-none d-md-block" style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr>
@@ -581,6 +643,8 @@ const filtered = (searchTerm
                     ))}
                   </tbody>
                 </table>
+                </div>
+
                 <Paginator
                   first={paginatorFirst}
                   rows={paginatorRows}
@@ -731,6 +795,41 @@ const filtered = (searchTerm
           Está a punto de eliminar la categoría <strong>{categoryToDelete?.name}</strong>.
         </p>
       </Dialog>
+
+      <style jsx>{`
+        .category-cards {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .category-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 12px 14px;
+          transition: background 0.15s;
+        }
+
+        .category-card:hover {
+          background: rgba(74, 108, 247, 0.04);
+        }
+
+        .category-card-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .category-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
+        }
+      `}</style>
     </>
   );
 }
