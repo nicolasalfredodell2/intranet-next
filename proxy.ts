@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const PUBLIC_ROUTES = ["/auth/login", "/auth"];
+// Rutas accesibles siempre, tenga o no token: nunca se redirigen en ningun sentido.
+const ALWAYS_ALLOWED_ROUTES = ["/protected"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
+
+  if (ALWAYS_ALLOWED_ROUTES.some((route) => pathname.startsWith(route))) {
+    return NextResponse.next();
+  }
 
   const isPublicRoute = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
 

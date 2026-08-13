@@ -154,28 +154,26 @@ export default function ProtectedForIP2Form() {
     <>
       <AppToast ref={toast} />
 
-      <div className="align-items-center animated d-flex fadeIn p-5 row">
+      <div className="align-items-center animated d-flex fadeIn p-5 row" style={{ minHeight: "100vh", backgroundColor: "#fff" }}>
         <div
-          className="col-12 d-flex justify-content-center align-items-center mb-3"
-          style={{ marginTop: "35vh" }}
+          className="col-12 d-flex flex-column justify-content-center align-items-center text-center mb-3"
         >
           <img
             src="/img/trib-cuentas-escudo.png"
             alt="Logo Tribunal de Cuentas de Río Negro"
-            width="40"
-            height="40"
+            width="90"
+            height="90"
+            className="mb-3"
           />
-          <h1 className="h1 ml-3">Tribunal de Cuentas de Río Negro</h1>
+          <h1 style={{ margin: 0, marginBottom: "0.25rem", textAlign: "left", fontSize: "2.4rem", fontWeight: 700, color: "#1e293b" }}>Tribunal de Cuentas de Río Negro</h1>
+          <h2 className="mb-0" style={{ fontSize: "2rem", fontWeight: 700, color: "#1e293b" }}>Intranet</h2>
+          <h3 className="mb-0 mt-5" style={{ fontSize: "1.9rem", fontWeight: 700, color: "#6c757d" }}>Solicitud de salida</h3>
         </div>
 
         <div className="col-12">
           <div className="d-flex justify-content-center row">
             <div className="col-12">
               <div className="form-group text-center">
-                <label className="mb-3">
-                  <strong>Solicitud de salida</strong>
-                </label>
-
                 <div className="row d-flex justify-content-around">
                   {EXIT_TYPES.map(({ value, label }) => (
                     <div
