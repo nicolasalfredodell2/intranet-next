@@ -24,9 +24,9 @@ interface Boss {
 const EMPTY_FORM: FormState = { file: "", "confirm-file": "", type: "", cuilBoss: "" };
 
 const EXIT_TYPES = [
-  { value: "Individuals", label: "Particular" },
-  { value: "Officials", label: "Oficial" },
-  { value: "Guild_Meeting_Attendance", label: "Asamblea" },
+  { value: "Individuals", label: "Particular", icon: "pi-user" },
+  { value: "Officials", label: "Oficial", icon: "pi-building" },
+  { value: "Guild_Meeting_Attendance", label: "Asamblea", icon: "pi-users" },
 ];
 
 export default function ProtectedForIP2Form() {
@@ -154,7 +154,7 @@ export default function ProtectedForIP2Form() {
     <>
       <AppToast ref={toast} />
 
-      <div className="align-items-center animated d-flex fadeIn p-5 row" style={{ minHeight: "100vh", backgroundColor: "#fff" }}>
+      <div className="align-items-center animated d-flex fadeIn row" style={{ minHeight: "100vh", backgroundColor: "#fff" }}>
         <div
           className="col-12 d-flex flex-column justify-content-center align-items-center text-center mb-3"
         >
@@ -166,26 +166,41 @@ export default function ProtectedForIP2Form() {
             className="mb-3"
           />
           <h1 style={{ margin: 0, marginBottom: "0.25rem", textAlign: "left", fontSize: "2.4rem", fontWeight: 700, color: "#1e293b" }}>Tribunal de Cuentas de Río Negro</h1>
-          <h2 className="mb-0" style={{ fontSize: "2rem", fontWeight: 700, color: "#1e293b" }}>Intranet</h2>
-          <h3 className="mb-0 mt-5" style={{ fontSize: "1.9rem", fontWeight: 700, color: "#6c757d" }}>Solicitud de salida</h3>
+          <h3 className="mb-0 mt-3" style={{ fontSize: "2.25rem", fontWeight: 700, color: "#6c757d" }}>Solicitud de salida</h3>
         </div>
 
         <div className="col-12">
           <div className="d-flex justify-content-center row">
             <div className="col-12">
               <div className="form-group text-center">
-                <div className="row d-flex justify-content-around">
-                  {EXIT_TYPES.map(({ value, label }) => (
-                    <div
+                <div className="d-flex justify-content-center flex-wrap" style={{ gap: "72px" }}>
+                  {EXIT_TYPES.map(({ value, label, icon }) => (
+                    <button
                       key={value}
+                      type="button"
+                      className={`exit-type-btn${form.type === value ? " exit-type-btn--active" : ""}`}
                       onClick={() => updateForm("type", value)}
-                      className={`d-flex col-12 col-lg-3 pt-3 pt-lg-0 justify-content-center align-items-center text-center text-white ${
-                        form.type === value ? "bg-info" : "bg-secondary"
-                      }`}
-                      style={{ height: 50, cursor: "pointer" }}
+                      style={{
+                        padding: "16px 34px",
+                        borderRadius: "12px",
+                        border: "1.5px solid transparent",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                        fontSize: "1.15rem",
+                        textTransform: "uppercase",
+                        background: form.type === value ? "#0ea5e9" : "#e2e8f0",
+                        color: form.type === value ? "#fff" : "#475569",
+                        transition: "background 0.15s, color 0.15s, border-color 0.15s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        minWidth: "380px",
+                        justifyContent: "center",
+                      }}
                     >
-                      <strong>{label}</strong>
-                    </div>
+                      <i className={`pi ${icon}`} style={{ fontSize: "1.1rem" }} />
+                      {label}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -292,6 +307,14 @@ export default function ProtectedForIP2Form() {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .exit-type-btn:not(.exit-type-btn--active):hover {
+          background: #f0f9ff !important;
+          color: #0ea5e9 !important;
+          border-color: #0ea5e9 !important;
+        }
+      `}</style>
     </>
   );
 }
