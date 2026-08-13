@@ -7,6 +7,7 @@ import Internal from "./Internal";
 import Birthday from "./Birthday";
 import BirthdayDialog from "./BirthdayDialog";
 import Banners from "./Banners";
+import ImportantEvents from "./ImportantEvents";
 import Questions from "./Questions";
 import CalendarWidget from "./CalendarWidget";
 import AreasScroll from "./AreasScroll";
@@ -121,7 +122,11 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
                     </div>
                   )}
 
-                  <div className={`col-11 col-lg-12 d-none d-xl-block ${banners.length > 0 ? "mt-2" : "mt-4"}`}>
+                  <div className="d-none d-xl-block mt-4 justify-content-center col-12">
+                    <ImportantEvents banners={banners} />
+                  </div>
+
+                  <div className="col-11 col-lg-12 d-none d-xl-block mt-2">
                     <Questions />
                   </div>
                 </div>
