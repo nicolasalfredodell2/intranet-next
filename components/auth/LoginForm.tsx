@@ -67,10 +67,8 @@ export default function LoginForm() {
 
       setErrorUser(false);
       router.push("/institucional");
-    } catch (err: any) {
-      if (err?.response?.status !== 401) {
-        setErrorUser(true);
-      }
+    } catch {
+      setErrorUser(true);
     } finally {
       setIsLoading(false);
     }
