@@ -163,30 +163,32 @@ export default function NotesConfigPage() {
               <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Configuración de notas</h5>
               <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>Elegí qué notas se destacan en el sitio institucional</small>
             </div>
-            <button
-              type="button"
-              disabled={isLoadConfig}
-              onClick={loadConfigNotes}
-              className="btn btn-light d-flex align-items-center"
-              style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
-            >
-              <i className={isLoadConfig ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
-              Recargar
-            </button>
           </div>
         </div>
 
         {/* Current config card */}
         {config.length > 0 && (
           <div className="card profile-card mt-4">
-            <div className="d-flex align-items-center px-3 pt-3 pb-2" style={{ gap: "12px" }}>
-              <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <i className="pi pi-star-fill" style={{ color: "#eab308", fontSize: "1rem" }} />
+            <div className="d-flex align-items-center flex-wrap px-3 pt-3 pb-2" style={{ gap: "12px" }}>
+              <div className="d-flex align-items-center flex-grow-1" style={{ gap: "12px", minWidth: 0 }}>
+                <div style={{ width: 38, height: 38, borderRadius: "11px", background: "#fef9c3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <i className="pi pi-star-fill" style={{ color: "#eab308", fontSize: "1rem" }} />
+                </div>
+                <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                  <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de notas principales</h5>
+                  <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{config.length} de {TYPES.length} posiciones asignadas</small>
+                </div>
               </div>
-              <div className="flex-grow-1">
-                <h5 className="mb-0 font-weight-bold" style={{ fontSize: "0.93rem", color: "#1e293b" }}>Listado de notas principales</h5>
-                <small style={{ color: "#94a3b8", fontSize: "0.75rem" }}>{config.length} de {TYPES.length} posiciones asignadas</small>
-              </div>
+              <button
+                type="button"
+                disabled={isLoadConfig}
+                onClick={loadConfigNotes}
+                className="btn btn-light d-flex align-items-center"
+                style={{ gap: "6px", borderRadius: "8px", fontWeight: 600, fontSize: "0.82rem", padding: "5px 14px", color: "#64748b" }}
+              >
+                <i className={isLoadConfig ? "pi pi-spin pi-spinner" : "pi pi-refresh"} style={{ fontSize: "0.78rem" }} />
+                Recargar
+              </button>
             </div>
             <hr className="mt-0 mb-0" style={{ borderColor: "rgba(0,0,0,0.05)" }} />
 
