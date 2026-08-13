@@ -183,10 +183,6 @@ export default function NewsPage() {
                         <h2 className="h6 main-news-title text-dark">{mainNews[1]?.title}</h2>
                       </div>
                     )}
-                    <div className="d-xs-flex d-md-none text-muted mt-auto text-right pr-2 pb-2">
-                      <i className="fa-regular fa-clock mr-1 mt-1" />
-                      <span style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif" }}>{formatTimeAgo(mainNews[1]?.created_at)}</span>
-                    </div>
                   </div>
                 </div>
               )}
@@ -210,10 +206,6 @@ export default function NewsPage() {
                         <h2 className="h6 main-news-title text-dark">{mainNews[2]?.title}</h2>
                       </div>
                     )}
-                    <div className="d-xs-flex d-md-none text-muted mt-auto text-right pr-2 pb-2">
-                      <i className="fa-regular fa-clock mr-1 mt-1" />
-                      <span style={{ fontFamily: "var(--font-inter), 'Inter', sans-serif" }}>{formatTimeAgo(mainNews[2]?.created_at)}</span>
-                    </div>
                   </div>
                 </div>
               )}
@@ -420,7 +412,8 @@ export default function NewsPage() {
         .main-news-card { border: none !important; box-shadow: none !important; }
         @media (max-width: 992px) {
           .main-news-card { box-shadow: none !important; border-top-left-radius: 15px !important; border-top-right-radius: 15px !important; }
-          .main-news-card-title { background-color: #ededed !important; border-radius: 12px !important; padding: 15px !important; margin: 0 !important; }
+          .main-news-card-title { background-color: #ededed !important; border-radius: 12px !important; border-top-left-radius: 0 !important; border-top-right-radius: 0 !important; padding: 15px !important; margin: 0 !important; }
+          .img-main { border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important; }
         }
         @media (max-width: 750px) {
           .principal-main-news-title { font-size: clamp(20px, 2.5vw, 20px) !important; }

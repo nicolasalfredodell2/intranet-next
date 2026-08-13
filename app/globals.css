@@ -2335,6 +2335,12 @@ input[disabled] {
   color: #000 !important;
 }
 
+@media (max-width: 992px) {
+  .institucional-shell.dark-mode .main-news-title {
+    color: #000 !important;
+  }
+}
+
 .institucional-shell.dark-mode .alert-info {
   background-color: #1c2333 !important;
   color: #e2e8f0;
