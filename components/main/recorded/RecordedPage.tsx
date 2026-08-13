@@ -884,6 +884,100 @@ export default function RecordedPage() {
             {isLoadingRecordeds && <ProgressBar mode="indeterminate" style={{ height: "6px" }} className="mt-3" />}
 
             <div className="mt-3">
+              {!isLoadingRecordeds && (recordeds ?? []).length === 0 && (
+                <div className="license-empty d-md-none">
+                  <i className="pi pi-inbox" />
+                  <p>No hay fichadas para mostrar</p>
+                </div>
+              )}
+
+              {/* Vista mobile: cards (sin scroll horizontal) */}
+              {(recordeds ?? []).length > 0 && (
+                <div className="d-md-none recorded-cards">
+                  {(recordeds ?? []).map((r) => {
+                    const times = [r.hora_salida, r.hora_llegada].filter((h) => h && h !== "-");
+                    const diff = timeDiffLabel(r.hora_salida, r.hora_llegada);
+                    const colors = STATUS_COLORS[r.class] ?? { bg: "#f1f5f9", color: "#64748b" };
+
+                    return (
+                      <div key={r.id} className="recorded-card">
+                        <div className="recorded-card-header">
+                          <small style={{ fontWeight: 700, color: "#1e293b" }}>{formatDateDMY(r.date)}</small>
+                          {r.status && (
+                            <span
+                              className="badge rounded-pill"
+                              style={{ background: colors.bg, color: colors.color, border: "none", fontWeight: 600, padding: "4px 10px", flexShrink: 0 }}
+                            >
+                              {r.status}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="recorded-card-row">
+                          <span className="recorded-card-label">Horarios</span>
+                          <div className="d-flex align-items-center flex-wrap" style={{ gap: "8px" }}>
+                            <small>{times.join(" - ")}</small>
+                            {diff && (
+                              <span
+                                className="badge rounded-pill"
+                                style={{ background: STATUS_COLORS.muted.bg, color: STATUS_COLORS.muted.color, border: "none", fontWeight: 600, padding: "4px 10px", whiteSpace: "nowrap" }}
+                              >
+                                {diff}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="recorded-card-row">
+                          <span className="recorded-card-label">Tipo</span>
+                          <small>{r.type}</small>
+                        </div>
+
+                        <div className="recorded-card-row">
+                          <span className="recorded-card-label">Reloj</span>
+                          <small>{hostLabel(r.host)}</small>
+                        </div>
+
+                        {(r.canUpdateRecord || r.canDeleteRecord || r.canUpdateExitOrder || r.canDeleteExitOrder) && (
+                          <div className="recorded-card-actions">
+                            {r.canUpdateRecord && (
+                              <Tooltip label="Modificar">
+                                <button type="button" onClick={() => setRecordToUpdate(r)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
+                                  <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
+                                </button>
+                              </Tooltip>
+                            )}
+                            {r.canDeleteRecord && (
+                              <Tooltip label="Eliminar">
+                                <button type="button" onClick={() => setRecordToDelete(r)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
+                                  <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
+                                </button>
+                              </Tooltip>
+                            )}
+                            {r.canUpdateExitOrder && (
+                              <Tooltip label="Modificar">
+                                <button type="button" onClick={() => setExitOrderToUpdate(r)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #dbeafe", color: "#3b82f6" }}>
+                                  <i className="pi pi-pencil" style={{ fontSize: "0.85rem" }} />
+                                </button>
+                              </Tooltip>
+                            )}
+                            {r.canDeleteExitOrder && (
+                              <Tooltip label="Eliminar">
+                                <button type="button" onClick={() => setExitOrderToDelete(r)} style={{ ...ICON_BTN_STYLE, border: "1.5px solid #fecdd3", color: "#dc3545" }}>
+                                  <i className="pi pi-trash" style={{ fontSize: "0.85rem" }} />
+                                </button>
+                              </Tooltip>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Vista desktop: tabla */}
+              <div className="d-none d-md-block">
               <DataTable
                 value={recordeds ?? []}
                 className="p-datatable-sm license-table"
@@ -965,6 +1059,7 @@ export default function RecordedPage() {
                   )}
                 />
               </DataTable>
+              </div>
 
               <Paginator
                 className="mt-2"
@@ -1224,6 +1319,60 @@ export default function RecordedPage() {
           Está a punto de eliminar la órden de salida. Esta acción no se puede deshacer.
         </p>
       </Dialog>
+
+      <style jsx>{`
+        .recorded-cards {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .recorded-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 12px 14px;
+          transition: background 0.15s;
+        }
+
+        .recorded-card:hover {
+          background: rgba(74, 108, 247, 0.04);
+        }
+
+        .recorded-card-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 8px;
+          margin-bottom: 10px;
+        }
+
+        .recorded-card-row {
+          margin-bottom: 8px;
+        }
+
+        .recorded-card-row:last-of-type {
+          margin-bottom: 0;
+        }
+
+        .recorded-card-label {
+          display: block;
+          color: #94a3b8;
+          font-size: 0.68rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          margin-bottom: 2px;
+        }
+
+        .recorded-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
+        }
+      `}</style>
     </>
   );
 }
