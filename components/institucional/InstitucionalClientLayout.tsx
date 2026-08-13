@@ -12,7 +12,6 @@ import Questions from "./Questions";
 import CalendarWidget from "./CalendarWidget";
 import AreasScroll from "./AreasScroll";
 import Shorts from "./Shorts";
-import ChatSoporteButton from "@/components/common/ChatSoporteButton";
 
 import { getTodayBirthdays } from "@/lib/services/calendar.service";
 import { getActivatedBanners } from "@/lib/services/banners.service";
@@ -163,8 +162,6 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
           )}
         </div>
       </div>
-
-      <ChatSoporteButton />
 
       <style jsx>{`
         .pt-custom { padding-top: 50px; }

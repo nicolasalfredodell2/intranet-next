@@ -169,7 +169,7 @@ export default function ChatSoporteButton() {
           onClick={isHidden ? toggleHidden : openChat}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/chat/logo.svg" alt="" className={animate ? "chat-soporte-img chat-soporte-img-animate" : "chat-soporte-img"} style={{ width: "55%" }} />
+          <img src="/img/chat/logo.svg" alt="" className={animate && !isHidden ? "chat-soporte-img chat-soporte-img-animate" : "chat-soporte-img"} style={{ width: "55%" }} />
         </button>
       </div>
 

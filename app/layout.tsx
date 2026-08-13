@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Inter } from "next/font/google";
 import Script from "next/script";
+import ChatSoporteButton from "@/components/common/ChatSoporteButton";
 import "./globals.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "animate.css";
@@ -59,6 +60,8 @@ export default function RootLayout({
       </head>
       <body className={`fix-header card-no-border fix-sidebar ${montserrat.className}`}>
         {children}
+
+        <ChatSoporteButton />
 
         {/* jQuery (must load first, before plugins) */}
         <Script src="/assets/plugins/jquery/jquery.min.js" strategy="beforeInteractive" />
