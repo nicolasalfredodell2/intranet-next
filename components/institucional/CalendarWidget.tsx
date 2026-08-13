@@ -248,14 +248,27 @@ function DaySectionItem({ dotColor, children }: { dotColor?: string; children: R
   );
 }
 
-function NextDayCard({ date, birthdayEntries, holidayEvents }: { date: string; birthdayEntries: EventEntry[]; holidayEvents: DayEvent[] }) {
+function DaySummaryCard({ icon, title, date, birthdayEntries, holidayEvents, emptyLabel }: {
+  icon: string;
+  title: string;
+  date: string;
+  birthdayEntries: EventEntry[];
+  holidayEvents: DayEvent[];
+  emptyLabel?: string;
+}) {
+  const isEmpty = birthdayEntries.length === 0 && holidayEvents.length === 0;
+
   return (
     <div style={{ marginTop: "8px" }}>
       <div style={{ background: "#1e2533", borderRadius: "12px", padding: "12px 14px", color: "#f1f5f9" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "10px" }}>
-          <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>📅</span>
-          <span style={{ fontWeight: 700, fontSize: "0.83rem", color: "#f1f5f9" }}>Proximamente · {date}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: isEmpty ? 0 : "10px" }}>
+          <span style={{ fontSize: "0.85rem", lineHeight: 1 }}>{icon}</span>
+          <span style={{ fontWeight: 700, fontSize: "0.83rem", color: "#f1f5f9" }}>{title} · {date}</span>
         </div>
+
+        {isEmpty && emptyLabel && (
+          <span style={{ fontSize: "0.78rem", color: "#94a3b8" }}>{emptyLabel}</span>
+        )}
 
         {birthdayEntries.length > 0 && (
           <div style={{ marginBottom: holidayEvents.length ? "10px" : 0 }}>
@@ -314,6 +327,15 @@ export default function CalendarWidget() {
       }
     }
     return null;
+  }, [eventMap]);
+
+  const today = useMemo(() => {
+    const now = new Date();
+    const key = dateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    const dayEvents = eventMap[key] ?? [];
+    const birthday = dayEvents.find((ev) => ev.type === "birthday");
+    const holidays = dayEvents.filter((ev) => ev.type === "holiday");
+    return { date: key, entries: birthday?.entries ?? [], holidays };
   }, [eventMap]);
 
   const handleMonthChange = useCallback((_e: CalendarMonthChangeEvent) => {
@@ -382,8 +404,19 @@ export default function CalendarWidget() {
 
       {hoverInfo && <EventTooltip info={hoverInfo} />}
 
+      <DaySummaryCard
+        icon="📌"
+        title="Hoy"
+        date={formatDateLabel(today.date)}
+        birthdayEntries={today.entries}
+        holidayEvents={today.holidays}
+        emptyLabel="Sin eventos ni cumpleaños hoy."
+      />
+
       {nextBirthday && (
-        <NextDayCard
+        <DaySummaryCard
+          icon="📅"
+          title="Proximamente"
           date={formatDateLabel(nextBirthday.date)}
           birthdayEntries={nextBirthday.entries}
           holidayEvents={nextBirthday.holidays}
