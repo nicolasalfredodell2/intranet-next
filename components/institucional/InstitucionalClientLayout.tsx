@@ -116,12 +116,6 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
                     </div>
                   )}
 
-                  {banners.length > 0 && (
-                    <div className="d-none d-xl-block mt-4 justify-content-center col-12">
-                      <Banners banners={banners} />
-                    </div>
-                  )}
-
                   <div className="d-none d-xl-block mt-4 justify-content-center col-12">
                     <ImportantEvents banners={banners} />
                   </div>

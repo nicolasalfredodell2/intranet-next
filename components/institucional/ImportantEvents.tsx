@@ -19,12 +19,18 @@ export default function ImportantEvents({ banners }: ImportantEventsProps) {
             </h5>
           </div>
 
-          <div className="col-12 p-0 m-0" style={{ backgroundColor: "#D8DBE2", borderRadius: "10px", overflow: "hidden" }}>
+          <div className="col-12 p-0 m-0 important-events-banners" style={{ borderRadius: "10px", overflow: "hidden" }}>
             <Banners banners={banners} />
           </div>
 
         </div>
       </div>
+
+      <style jsx global>{`
+        .important-events-banners [class*="col-md-12"] {
+          margin-bottom: 0 !important;
+        }
+      `}</style>
 
       <style jsx>{`
         @media (max-width: 1000px) {
