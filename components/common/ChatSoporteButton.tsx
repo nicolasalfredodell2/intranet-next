@@ -20,11 +20,20 @@ export default function ChatSoporteButton() {
   const [animate, setAnimate] = useState(false);
   const [bubble, setBubble] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const phraseIndexRef = useRef(0);
 
   useEffect(() => {
     setIsLogged(!!localStorage.getItem("token"));
+    setIsHidden(localStorage.getItem("chatSoporteHidden") === "true");
   }, []);
+
+  function toggleHidden(e: React.MouseEvent) {
+    e.stopPropagation();
+    const next = !isHidden;
+    setIsHidden(next);
+    localStorage.setItem("chatSoporteHidden", String(next));
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -133,19 +142,31 @@ export default function ChatSoporteButton() {
 
   return (
     <>
-      <div className="chat-soporte-wrap">
-        {bubble && isInstitucional && (
+      <div className={`chat-soporte-wrap${isHidden ? " chat-soporte-wrap--hidden" : ""}`}>
+        {bubble && isInstitucional && !isHidden && (
           <div className="chat-soporte-bubble" onClick={openChat}>
             {bubble}
           </div>
         )}
 
+        {!isHidden && (
+          <button
+            type="button"
+            title="Ocultar chat soporte"
+            aria-label="Ocultar chat soporte"
+            className="chat-soporte-hide-btn"
+            onClick={toggleHidden}
+          >
+            <i className="pi pi-eye-slash" />
+          </button>
+        )}
+
         <button
           type="button"
-          title="Chat soporte"
-          aria-label="Chat soporte"
+          title={isHidden ? "Mostrar chat soporte" : "Chat soporte"}
+          aria-label={isHidden ? "Mostrar chat soporte" : "Chat soporte"}
           className="chat-soporte-fab"
-          onClick={openChat}
+          onClick={isHidden ? toggleHidden : openChat}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/img/chat/logo.svg" alt="" className={animate ? "chat-soporte-img chat-soporte-img-animate" : "chat-soporte-img"} style={{ width: "55%" }} />
@@ -157,7 +178,38 @@ export default function ChatSoporteButton() {
           position: fixed;
           right: 28px;
           bottom: 28px;
+          transition: right 0.3s ease, transform 0.3s ease;
           z-index: 1050;
+        }
+        .chat-soporte-wrap--hidden {
+          right: 0;
+          transform: translateX(50%);
+        }
+        .chat-soporte-wrap--hidden .chat-soporte-img {
+          transform: rotate(-90deg);
+        }
+        .chat-soporte-hide-btn {
+          position: absolute;
+          top: -6px;
+          left: -6px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: none;
+          background: #fff;
+          color: #64748b;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.7rem;
+          cursor: pointer;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+          z-index: 2;
+          transition: background 0.15s ease, color 0.15s ease;
+        }
+        .chat-soporte-hide-btn:hover {
+          background: #f1f5f9;
+          color: #1e293b;
         }
         .chat-soporte-fab {
           position: relative;
