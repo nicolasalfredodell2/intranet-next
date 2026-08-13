@@ -73,10 +73,12 @@ export default function ProtectedForIP2Form() {
     setBosses([]);
   }
 
-  function handleConfirmFileChange(value: string) {
-    updateForm("confirm-file", value);
+  function handleLegajoFieldChange(field: "file" | "confirm-file", value: string) {
+    updateForm(field, value);
 
-    if (value !== "") setIsLoadingBosses(true);
+    const { file, "confirm-file": confirmFile } = formRef.current;
+    if (file !== "" && confirmFile !== "" && file === confirmFile) setIsLoadingBosses(true);
+    else setIsLoadingBosses(false);
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(chargeBosses, 1000);
@@ -242,7 +244,7 @@ export default function ProtectedForIP2Form() {
                       className="w-100"
                       inputMode="numeric"
                       value={form.file}
-                      onChange={(e) => updateForm("file", e.target.value.replace(/\D/g, ""))}
+                      onChange={(e) => handleLegajoFieldChange("file", e.target.value.replace(/\D/g, ""))}
                       onBlur={() => setTouched((prev) => ({ ...prev, file: true }))}
                     />
                     {touched.file && !form.file && (
@@ -260,7 +262,7 @@ export default function ProtectedForIP2Form() {
                       className="w-100"
                       inputMode="numeric"
                       value={form["confirm-file"]}
-                      onChange={(e) => handleConfirmFileChange(e.target.value.replace(/\D/g, ""))}
+                      onChange={(e) => handleLegajoFieldChange("confirm-file", e.target.value.replace(/\D/g, ""))}
                       onBlur={() => setTouched((prev) => ({ ...prev, "confirm-file": true }))}
                     />
                     {touched["confirm-file"] && !form["confirm-file"] && (
