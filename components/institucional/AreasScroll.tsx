@@ -18,11 +18,20 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
   const isManualScrolling = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
+  const lastDragScrollLeft = useRef(0);
+
+  // Desplazamiento automático continuo: avanza lentamente y al llegar a un
+  // extremo invierte el sentido, como un vaivén. Se pausa mientras el
+  // usuario arrastra, hace hover o hace click en las flechas. El arrastre y
+  // las flechas también lo actualizan, para que al reanudarse el auto-scroll
+  // siga en el mismo sentido en el que el usuario acaba de moverlo.
+  const direction = useRef(1);
 
   const onMouseDown = (e: React.MouseEvent) => {
     isDown.current = true;
     startX.current = e.pageX - (scrollRef.current?.offsetLeft ?? 0);
     scrollLeft.current = scrollRef.current?.scrollLeft ?? 0;
+    lastDragScrollLeft.current = scrollLeft.current;
   };
 
   const onMouseEnter = () => { isHovering.current = true; };
@@ -34,7 +43,13 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
     e.preventDefault();
     const x = e.pageX - (scrollRef.current.offsetLeft ?? 0);
     const walk = (x - startX.current) * 2;
-    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+    const newScrollLeft = scrollLeft.current - walk;
+    scrollRef.current.scrollLeft = newScrollLeft;
+
+    const delta = newScrollLeft - lastDragScrollLeft.current;
+    if (delta > 0) direction.current = 1;
+    else if (delta < 0) direction.current = -1;
+    lastDragScrollLeft.current = newScrollLeft;
   };
 
   // Anima el scroll manualmente (en vez de scroll-behavior/scrollBy nativos) para que no
@@ -42,6 +57,7 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
   const scrollSide = (dir: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
+    direction.current = dir === "left" ? -1 : 1;
     const start = el.scrollLeft;
     const target = start + (dir === "left" ? -270 : 270);
     const duration = 350;
@@ -61,10 +77,6 @@ export default function AreasScroll({ areas }: AreasScrollProps) {
     requestAnimationFrame(animate);
   };
 
-  // Desplazamiento automático continuo: avanza lentamente y al llegar a un
-  // extremo invierte el sentido, como un vaivén. Se pausa mientras el
-  // usuario arrastra, hace hover o hace click en las flechas.
-  const direction = useRef(1);
   // El scrollLeft del DOM se redondea a pixeles enteros: si acumuláramos el
   // incremento leyendo/escribiendo directo sobre el, un paso de 0.4px por
   // frame nunca llegaría a sumar 1px y quedaría fijo. Por eso llevamos la
