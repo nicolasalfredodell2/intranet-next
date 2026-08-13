@@ -171,7 +171,7 @@ export default function InstitucionalClientLayout({ children }: { children: Reac
         .row-main { margin-left: 2.7rem; margin-right: 2.7rem; }
         @media (max-width: 768px) {
           .pt-custom { padding-top: 25px; }
-          .row-main { margin-left: 0; margin-right: 0; }
+          .row-main { margin-left: -15px; margin-right: -15px; }
         }
       `}</style>
     </div>
